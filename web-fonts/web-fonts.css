@@ -165,6 +165,7 @@
   font-display: swap;
 }
 
+/* Roboto Slab */
 @font-face {
   font-family: 'Roboto Slab';
   src: url('https://pssndo.github.io/web-fonts/RobotoSlab-ExtraBold.woff2') format('woff2'),
@@ -253,4 +254,113 @@
   font-weight: 900;
   font-style: normal;
   font-display: swap;
+}
+
+/* Source Serif Pro */
+@font-face {
+    font-family: 'Source Serif Pro';
+    src: url('https://pssndo.github.io/web-fonts/SourceSerifPro-Regular.woff2') format('woff2'),
+        url('https://pssndo.github.io/web-fonts/SourceSerifPro-Regular.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Source Serif Pro';
+    src: url('https://pssndo.github.io/web-fonts/SourceSerifPro-SemiboldIt.woff2') format('woff2'),
+        url('https://pssndo.github.io/web-fonts/SourceSerifPro-SemiboldIt.woff') format('woff');
+    font-weight: 600;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Source Serif Pro';
+    src: url('https://pssndo.github.io/web-fonts/SourceSerifPro-Semibold.woff2') format('woff2'),
+        url('https://pssndo.github.io/web-fonts/SourceSerifPro-Semibold.woff') format('woff');
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Source Serif Pro';
+    src: url('https://pssndo.github.io/web-fonts/SourceSerifPro-ExtraLight.woff2') format('woff2'),
+        url('https://pssndo.github.io/web-fonts/SourceSerifPro-ExtraLight.woff') format('woff');
+    font-weight: 200;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Source Serif Pro';
+    src: url('https://pssndo.github.io/web-fonts/SourceSerifPro-LightIt.woff2') format('woff2'),
+        url('https://pssndo.github.io/web-fonts/SourceSerifPro-LightIt.woff') format('woff');
+    font-weight: 300;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Source Serif Pro';
+    src: url('https://pssndo.github.io/web-fonts/SourceSerifPro-Black.woff2') format('woff2'),
+        url('https://pssndo.github.io/web-fonts/SourceSerifPro-Black.woff') format('woff');
+    font-weight: 900;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Source Serif Pro';
+    src: url('https://pssndo.github.io/web-fonts/SourceSerifPro-BoldIt.woff2') format('woff2'),
+        url('https://pssndo.github.io/web-fonts/SourceSerifPro-BoldIt.woff') format('woff');
+    font-weight: bold;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Source Serif Pro';
+    src: url('https://pssndo.github.io/web-fonts/SourceSerifPro-It.woff2') format('woff2'),
+        url('https://pssndo.github.io/web-fonts/SourceSerifPro-It.woff') format('woff');
+    font-weight: normal;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Source Serif Pro';
+    src: url('https://pssndo.github.io/web-fonts/SourceSerifPro-Light.woff2') format('woff2'),
+        url('https://pssndo.github.io/web-fonts/SourceSerifPro-Light.woff') format('woff');
+    font-weight: 300;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Source Serif Pro';
+    src: url('https://pssndo.github.io/web-fonts/SourceSerifPro-BlackIt.woff2') format('woff2'),
+        url('https://pssndo.github.io/web-fonts/SourceSerifPro-BlackIt.woff') format('woff');
+    font-weight: 900;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Source Serif Pro';
+    src: url('https://pssndo.github.io/web-fonts/SourceSerifPro-ExtraLightIt.woff2') format('woff2'),
+        url('https://pssndo.github.io/web-fonts/SourceSerifPro-ExtraLightIt.woff') format('woff');
+    font-weight: 200;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Source Serif Pro';
+    src: url('https://pssndo.github.io/web-fonts/SourceSerifPro-Bold.woff2') format('woff2'),
+        url('https://pssndo.github.io/web-fonts/SourceSerifPro-Bold.woff') format('woff');
+    font-weight: bold;
+    font-style: normal;
+    font-display: swap;
 }
