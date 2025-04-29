@@ -373,4 +373,257 @@
     font-weight: normal;
     font-style: normal;
     font-display: swap;
+    }
+
+/* Economist */
+@font-face {
+    font-family: 'Economist Serif';
+    src: url('https://pssndo.github.io/web-fonts/EconomistSerif-LightItalic.woff2') format('woff2'),
+        url('https://pssndo.github.io/web-fonts/EconomistSerif-LightItalic.woff') format('woff');
+    font-weight: 300;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Economist Serif';
+    src: url('https://pssndo.github.io/web-fonts/EconomistSerif-Regular.woff2') format('woff2'),
+        url('https://pssndo.github.io/web-fonts/EconomistSerif-Regular.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Economist Serif';
+    src: url('https://pssndo.github.io/web-fonts/EconomistSerif-BoldItalic.woff2') format('woff2'),
+        url('https://pssndo.github.io/web-fonts/EconomistSerif-BoldItalic.woff') format('woff');
+    font-weight: bold;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Economist Serif';
+    src: url('https://pssndo.github.io/web-fonts/EconomistSerif-MediumItalic.woff2') format('woff2'),
+        url('https://pssndo.github.io/web-fonts/EconomistSerif-MediumItalic.woff') format('woff');
+    font-weight: 500;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Economist Serif';
+    src: url('https://pssndo.github.io/web-fonts/EconomistSerif-ExtraBold.woff2') format('woff2'),
+        url('https://pssndo.github.io/web-fonts/EconomistSerif-ExtraBold.woff') format('woff');
+    font-weight: bold;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Economist Serif';
+    src: url('https://pssndo.github.io/web-fonts/EconomistSerif-ExtraBoldItalic.woff2') format('woff2'),
+        url('https://pssndo.github.io/web-fonts/EconomistSerif-ExtraBoldItalic.woff') format('woff');
+    font-weight: bold;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Economist Serif';
+    src: url('https://pssndo.github.io/web-fonts/EconomistSerif-Medium.woff2') format('woff2'),
+        url('https://pssndo.github.io/web-fonts/EconomistSerif-Medium.woff') format('woff');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Economist Serif';
+    src: url('https://pssndo.github.io/web-fonts/EconomistSerif-Light.woff2') format('woff2'),
+        url('https://pssndo.github.io/web-fonts/EconomistSerif-Light.woff') format('woff');
+    font-weight: 300;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Economist Serif';
+    src: url('https://pssndo.github.io/web-fonts/EconomistSerif-RegularItalic.woff2') format('woff2'),
+        url('https://pssndo.github.io/web-fonts/EconomistSerif-RegularItalic.woff') format('woff');
+    font-weight: normal;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Economist Sans';
+    src: url('EconomistSans-BoldItalic.woff2') format('woff2'),
+        url('EconomistSans-BoldItalic.woff') format('woff');
+    font-weight: bold;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Economist Sans';
+    src: url('EconomistSans-ExtraBoldItalic.woff2') format('woff2'),
+        url('EconomistSans-ExtraBoldItalic.woff') format('woff');
+    font-weight: bold;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Economist Sans';
+    src: url('EconomistSans-BlackItalic.woff2') format('woff2'),
+        url('EconomistSans-BlackItalic.woff') format('woff');
+    font-weight: 900;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Economist Sans';
+    src: url('EconomistSans-RegularItalic.woff2') format('woff2'),
+        url('EconomistSans-RegularItalic.woff') format('woff');
+    font-weight: normal;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Economist Sans';
+    src: url('EconomistSans-ExtraBold.woff2') format('woff2'),
+        url('EconomistSans-ExtraBold.woff') format('woff');
+    font-weight: bold;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Economist Sans';
+    src: url('EconomistSans-Regular.woff2') format('woff2'),
+        url('EconomistSans-Regular.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Economist Sans';
+    src: url('EconomistSans-Bold.woff2') format('woff2'),
+        url('EconomistSans-Bold.woff') format('woff');
+    font-weight: bold;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Economist Sans';
+    src: url('EconomistSans-Black.woff2') format('woff2'),
+        url('EconomistSans-Black.woff') format('woff');
+    font-weight: 900;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Economist Sans';
+    src: url('EconomistSans-LightItalic.woff2') format('woff2'),
+        url('EconomistSans-LightItalic.woff') format('woff');
+    font-weight: 300;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Economist Sans';
+    src: url('EconomistSans-Medium.woff2') format('woff2'),
+        url('EconomistSans-Medium.woff') format('woff');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Economist Sans';
+    src: url('EconomistSans-MediumItalic.woff2') format('woff2'),
+        url('EconomistSans-MediumItalic.woff') format('woff');
+    font-weight: 500;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Economist Serif';
+    src: url('https://pssndo.github.io/web-fonts/EconomistSerif-SemiBoldItalic.woff2') format('woff2'),
+        url('https://pssndo.github.io/web-fonts/EconomistSerif-SemiBoldItalic.woff') format('woff');
+    font-weight: 600;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Economist Sans';
+    src: url('EconomistSans-SemiBold.woff2') format('woff2'),
+        url('EconomistSans-SemiBold.woff') format('woff');
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Economist Serif';
+    src: url('https://pssndo.github.io/web-fonts/EconomistSerif-SemiBold.woff2') format('woff2'),
+        url('https://pssndo.github.io/web-fonts/EconomistSerif-SemiBold.woff') format('woff');
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Economist Sans';
+    src: url('EconomistSans-Light.woff2') format('woff2'),
+        url('EconomistSans-Light.woff') format('woff');
+    font-weight: 300;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Economist Sans';
+    src: url('EconomistSans-SemiBoldItalic.woff2') format('woff2'),
+        url('EconomistSans-SemiBoldItalic.woff') format('woff');
+    font-weight: 600;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Economist Serif';
+    src: url('https://pssndo.github.io/web-fonts/EconomistSerif-Black.woff2') format('woff2'),
+        url('https://pssndo.github.io/web-fonts/EconomistSerif-Black.woff') format('woff');
+    font-weight: 900;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Economist Serif';
+    src: url('https://pssndo.github.io/web-fonts/EconomistSerif-Bold.woff2') format('woff2'),
+        url('https://pssndo.github.io/web-fonts/EconomistSerif-Bold.woff') format('woff');
+    font-weight: bold;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Economist Serif';
+    src: url('https://pssndo.github.io/web-fonts/EconomistSerif-BlackItalic.woff2') format('woff2'),
+        url('https://pssndo.github.io/web-fonts/EconomistSerif-BlackItalic.woff') format('woff');
+    font-weight: 900;
+    font-style: italic;
+    font-display: swap;
 }
