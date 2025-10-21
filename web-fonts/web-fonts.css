@@ -258,852 +258,854 @@
 
 /* Source Serif Pro */
 @font-face {
-    font-family: 'Source Serif Pro';
-    src: url('https://pssndo.github.io/web-fonts/SourceSerifPro-Regular.woff2') format('woff2'),
-        url('https://pssndo.github.io/web-fonts/SourceSerifPro-Regular.woff') format('woff');
-    font-weight: normal;
-    font-style: normal;
-    font-display: swap;
+  font-family: 'Source Serif Pro';
+  src: url('https://pssndo.github.io/web-fonts/SourceSerifPro-Regular.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/SourceSerifPro-Regular.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Source Serif Pro';
-    src: url('https://pssndo.github.io/web-fonts/SourceSerifPro-SemiboldIt.woff2') format('woff2'),
-        url('https://pssndo.github.io/web-fonts/SourceSerifPro-SemiboldIt.woff') format('woff');
-    font-weight: 600;
-    font-style: italic;
-    font-display: swap;
+  font-family: 'Source Serif Pro';
+  src: url('https://pssndo.github.io/web-fonts/SourceSerifPro-SemiboldIt.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/SourceSerifPro-SemiboldIt.woff') format('woff');
+  font-weight: 600;
+  font-style: italic;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Source Serif Pro';
-    src: url('https://pssndo.github.io/web-fonts/SourceSerifPro-Semibold.woff2') format('woff2'),
-        url('https://pssndo.github.io/web-fonts/SourceSerifPro-Semibold.woff') format('woff');
-    font-weight: 600;
-    font-style: normal;
-    font-display: swap;
+  font-family: 'Source Serif Pro';
+  src: url('https://pssndo.github.io/web-fonts/SourceSerifPro-Semibold.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/SourceSerifPro-Semibold.woff') format('woff');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Source Serif Pro';
-    src: url('https://pssndo.github.io/web-fonts/SourceSerifPro-ExtraLight.woff2') format('woff2'),
-        url('https://pssndo.github.io/web-fonts/SourceSerifPro-ExtraLight.woff') format('woff');
-    font-weight: 200;
-    font-style: normal;
-    font-display: swap;
+  font-family: 'Source Serif Pro';
+  src: url('https://pssndo.github.io/web-fonts/SourceSerifPro-ExtraLight.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/SourceSerifPro-ExtraLight.woff') format('woff');
+  font-weight: 200;
+  font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Source Serif Pro';
-    src: url('https://pssndo.github.io/web-fonts/SourceSerifPro-LightIt.woff2') format('woff2'),
-        url('https://pssndo.github.io/web-fonts/SourceSerifPro-LightIt.woff') format('woff');
-    font-weight: 300;
-    font-style: italic;
-    font-display: swap;
+  font-family: 'Source Serif Pro';
+  src: url('https://pssndo.github.io/web-fonts/SourceSerifPro-LightIt.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/SourceSerifPro-LightIt.woff') format('woff');
+  font-weight: 300;
+  font-style: italic;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Source Serif Pro';
-    src: url('https://pssndo.github.io/web-fonts/SourceSerifPro-Black.woff2') format('woff2'),
-        url('https://pssndo.github.io/web-fonts/SourceSerifPro-Black.woff') format('woff');
-    font-weight: 900;
-    font-style: normal;
-    font-display: swap;
+  font-family: 'Source Serif Pro';
+  src: url('https://pssndo.github.io/web-fonts/SourceSerifPro-Black.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/SourceSerifPro-Black.woff') format('woff');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Source Serif Pro';
-    src: url('https://pssndo.github.io/web-fonts/SourceSerifPro-BoldIt.woff2') format('woff2'),
-        url('https://pssndo.github.io/web-fonts/SourceSerifPro-BoldIt.woff') format('woff');
-    font-weight: bold;
-    font-style: italic;
-    font-display: swap;
+  font-family: 'Source Serif Pro';
+  src: url('https://pssndo.github.io/web-fonts/SourceSerifPro-BoldIt.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/SourceSerifPro-BoldIt.woff') format('woff');
+  font-weight: bold;
+  font-style: italic;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Source Serif Pro';
-    src: url('https://pssndo.github.io/web-fonts/SourceSerifPro-It.woff2') format('woff2'),
-        url('https://pssndo.github.io/web-fonts/SourceSerifPro-It.woff') format('woff');
-    font-weight: normal;
-    font-style: italic;
-    font-display: swap;
+  font-family: 'Source Serif Pro';
+  src: url('https://pssndo.github.io/web-fonts/SourceSerifPro-It.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/SourceSerifPro-It.woff') format('woff');
+  font-weight: normal;
+  font-style: italic;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Source Serif Pro';
-    src: url('https://pssndo.github.io/web-fonts/SourceSerifPro-Light.woff2') format('woff2'),
-        url('https://pssndo.github.io/web-fonts/SourceSerifPro-Light.woff') format('woff');
-    font-weight: 300;
-    font-style: normal;
-    font-display: swap;
+  font-family: 'Source Serif Pro';
+  src: url('https://pssndo.github.io/web-fonts/SourceSerifPro-Light.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/SourceSerifPro-Light.woff') format('woff');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Source Serif Pro';
-    src: url('https://pssndo.github.io/web-fonts/SourceSerifPro-BlackIt.woff2') format('woff2'),
-        url('https://pssndo.github.io/web-fonts/SourceSerifPro-BlackIt.woff') format('woff');
-    font-weight: 900;
-    font-style: italic;
-    font-display: swap;
+  font-family: 'Source Serif Pro';
+  src: url('https://pssndo.github.io/web-fonts/SourceSerifPro-BlackIt.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/SourceSerifPro-BlackIt.woff') format('woff');
+  font-weight: 900;
+  font-style: italic;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Source Serif Pro';
-    src: url('https://pssndo.github.io/web-fonts/SourceSerifPro-ExtraLightIt.woff2') format('woff2'),
-        url('https://pssndo.github.io/web-fonts/SourceSerifPro-ExtraLightIt.woff') format('woff');
-    font-weight: 200;
-    font-style: italic;
-    font-display: swap;
+  font-family: 'Source Serif Pro';
+  src: url('https://pssndo.github.io/web-fonts/SourceSerifPro-ExtraLightIt.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/SourceSerifPro-ExtraLightIt.woff') format('woff');
+  font-weight: 200;
+  font-style: italic;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Source Serif Pro';
-    src: url('https://pssndo.github.io/web-fonts/SourceSerifPro-Bold.woff2') format('woff2'),
-        url('https://pssndo.github.io/web-fonts/SourceSerifPro-Bold.woff') format('woff');
-    font-weight: bold;
-    font-style: normal;
-    font-display: swap;
+  font-family: 'Source Serif Pro';
+  src: url('https://pssndo.github.io/web-fonts/SourceSerifPro-Bold.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/SourceSerifPro-Bold.woff') format('woff');
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
 }
 
 /* ACaslonPro-Regular */
 @font-face {
-    font-family: 'ACaslonPro-Regular';
-    src: url('https://pssndo.github.io/web-fonts/ACaslonPro-Regular.woff2') format('woff2'),
-        url('https://pssndo.github.io/web-fonts/ACaslonPro-Regular.woff') format('woff');
-    font-weight: normal;
-    font-style: normal;
-    font-display: swap;
-    }
+  font-family: 'ACaslonPro-Regular';
+  src: url('https://pssndo.github.io/web-fonts/ACaslonPro-Regular.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/ACaslonPro-Regular.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
 
 /* Economist */
 @font-face {
-    font-family: 'Economist Serif';
-    src: url('https://pssndo.github.io/web-fonts/EconomistSerif-LightItalic.woff2') format('woff2'),
-        url('https://pssndo.github.io/web-fonts/EconomistSerif-LightItalic.woff') format('woff');
-    font-weight: 300;
-    font-style: italic;
-    font-display: swap;
+  font-family: 'Economist Serif';
+  src: url('https://pssndo.github.io/web-fonts/EconomistSerif-LightItalic.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/EconomistSerif-LightItalic.woff') format('woff');
+  font-weight: 300;
+  font-style: italic;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Economist Serif';
-    src: url('https://pssndo.github.io/web-fonts/EconomistSerif-Regular.woff2') format('woff2'),
-        url('https://pssndo.github.io/web-fonts/EconomistSerif-Regular.woff') format('woff');
-    font-weight: normal;
-    font-style: normal;
-    font-display: swap;
+  font-family: 'Economist Serif';
+  src: url('https://pssndo.github.io/web-fonts/EconomistSerif-Regular.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/EconomistSerif-Regular.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Economist Serif';
-    src: url('https://pssndo.github.io/web-fonts/EconomistSerif-BoldItalic.woff2') format('woff2'),
-        url('https://pssndo.github.io/web-fonts/EconomistSerif-BoldItalic.woff') format('woff');
-    font-weight: bold;
-    font-style: italic;
-    font-display: swap;
+  font-family: 'Economist Serif';
+  src: url('https://pssndo.github.io/web-fonts/EconomistSerif-BoldItalic.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/EconomistSerif-BoldItalic.woff') format('woff');
+  font-weight: bold;
+  font-style: italic;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Economist Serif';
-    src: url('https://pssndo.github.io/web-fonts/EconomistSerif-MediumItalic.woff2') format('woff2'),
-        url('https://pssndo.github.io/web-fonts/EconomistSerif-MediumItalic.woff') format('woff');
-    font-weight: 500;
-    font-style: italic;
-    font-display: swap;
+  font-family: 'Economist Serif';
+  src: url('https://pssndo.github.io/web-fonts/EconomistSerif-MediumItalic.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/EconomistSerif-MediumItalic.woff') format('woff');
+  font-weight: 500;
+  font-style: italic;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Economist Serif';
-    src: url('https://pssndo.github.io/web-fonts/EconomistSerif-ExtraBold.woff2') format('woff2'),
-        url('https://pssndo.github.io/web-fonts/EconomistSerif-ExtraBold.woff') format('woff');
-    font-weight: bold;
-    font-style: normal;
-    font-display: swap;
+  font-family: 'Economist Serif';
+  src: url('https://pssndo.github.io/web-fonts/EconomistSerif-ExtraBold.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/EconomistSerif-ExtraBold.woff') format('woff');
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Economist Serif';
-    src: url('https://pssndo.github.io/web-fonts/EconomistSerif-ExtraBoldItalic.woff2') format('woff2'),
-        url('https://pssndo.github.io/web-fonts/EconomistSerif-ExtraBoldItalic.woff') format('woff');
-    font-weight: bold;
-    font-style: italic;
-    font-display: swap;
+  font-family: 'Economist Serif';
+  src: url('https://pssndo.github.io/web-fonts/EconomistSerif-ExtraBoldItalic.woff2')
+      format('woff2'),
+    url('https://pssndo.github.io/web-fonts/EconomistSerif-ExtraBoldItalic.woff') format('woff');
+  font-weight: bold;
+  font-style: italic;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Economist Serif';
-    src: url('https://pssndo.github.io/web-fonts/EconomistSerif-Medium.woff2') format('woff2'),
-        url('https://pssndo.github.io/web-fonts/EconomistSerif-Medium.woff') format('woff');
-    font-weight: 500;
-    font-style: normal;
-    font-display: swap;
+  font-family: 'Economist Serif';
+  src: url('https://pssndo.github.io/web-fonts/EconomistSerif-Medium.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/EconomistSerif-Medium.woff') format('woff');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Economist Serif';
-    src: url('https://pssndo.github.io/web-fonts/EconomistSerif-Light.woff2') format('woff2'),
-        url('https://pssndo.github.io/web-fonts/EconomistSerif-Light.woff') format('woff');
-    font-weight: 300;
-    font-style: normal;
-    font-display: swap;
+  font-family: 'Economist Serif';
+  src: url('https://pssndo.github.io/web-fonts/EconomistSerif-Light.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/EconomistSerif-Light.woff') format('woff');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Economist Serif';
-    src: url('https://pssndo.github.io/web-fonts/EconomistSerif-RegularItalic.woff2') format('woff2'),
-        url('https://pssndo.github.io/web-fonts/EconomistSerif-RegularItalic.woff') format('woff');
-    font-weight: normal;
-    font-style: italic;
-    font-display: swap;
+  font-family: 'Economist Serif';
+  src: url('https://pssndo.github.io/web-fonts/EconomistSerif-RegularItalic.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/EconomistSerif-RegularItalic.woff') format('woff');
+  font-weight: normal;
+  font-style: italic;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Economist Sans';
-    src: url('EconomistSans-BoldItalic.woff2') format('woff2'),
-        url('EconomistSans-BoldItalic.woff') format('woff');
-    font-weight: bold;
-    font-style: italic;
-    font-display: swap;
+  font-family: 'Economist Sans';
+  src: url('https://pssndo.github.io/web-fonts/EconomistSans-BoldItalic.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/EconomistSans-BoldItalic.woff') format('woff');
+  font-weight: bold;
+  font-style: italic;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Economist Sans';
-    src: url('EconomistSans-ExtraBoldItalic.woff2') format('woff2'),
-        url('EconomistSans-ExtraBoldItalic.woff') format('woff');
-    font-weight: bold;
-    font-style: italic;
-    font-display: swap;
+  font-family: 'Economist Sans';
+  src: url('https://pssndo.github.io/web-fonts/EconomistSans-ExtraBoldItalic.woff2')
+      format('woff2'),
+    url('https://pssndo.github.io/web-fonts/EconomistSans-ExtraBoldItalic.woff') format('woff');
+  font-weight: bold;
+  font-style: italic;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Economist Sans';
-    src: url('EconomistSans-BlackItalic.woff2') format('woff2'),
-        url('EconomistSans-BlackItalic.woff') format('woff');
-    font-weight: 900;
-    font-style: italic;
-    font-display: swap;
+  font-family: 'Economist Sans';
+  src: url('https://pssndo.github.io/web-fonts/EconomistSans-BlackItalic.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/EconomistSans-BlackItalic.woff') format('woff');
+  font-weight: 900;
+  font-style: italic;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Economist Sans';
-    src: url('EconomistSans-RegularItalic.woff2') format('woff2'),
-        url('EconomistSans-RegularItalic.woff') format('woff');
-    font-weight: normal;
-    font-style: italic;
-    font-display: swap;
+  font-family: 'Economist Sans';
+  src: url('https://pssndo.github.io/web-fonts/EconomistSans-RegularItalic.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/EconomistSans-RegularItalic.woff') format('woff');
+  font-weight: normal;
+  font-style: italic;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Economist Sans';
-    src: url('EconomistSans-ExtraBold.woff2') format('woff2'),
-        url('EconomistSans-ExtraBold.woff') format('woff');
-    font-weight: bold;
-    font-style: normal;
-    font-display: swap;
+  font-family: 'Economist Sans';
+  src: url('https://pssndo.github.io/web-fonts/EconomistSans-ExtraBold.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/EconomistSans-ExtraBold.woff') format('woff');
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Economist Sans';
-    src: url('EconomistSans-Regular.woff2') format('woff2'),
-        url('EconomistSans-Regular.woff') format('woff');
-    font-weight: normal;
-    font-style: normal;
-    font-display: swap;
+  font-family: 'Economist Sans';
+  src: url('https://pssndo.github.io/web-fonts/EconomistSans-Regular.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/EconomistSans-Regular.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Economist Sans';
-    src: url('EconomistSans-Bold.woff2') format('woff2'),
-        url('EconomistSans-Bold.woff') format('woff');
-    font-weight: bold;
-    font-style: normal;
-    font-display: swap;
+  font-family: 'Economist Sans';
+  src: url('https://pssndo.github.io/web-fonts/EconomistSans-Bold.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/EconomistSans-Bold.woff') format('woff');
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Economist Sans';
-    src: url('EconomistSans-Black.woff2') format('woff2'),
-        url('EconomistSans-Black.woff') format('woff');
-    font-weight: 900;
-    font-style: normal;
-    font-display: swap;
+  font-family: 'Economist Sans';
+  src: url('https://pssndo.github.io/web-fonts/EconomistSans-Black.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/EconomistSans-Black.woff') format('woff');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Economist Sans';
-    src: url('EconomistSans-LightItalic.woff2') format('woff2'),
-        url('EconomistSans-LightItalic.woff') format('woff');
-    font-weight: 300;
-    font-style: italic;
-    font-display: swap;
+  font-family: 'Economist Sans';
+  src: url('https://pssndo.github.io/web-fonts/EconomistSans-LightItalic.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/EconomistSans-LightItalic.woff') format('woff');
+  font-weight: 300;
+  font-style: italic;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Economist Sans';
-    src: url('EconomistSans-Medium.woff2') format('woff2'),
-        url('EconomistSans-Medium.woff') format('woff');
-    font-weight: 500;
-    font-style: normal;
-    font-display: swap;
+  font-family: 'Economist Sans';
+  src: url('https://pssndo.github.io/web-fonts/EconomistSans-Medium.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/EconomistSans-Medium.woff') format('woff');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Economist Sans';
-    src: url('EconomistSans-MediumItalic.woff2') format('woff2'),
-        url('EconomistSans-MediumItalic.woff') format('woff');
-    font-weight: 500;
-    font-style: italic;
-    font-display: swap;
+  font-family: 'Economist Sans';
+  src: url('https://pssndo.github.io/web-fonts/EconomistSans-MediumItalic.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/EconomistSans-MediumItalic.woff') format('woff');
+  font-weight: 500;
+  font-style: italic;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Economist Serif';
-    src: url('https://pssndo.github.io/web-fonts/EconomistSerif-SemiBoldItalic.woff2') format('woff2'),
-        url('https://pssndo.github.io/web-fonts/EconomistSerif-SemiBoldItalic.woff') format('woff');
-    font-weight: 600;
-    font-style: italic;
-    font-display: swap;
+  font-family: 'Economist Serif';
+  src: url('https://pssndo.github.io/web-fonts/EconomistSerif-SemiBoldItalic.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/EconomistSerif-SemiBoldItalic.woff') format('woff');
+  font-weight: 600;
+  font-style: italic;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Economist Sans';
-    src: url('EconomistSans-SemiBold.woff2') format('woff2'),
-        url('EconomistSans-SemiBold.woff') format('woff');
-    font-weight: 600;
-    font-style: normal;
-    font-display: swap;
+  font-family: 'Economist Sans';
+  src: url('https://pssndo.github.io/web-fonts/EconomistSans-SemiBold.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/EconomistSans-SemiBold.woff') format('woff');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Economist Serif';
-    src: url('https://pssndo.github.io/web-fonts/EconomistSerif-SemiBold.woff2') format('woff2'),
-        url('https://pssndo.github.io/web-fonts/EconomistSerif-SemiBold.woff') format('woff');
-    font-weight: 600;
-    font-style: normal;
-    font-display: swap;
+  font-family: 'Economist Serif';
+  src: url('https://pssndo.github.io/web-fonts/EconomistSerif-SemiBold.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/EconomistSerif-SemiBold.woff') format('woff');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Economist Sans';
-    src: url('EconomistSans-Light.woff2') format('woff2'),
-        url('EconomistSans-Light.woff') format('woff');
-    font-weight: 300;
-    font-style: normal;
-    font-display: swap;
+  font-family: 'Economist Sans';
+  src: url('https://pssndo.github.io/web-fonts/EconomistSans-Light.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/EconomistSans-Light.woff') format('woff');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Economist Sans';
-    src: url('EconomistSans-SemiBoldItalic.woff2') format('woff2'),
-        url('EconomistSans-SemiBoldItalic.woff') format('woff');
-    font-weight: 600;
-    font-style: italic;
-    font-display: swap;
+  font-family: 'Economist Sans';
+  src: url('https://pssndo.github.io/web-fonts/EconomistSans-SemiBoldItalic.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/EconomistSans-SemiBoldItalic.woff') format('woff');
+  font-weight: 600;
+  font-style: italic;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Economist Serif';
-    src: url('https://pssndo.github.io/web-fonts/EconomistSerif-Black.woff2') format('woff2'),
-        url('https://pssndo.github.io/web-fonts/EconomistSerif-Black.woff') format('woff');
-    font-weight: 900;
-    font-style: normal;
-    font-display: swap;
+  font-family: 'Economist Serif';
+  src: url('https://pssndo.github.io/web-fonts/EconomistSerif-Black.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/EconomistSerif-Black.woff') format('woff');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Economist Serif';
-    src: url('https://pssndo.github.io/web-fonts/EconomistSerif-Bold.woff2') format('woff2'),
-        url('https://pssndo.github.io/web-fonts/EconomistSerif-Bold.woff') format('woff');
-    font-weight: bold;
-    font-style: normal;
-    font-display: swap;
+  font-family: 'Economist Serif';
+  src: url('https://pssndo.github.io/web-fonts/EconomistSerif-Bold.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/EconomistSerif-Bold.woff') format('woff');
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Economist Serif';
-    src: url('https://pssndo.github.io/web-fonts/EconomistSerif-BlackItalic.woff2') format('woff2'),
-        url('https://pssndo.github.io/web-fonts/EconomistSerif-BlackItalic.woff') format('woff');
-    font-weight: 900;
-    font-style: italic;
-    font-display: swap;
+  font-family: 'Economist Serif';
+  src: url('https://pssndo.github.io/web-fonts/EconomistSerif-BlackItalic.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/EconomistSerif-BlackItalic.woff') format('woff');
+  font-weight: 900;
+  font-style: italic;
+  font-display: swap;
 }
 
 /* Montserrat */
 @font-face {
-    font-family: 'Montserrat';
-    src: url('https://pssndo.github.io/web-fonts/Montserrat-ExtraBoldItalic.woff2') format('woff2'),
-        url('https://pssndo.github.io/web-fonts/Montserrat-ExtraBoldItalic.woff') format('woff');
-    font-weight: bold;
-    font-style: italic;
-    font-display: swap;
+  font-family: 'Montserrat';
+  src: url('https://pssndo.github.io/web-fonts/Montserrat-ExtraBoldItalic.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/Montserrat-ExtraBoldItalic.woff') format('woff');
+  font-weight: bold;
+  font-style: italic;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Montserrat';
-    src: url('https://pssndo.github.io/web-fonts/Montserrat-BoldItalic.woff2') format('woff2'),
-        url('https://pssndo.github.io/web-fonts/Montserrat-BoldItalic.woff') format('woff');
-    font-weight: bold;
-    font-style: italic;
-    font-display: swap;
+  font-family: 'Montserrat';
+  src: url('https://pssndo.github.io/web-fonts/Montserrat-BoldItalic.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/Montserrat-BoldItalic.woff') format('woff');
+  font-weight: bold;
+  font-style: italic;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Montserrat';
-    src: url('https://pssndo.github.io/web-fonts/Montserrat-ExtraBold.woff2') format('woff2'),
-        url('https://pssndo.github.io/web-fonts/Montserrat-ExtraBold.woff') format('woff');
-    font-weight: bold;
-    font-style: normal;
-    font-display: swap;
+  font-family: 'Montserrat';
+  src: url('https://pssndo.github.io/web-fonts/Montserrat-ExtraBold.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/Montserrat-ExtraBold.woff') format('woff');
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Montserrat';
-    src: url('https://pssndo.github.io/web-fonts/Montserrat-Black.woff2') format('woff2'),
-        url('https://pssndo.github.io/web-fonts/Montserrat-Black.woff') format('woff');
-    font-weight: 900;
-    font-style: normal;
-    font-display: swap;
+  font-family: 'Montserrat';
+  src: url('https://pssndo.github.io/web-fonts/Montserrat-Black.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/Montserrat-Black.woff') format('woff');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Montserrat';
-    src: url('https://pssndo.github.io/web-fonts/Montserrat-BlackItalic.woff2') format('woff2'),
-        url('https://pssndo.github.io/web-fonts/Montserrat-BlackItalic.woff') format('woff');
-    font-weight: 900;
-    font-style: italic;
-    font-display: swap;
+  font-family: 'Montserrat';
+  src: url('https://pssndo.github.io/web-fonts/Montserrat-BlackItalic.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/Montserrat-BlackItalic.woff') format('woff');
+  font-weight: 900;
+  font-style: italic;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Montserrat';
-    src: url('https://pssndo.github.io/web-fonts/Montserrat-Bold.woff2') format('woff2'),
-        url('https://pssndo.github.io/web-fonts/Montserrat-Bold.woff') format('woff');
-    font-weight: bold;
-    font-style: normal;
-    font-display: swap;
+  font-family: 'Montserrat';
+  src: url('https://pssndo.github.io/web-fonts/Montserrat-Bold.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/Montserrat-Bold.woff') format('woff');
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Montserrat';
-    src: url('https://pssndo.github.io/web-fonts/Montserrat-Regular.woff2') format('woff2'),
-        url('https://pssndo.github.io/web-fonts/Montserrat-Regular.woff') format('woff');
-    font-weight: normal;
-    font-style: normal;
-    font-display: swap;
+  font-family: 'Montserrat';
+  src: url('https://pssndo.github.io/web-fonts/Montserrat-Regular.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/Montserrat-Regular.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Montserrat';
-    src: url('https://pssndo.github.io/web-fonts/Montserrat-ExtraLightItalic.woff2') format('woff2'),
-        url('https://pssndo.github.io/web-fonts/Montserrat-ExtraLightItalic.woff') format('woff');
-    font-weight: 200;
-    font-style: italic;
-    font-display: swap;
+  font-family: 'Montserrat';
+  src: url('https://pssndo.github.io/web-fonts/Montserrat-ExtraLightItalic.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/Montserrat-ExtraLightItalic.woff') format('woff');
+  font-weight: 200;
+  font-style: italic;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Montserrat';
-    src: url('https://pssndo.github.io/web-fonts/Montserrat-ThinItalic.woff2') format('woff2'),
-        url('https://pssndo.github.io/web-fonts/Montserrat-ThinItalic.woff') format('woff');
-    font-weight: 100;
-    font-style: italic;
-    font-display: swap;
+  font-family: 'Montserrat';
+  src: url('https://pssndo.github.io/web-fonts/Montserrat-ThinItalic.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/Montserrat-ThinItalic.woff') format('woff');
+  font-weight: 100;
+  font-style: italic;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Montserrat';
-    src: url('https://pssndo.github.io/web-fonts/Montserrat-Medium.woff2') format('woff2'),
-        url('https://pssndo.github.io/web-fonts/Montserrat-Medium.woff') format('woff');
-    font-weight: 500;
-    font-style: normal;
-    font-display: swap;
+  font-family: 'Montserrat';
+  src: url('https://pssndo.github.io/web-fonts/Montserrat-Medium.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/Montserrat-Medium.woff') format('woff');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Montserrat';
-    src: url('https://pssndo.github.io/web-fonts/Montserrat-SemiBoldItalic.woff2') format('woff2'),
-        url('https://pssndo.github.io/web-fonts/Montserrat-SemiBoldItalic.woff') format('woff');
-    font-weight: 600;
-    font-style: italic;
-    font-display: swap;
+  font-family: 'Montserrat';
+  src: url('https://pssndo.github.io/web-fonts/Montserrat-SemiBoldItalic.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/Montserrat-SemiBoldItalic.woff') format('woff');
+  font-weight: 600;
+  font-style: italic;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Montserrat';
-    src: url('https://pssndo.github.io/web-fonts/Montserrat-LightItalic.woff2') format('woff2'),
-        url('https://pssndo.github.io/web-fonts/Montserrat-LightItalic.woff') format('woff');
-    font-weight: 300;
-    font-style: italic;
-    font-display: swap;
+  font-family: 'Montserrat';
+  src: url('https://pssndo.github.io/web-fonts/Montserrat-LightItalic.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/Montserrat-LightItalic.woff') format('woff');
+  font-weight: 300;
+  font-style: italic;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Montserrat';
-    src: url('https://pssndo.github.io/web-fonts/Montserrat-MediumItalic.woff2') format('woff2'),
-        url('https://pssndo.github.io/web-fonts/Montserrat-MediumItalic.woff') format('woff');
-    font-weight: 500;
-    font-style: italic;
-    font-display: swap;
+  font-family: 'Montserrat';
+  src: url('https://pssndo.github.io/web-fonts/Montserrat-MediumItalic.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/Montserrat-MediumItalic.woff') format('woff');
+  font-weight: 500;
+  font-style: italic;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Montserrat';
-    src: url('https://pssndo.github.io/web-fonts/Montserrat-SemiBold.woff2') format('woff2'),
-        url('https://pssndo.github.io/web-fonts/Montserrat-SemiBold.woff') format('woff');
-    font-weight: 600;
-    font-style: normal;
-    font-display: swap;
+  font-family: 'Montserrat';
+  src: url('https://pssndo.github.io/web-fonts/Montserrat-SemiBold.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/Montserrat-SemiBold.woff') format('woff');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Montserrat';
-    src: url('https://pssndo.github.io/web-fonts/Montserrat-Light.woff2') format('woff2'),
-        url('https://pssndo.github.io/web-fonts/Montserrat-Light.woff') format('woff');
-    font-weight: 300;
-    font-style: normal;
-    font-display: swap;
+  font-family: 'Montserrat';
+  src: url('https://pssndo.github.io/web-fonts/Montserrat-Light.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/Montserrat-Light.woff') format('woff');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Montserrat';
-    src: url('https://pssndo.github.io/web-fonts/Montserrat-Thin.woff2') format('woff2'),
-        url('https://pssndo.github.io/web-fonts/Montserrat-Thin.woff') format('woff');
-    font-weight: 100;
-    font-style: normal;
-    font-display: swap;
+  font-family: 'Montserrat';
+  src: url('https://pssndo.github.io/web-fonts/Montserrat-Thin.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/Montserrat-Thin.woff') format('woff');
+  font-weight: 100;
+  font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Montserrat';
-    src: url('https://pssndo.github.io/web-fonts/Montserrat-Italic.woff2') format('woff2'),
-        url('https://pssndo.github.io/web-fonts/Montserrat-Italic.woff') format('woff');
-    font-weight: normal;
-    font-style: italic;
-    font-display: swap;
+  font-family: 'Montserrat';
+  src: url('https://pssndo.github.io/web-fonts/Montserrat-Italic.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/Montserrat-Italic.woff') format('woff');
+  font-weight: normal;
+  font-style: italic;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Montserrat';
-    src: url('https://pssndo.github.io/web-fonts/Montserrat-ExtraLight.woff2') format('woff2'),
-        url('https://pssndo.github.io/web-fonts/Montserrat-ExtraLight.woff') format('woff');
-    font-weight: 200;
-    font-style: normal;
-    font-display: swap;
+  font-family: 'Montserrat';
+  src: url('https://pssndo.github.io/web-fonts/Montserrat-ExtraLight.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/Montserrat-ExtraLight.woff') format('woff');
+  font-weight: 200;
+  font-style: normal;
+  font-display: swap;
 }
 
 /* Lato */
 @font-face {
-    font-family: 'Lato';
-    src: url('https://pssndo.github.io/web-fonts/Lato-Bold.woff2') format('woff2'),
-        url('https://pssndo.github.io/web-fonts/Lato-Bold.woff') format('woff');
-    font-weight: bold;
-    font-style: normal;
-    font-display: swap;
+  font-family: 'Lato';
+  src: url('https://pssndo.github.io/web-fonts/Lato-Bold.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/Lato-Bold.woff') format('woff');
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Lato';
-    src: url('https://pssndo.github.io/web-fonts/Lato-BlackItalic.woff2') format('woff2'),
-        url('https://pssndo.github.io/web-fonts/Lato-BlackItalic.woff') format('woff');
-    font-weight: 900;
-    font-style: italic;
-    font-display: swap;
+  font-family: 'Lato';
+  src: url('https://pssndo.github.io/web-fonts/Lato-BlackItalic.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/Lato-BlackItalic.woff') format('woff');
+  font-weight: 900;
+  font-style: italic;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Lato Hairline';
-    src: url('https://pssndo.github.io/web-fonts/Lato-Hairline.woff2') format('woff2'),
-        url('https://pssndo.github.io/web-fonts/Lato-Hairline.woff') format('woff');
-    font-weight: 300;
-    font-style: normal;
-    font-display: swap;
+  font-family: 'Lato Hairline';
+  src: url('https://pssndo.github.io/web-fonts/Lato-Hairline.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/Lato-Hairline.woff') format('woff');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Lato';
-    src: url('https://pssndo.github.io/web-fonts/Lato-BoldItalic.woff2') format('woff2'),
-        url('https://pssndo.github.io/web-fonts/Lato-BoldItalic.woff') format('woff');
-    font-weight: bold;
-    font-style: italic;
-    font-display: swap;
+  font-family: 'Lato';
+  src: url('https://pssndo.github.io/web-fonts/Lato-BoldItalic.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/Lato-BoldItalic.woff') format('woff');
+  font-weight: bold;
+  font-style: italic;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Lato Hairline';
-    src: url('https://pssndo.github.io/web-fonts/Lato-HairlineItalic.woff2') format('woff2'),
-        url('https://pssndo.github.io/web-fonts/Lato-HairlineItalic.woff') format('woff');
-    font-weight: 300;
-    font-style: italic;
-    font-display: swap;
+  font-family: 'Lato Hairline';
+  src: url('https://pssndo.github.io/web-fonts/Lato-HairlineItalic.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/Lato-HairlineItalic.woff') format('woff');
+  font-weight: 300;
+  font-style: italic;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Lato';
-    src: url('https://pssndo.github.io/web-fonts/Lato-Black.woff2') format('woff2'),
-        url('https://pssndo.github.io/web-fonts/Lato-Black.woff') format('woff');
-    font-weight: 900;
-    font-style: normal;
-    font-display: swap;
+  font-family: 'Lato';
+  src: url('https://pssndo.github.io/web-fonts/Lato-Black.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/Lato-Black.woff') format('woff');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Lato';
-    src: url('https://pssndo.github.io/web-fonts/Lato-Light.woff2') format('woff2'),
-        url('https://pssndo.github.io/web-fonts/Lato-Light.woff') format('woff');
-    font-weight: 300;
-    font-style: normal;
-    font-display: swap;
+  font-family: 'Lato';
+  src: url('https://pssndo.github.io/web-fonts/Lato-Light.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/Lato-Light.woff') format('woff');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Lato';
-    src: url('https://pssndo.github.io/web-fonts/Lato-LightItalic.woff2') format('woff2'),
-        url('https://pssndo.github.io/web-fonts/Lato-LightItalic.woff') format('woff');
-    font-weight: 300;
-    font-style: italic;
-    font-display: swap;
+  font-family: 'Lato';
+  src: url('https://pssndo.github.io/web-fonts/Lato-LightItalic.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/Lato-LightItalic.woff') format('woff');
+  font-weight: 300;
+  font-style: italic;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Lato';
-    src: url('https://pssndo.github.io/web-fonts/Lato-Italic.woff2') format('woff2'),
-        url('https://pssndo.github.io/web-fonts/Lato-Italic.woff') format('woff');
-    font-weight: normal;
-    font-style: italic;
-    font-display: swap;
+  font-family: 'Lato';
+  src: url('https://pssndo.github.io/web-fonts/Lato-Italic.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/Lato-Italic.woff') format('woff');
+  font-weight: normal;
+  font-style: italic;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Lato';
-    src: url('https://pssndo.github.io/web-fonts/Lato-Regular.woff2') format('woff2'),
-        url('https://pssndo.github.io/web-fonts/Lato-Regular.woff') format('woff');
-    font-weight: normal;
-    font-style: normal;
-    font-display: swap;
+  font-family: 'Lato';
+  src: url('https://pssndo.github.io/web-fonts/Lato-Regular.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/Lato-Regular.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Poppins';
-    src: url('https://pssndo.github.io/web-fonts/Poppins-Italic.woff2') format('woff2'),
-        url('https://pssndo.github.io/web-fonts/Poppins-Italic.woff') format('woff');
-    font-weight: normal;
-    font-style: italic;
-    font-display: swap;
+  font-family: 'Poppins';
+  src: url('https://pssndo.github.io/web-fonts/Poppins-Italic.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/Poppins-Italic.woff') format('woff');
+  font-weight: normal;
+  font-style: italic;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Poppins';
-    src: url('https://pssndo.github.io/web-fonts/Poppins-ExtraBold.woff2') format('woff2'),
-        url('https://pssndo.github.io/web-fonts/Poppins-ExtraBold.woff') format('woff');
-    font-weight: bold;
-    font-style: normal;
-    font-display: swap;
+  font-family: 'Poppins';
+  src: url('https://pssndo.github.io/web-fonts/Poppins-ExtraBold.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/Poppins-ExtraBold.woff') format('woff');
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Poppins';
-    src: url('https://pssndo.github.io/web-fonts/Poppins-ExtraLight.woff2') format('woff2'),
-        url('https://pssndo.github.io/web-fonts/Poppins-ExtraLight.woff') format('woff');
-    font-weight: 200;
-    font-style: normal;
-    font-display: swap;
+  font-family: 'Poppins';
+  src: url('https://pssndo.github.io/web-fonts/Poppins-ExtraLight.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/Poppins-ExtraLight.woff') format('woff');
+  font-weight: 200;
+  font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Poppins';
-    src: url('https://pssndo.github.io/web-fonts/Poppins-BlackItalic.woff2') format('woff2'),
-        url('https://pssndo.github.io/web-fonts/Poppins-BlackItalic.woff') format('woff');
-    font-weight: 900;
-    font-style: italic;
-    font-display: swap;
+  font-family: 'Poppins';
+  src: url('https://pssndo.github.io/web-fonts/Poppins-BlackItalic.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/Poppins-BlackItalic.woff') format('woff');
+  font-weight: 900;
+  font-style: italic;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Poppins';
-    src: url('https://pssndo.github.io/web-fonts/Poppins-BoldItalic.woff2') format('woff2'),
-        url('https://pssndo.github.io/web-fonts/Poppins-BoldItalic.woff') format('woff');
-    font-weight: bold;
-    font-style: italic;
-    font-display: swap;
+  font-family: 'Poppins';
+  src: url('https://pssndo.github.io/web-fonts/Poppins-BoldItalic.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/Poppins-BoldItalic.woff') format('woff');
+  font-weight: bold;
+  font-style: italic;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Poppins';
-    src: url('https://pssndo.github.io/web-fonts/Poppins-ExtraLightItalic.woff2') format('woff2'),
-        url('https://pssndo.github.io/web-fonts/Poppins-ExtraLightItalic.woff') format('woff');
-    font-weight: 200;
-    font-style: italic;
-    font-display: swap;
+  font-family: 'Poppins';
+  src: url('https://pssndo.github.io/web-fonts/Poppins-ExtraLightItalic.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/Poppins-ExtraLightItalic.woff') format('woff');
+  font-weight: 200;
+  font-style: italic;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Poppins';
-    src: url('https://pssndo.github.io/web-fonts/Poppins-Black.woff2') format('woff2'),
-        url('https://pssndo.github.io/web-fonts/Poppins-Black.woff') format('woff');
-    font-weight: 900;
-    font-style: normal;
-    font-display: swap;
+  font-family: 'Poppins';
+  src: url('https://pssndo.github.io/web-fonts/Poppins-Black.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/Poppins-Black.woff') format('woff');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Poppins';
-    src: url('https://pssndo.github.io/web-fonts/Poppins-Bold.woff2') format('woff2'),
-        url('https://pssndo.github.io/web-fonts/Poppins-Bold.woff') format('woff');
-    font-weight: bold;
-    font-style: normal;
-    font-display: swap;
+  font-family: 'Poppins';
+  src: url('https://pssndo.github.io/web-fonts/Poppins-Bold.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/Poppins-Bold.woff') format('woff');
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Poppins';
-    src: url('https://pssndo.github.io/web-fonts/Poppins-ExtraBoldItalic.woff2') format('woff2'),
-        url('https://pssndo.github.io/web-fonts/Poppins-ExtraBoldItalic.woff') format('woff');
-    font-weight: bold;
-    font-style: italic;
-    font-display: swap;
+  font-family: 'Poppins';
+  src: url('https://pssndo.github.io/web-fonts/Poppins-ExtraBoldItalic.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/Poppins-ExtraBoldItalic.woff') format('woff');
+  font-weight: bold;
+  font-style: italic;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Poppins';
-    src: url('https://pssndo.github.io/web-fonts/Poppins-Regular.woff2') format('woff2'),
-        url('https://pssndo.github.io/web-fonts/Poppins-Regular.woff') format('woff');
-    font-weight: normal;
-    font-style: normal;
-    font-display: swap;
+  font-family: 'Poppins';
+  src: url('https://pssndo.github.io/web-fonts/Poppins-Regular.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/Poppins-Regular.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Poppins';
-    src: url('https://pssndo.github.io/web-fonts/Poppins-Thin.woff2') format('woff2'),
-        url('https://pssndo.github.io/web-fonts/Poppins-Thin.woff') format('woff');
-    font-weight: 100;
-    font-style: normal;
-    font-display: swap;
+  font-family: 'Poppins';
+  src: url('https://pssndo.github.io/web-fonts/Poppins-Thin.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/Poppins-Thin.woff') format('woff');
+  font-weight: 100;
+  font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Poppins';
-    src: url('https://pssndo.github.io/web-fonts/Poppins-ThinItalic.woff2') format('woff2'),
-        url('https://pssndo.github.io/web-fonts/Poppins-ThinItalic.woff') format('woff');
-    font-weight: 100;
-    font-style: italic;
-    font-display: swap;
+  font-family: 'Poppins';
+  src: url('https://pssndo.github.io/web-fonts/Poppins-ThinItalic.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/Poppins-ThinItalic.woff') format('woff');
+  font-weight: 100;
+  font-style: italic;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Poppins';
-    src: url('https://pssndo.github.io/web-fonts/Poppins-MediumItalic.woff2') format('woff2'),
-        url('https://pssndo.github.io/web-fonts/Poppins-MediumItalic.woff') format('woff');
-    font-weight: 500;
-    font-style: italic;
-    font-display: swap;
+  font-family: 'Poppins';
+  src: url('https://pssndo.github.io/web-fonts/Poppins-MediumItalic.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/Poppins-MediumItalic.woff') format('woff');
+  font-weight: 500;
+  font-style: italic;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Poppins';
-    src: url('https://pssndo.github.io/web-fonts/Poppins-Medium.woff2') format('woff2'),
-        url('https://pssndo.github.io/web-fonts/Poppins-Medium.woff') format('woff');
-    font-weight: 500;
-    font-style: normal;
-    font-display: swap;
+  font-family: 'Poppins';
+  src: url('https://pssndo.github.io/web-fonts/Poppins-Medium.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/Poppins-Medium.woff') format('woff');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Poppins';
-    src: url('https://pssndo.github.io/web-fonts/Poppins-Light.woff2') format('woff2'),
-        url('https://pssndo.github.io/web-fonts/Poppins-Light.woff') format('woff');
-    font-weight: 300;
-    font-style: normal;
-    font-display: swap;
+  font-family: 'Poppins';
+  src: url('https://pssndo.github.io/web-fonts/Poppins-Light.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/Poppins-Light.woff') format('woff');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Poppins';
-    src: url('https://pssndo.github.io/web-fonts/Poppins-LightItalic.woff2') format('woff2'),
-        url('https://pssndo.github.io/web-fonts/Poppins-LightItalic.woff') format('woff');
-    font-weight: 300;
-    font-style: italic;
-    font-display: swap;
+  font-family: 'Poppins';
+  src: url('https://pssndo.github.io/web-fonts/Poppins-LightItalic.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/Poppins-LightItalic.woff') format('woff');
+  font-weight: 300;
+  font-style: italic;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Poppins';
-    src: url('https://pssndo.github.io/web-fonts/Poppins-SemiBoldItalic.woff2') format('woff2'),
-        url('https://pssndo.github.io/web-fonts/Poppins-SemiBoldItalic.woff') format('woff');
-    font-weight: 600;
-    font-style: italic;
-    font-display: swap;
+  font-family: 'Poppins';
+  src: url('https://pssndo.github.io/web-fonts/Poppins-SemiBoldItalic.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/Poppins-SemiBoldItalic.woff') format('woff');
+  font-weight: 600;
+  font-style: italic;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Poppins';
-    src: url('https://pssndo.github.io/web-fonts/Poppins-SemiBold.woff2') format('woff2'),
-        url('https://pssndo.github.io/web-fonts/Poppins-SemiBold.woff') format('woff');
-    font-weight: 600;
-    font-style: normal;
-    font-display: swap;
+  font-family: 'Poppins';
+  src: url('https://pssndo.github.io/web-fonts/Poppins-SemiBold.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/Poppins-SemiBold.woff') format('woff');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
 }
 
 /* Helvetica */
 @font-face {
-    font-family: 'Helvetica';
-    src: url('https://pssndo.github.io/web-fonts/Helvetica-BoldOblique.woff2') format('woff2'),
-        url('https://pssndo.github.io/web-fonts/Helvetica-BoldOblique.woff') format('woff');
-    font-weight: bold;
-    font-style: italic;
-    font-display: swap;
+  font-family: 'Helvetica';
+  src: url('https://pssndo.github.io/web-fonts/Helvetica-BoldOblique.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/Helvetica-BoldOblique.woff') format('woff');
+  font-weight: bold;
+  font-style: italic;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Helvetica';
-    src: url('https://pssndo.github.io/web-fonts/Helvetica-Bold.woff2') format('woff2'),
-        url('https://pssndo.github.io/web-fonts/Helvetica-Bold.woff') format('woff');
-    font-weight: bold;
-    font-style: normal;
-    font-display: swap;
+  font-family: 'Helvetica';
+  src: url('https://pssndo.github.io/web-fonts/Helvetica-Bold.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/Helvetica-Bold.woff') format('woff');
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Helvetica';
-    src: url('https://pssndo.github.io/web-fonts/HelveticaRounded-Bold.woff2') format('woff2'),
-        url('https://pssndo.github.io/web-fonts/HelveticaRounded-Bold.woff') format('woff');
-    font-weight: bold;
-    font-style: normal;
-    font-display: swap;
+  font-family: 'Helvetica';
+  src: url('https://pssndo.github.io/web-fonts/HelveticaRounded-Bold.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/HelveticaRounded-Bold.woff') format('woff');
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Helvetica';
-    src: url('https://pssndo.github.io/web-fonts/Helvetica.woff2') format('woff2'),
-        url('https://pssndo.github.io/web-fonts/Helvetica.woff') format('woff');
-    font-weight: normal;
-    font-style: normal;
-    font-display: swap;
+  font-family: 'Helvetica';
+  src: url('https://pssndo.github.io/web-fonts/Helvetica.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/Helvetica.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Helvetica';
-    src: url('https://pssndo.github.io/web-fonts/Helvetica-Compressed.woff2') format('woff2'),
-        url('https://pssndo.github.io/web-fonts/Helvetica-Compressed.woff') format('woff');
-    font-weight: normal;
-    font-style: normal;
-    font-display: swap;
+  font-family: 'Helvetica';
+  src: url('https://pssndo.github.io/web-fonts/Helvetica-Compressed.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/Helvetica-Compressed.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Helvetica';
-    src: url('https://pssndo.github.io/web-fonts/Helvetica-Light.woff2') format('woff2'),
-        url('https://pssndo.github.io/web-fonts/Helvetica-Light.woff') format('woff');
-    font-weight: 300;
-    font-style: normal;
-    font-display: swap;
+  font-family: 'Helvetica';
+  src: url('https://pssndo.github.io/web-fonts/Helvetica-Light.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/Helvetica-Light.woff') format('woff');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Helvetica';
-    src: url('https://pssndo.github.io/web-fonts/Helvetica-Oblique.woff2') format('woff2'),
-        url('https://pssndo.github.io/web-fonts/Helvetica-Oblique.woff') format('woff');
-    font-weight: normal;
-    font-style: italic;
-    font-display: swap;
+  font-family: 'Helvetica';
+  src: url('https://pssndo.github.io/web-fonts/Helvetica-Oblique.woff2') format('woff2'),
+    url('https://pssndo.github.io/web-fonts/Helvetica-Oblique.woff') format('woff');
+  font-weight: normal;
+  font-style: italic;
+  font-display: swap;
 }
