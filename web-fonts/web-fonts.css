@@ -1109,3 +1109,94 @@
   font-style: italic;
   font-display: swap;
 }
+
+/* Lora */
+@font-face {
+    font-family: 'Lora';
+    src: url('https://pssndo.github.io/web-fonts/Lora-SemiBold.woff2') format('woff2'),
+        url('https://pssndo.github.io/web-fonts/Lora-SemiBold.woff') format('woff');
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Lora';
+    src: url('https://pssndo.github.io/web-fonts/Lora-SemiBoldItalic.woff2') format('woff2'),
+        url('https://pssndo.github.io/web-fonts/Lora-SemiBoldItalic.woff') format('woff');
+    font-weight: 600;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Lora';
+    src: url('https://pssndo.github.io/web-fonts/Lora-Italic.woff2') format('woff2'),
+        url('https://pssndo.github.io/web-fonts/Lora-Italic.woff') format('woff');
+    font-weight: normal;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Lora';
+    src: url('https://pssndo.github.io/web-fonts/Lora-Bold.woff2') format('woff2'),
+        url('https://pssndo.github.io/web-fonts/Lora-Bold.woff') format('woff');
+    font-weight: bold;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Lora';
+    src: url('https://pssndo.github.io/web-fonts/Lora-Regular.woff2') format('woff2'),
+        url('https://pssndo.github.io/web-fonts/Lora-Regular.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Lora';
+    src: url('https://pssndo.github.io/web-fonts/Lora-Medium.woff2') format('woff2'),
+        url('https://pssndo.github.io/web-fonts/Lora-Medium.woff') format('woff');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Lora';
+    src: url('https://pssndo.github.io/web-fonts/Lora-MediumItalic.woff2') format('woff2'),
+        url('https://pssndo.github.io/web-fonts/Lora-MediumItalic.woff') format('woff');
+    font-weight: 500;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Lora';
+    src: url('https://pssndo.github.io/web-fonts/Lora-BoldItalic.woff2') format('woff2'),
+        url('https://pssndo.github.io/web-fonts/Lora-BoldItalic.woff') format('woff');
+    font-weight: bold;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Lora';
+    src: url('https://pssndo.github.io/web-fonts/Lora-Regular.woff2') format('woff2'),
+        url('https://pssndo.github.io/web-fonts/Lora-Regular.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Lora';
+    src: url('https://pssndo.github.io/web-fonts/Lora-Italic.woff2') format('woff2'),
+        url('https://pssndo.github.io/web-fonts/Lora-Italic.woff') format('woff');
+    font-weight: normal;
+    font-style: italic;
+    font-display: swap;
+}
