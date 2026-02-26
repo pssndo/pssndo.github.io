@@ -16,7 +16,7 @@ ads, find the best match in under 40 milliseconds.
 
 ---
 
-## Core Concepts (No Prior Knowledge Required)
+## Core Concepts
 
 ### What Is an Embedding?
 
@@ -412,8 +412,7 @@ This system can be delivered in multiple ways depending on the customer:
 
 ### Mode A: API Service (Infrastructure Play)
 
-Sell the matching engine as an API to existing ad platforms (e.g., Passendo,
-Paved, LiveIntent, or custom publisher ad servers).
+Sell the matching engine as an API to existing ad platforms
 
 ```
 // Publisher's ad server calls your API:
@@ -448,7 +447,7 @@ A lightweight JavaScript tag or server-side SDK that publishers drop into
 their existing setup:
 
 ```html
-<!-- Publisher adds this to their newsletter template or website -->
+<!-- Publisher adds this to their website -->
 <script src="https://yourdomain.com/sdk.js"
         data-publisher-id="pub_123"
         data-slot="native-top">
