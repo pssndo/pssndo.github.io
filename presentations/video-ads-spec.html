@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Ads in Email Newsletters - Technical Spec</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        :root {
+            --bg-primary: #0f1419;
+            --bg-secondary: #1a1f26;
+            --bg-tertiary: #242b33;
+            --text-primary: #e7e9ea;
+            --text-secondary: #8b98a5;
+            --accent-blue: #1d9bf0;
+            --accent-green: #00ba7c;
+            --accent-orange: #ff7a00;
+            --accent-red: #f4212e;
+            --accent-purple: #7856ff;
+            --border-color: #2f3336;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.7;
+            padding: 2rem;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 0.25rem;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle { font-size: 1.1rem; color: var(--text-secondary); margin-bottom: 2rem; }
+
+        h2 {
+            font-size: 1.5rem;
+            margin: 2.5rem 0 1rem;
+            color: var(--accent-blue);
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.5rem;
+        }
+
+        h3 { font-size: 1.2rem; margin: 1.5rem 0 0.75rem; color: var(--text-primary); }
+        h4 { font-size: 1rem; margin: 1.25rem 0 0.5rem; color: var(--accent-green); }
+
+        p { margin-bottom: 1rem; color: var(--text-secondary); }
+        strong { color: var(--text-primary); }
+
+        .section {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--border-color);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            font-size: 0.9rem;
+        }
+
+        th, td {
+            padding: 0.6rem 0.8rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th { background: var(--bg-tertiary); color: var(--accent-blue); font-weight: 600; }
+        tr:hover { background: rgba(29, 155, 240, 0.05); }
+
+        .badge {
+            display: inline-block;
+            padding: 0.15rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .badge-no { background: rgba(244, 33, 46, 0.2); color: var(--accent-red); }
+        .badge-partial { background: rgba(255, 122, 0, 0.2); color: var(--accent-orange); }
+
+        code {
+            background: var(--bg-tertiary);
+            padding: 0.15rem 0.4rem;
+            border-radius: 4px;
+            font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+            font-size: 0.85em;
+            color: var(--accent-orange);
+        }
+
+        pre {
+            background: var(--bg-tertiary);
+            padding: 1rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+            font-size: 0.85rem;
+            line-height: 1.5;
+            margin: 1rem 0;
+        }
+        pre code { background: none; padding: 0; }
+
+        ul, ol { margin: 0.5rem 0 1rem 1.5rem; color: var(--text-secondary); }
+        li { margin-bottom: 0.4rem; }
+
+        .checklist { list-style: none; margin-left: 0; }
+        .checklist li { padding-left: 1.5rem; position: relative; }
+        .checklist li::before { content: '☐'; position: absolute; left: 0; color: var(--accent-blue); }
+
+        .tag {
+            display: inline-block;
+            padding: 0.15rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            margin-right: 0.5rem;
+        }
+        .tag-recommended { background: var(--accent-green); color: #000; }
+        .tag-deferred { background: var(--accent-orange); color: #000; }
+
+        .viz-container {
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+            overflow: hidden;
+        }
+
+        .flow-step {
+            background: var(--bg-secondary);
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            border-left: 3px solid var(--accent-blue);
+            margin: 0.5rem 0;
+            font-size: 0.9rem;
+        }
+
+        hr { border: none; border-top: 1px solid var(--border-color); margin: 2rem 0; }
+
+        @media (max-width: 768px) {
+            body { padding: 1rem; }
+            h1 { font-size: 1.6rem; }
+            table { font-size: 0.8rem; }
+        }
+    </style>
+</head>
+<body>
+    <h1>Video Ads in Email Newsletters</h1>
+    <p class="subtitle">Epic: Video-Like Ad Experiences Within Email</p>
+
+    <h2>Overview</h2>
+    <p>Email clients do not support <code>&lt;video&gt;</code> tags, autoplay, or embedded video players. This is a hard limitation of the email rendering environment — Gmail, Outlook, Apple Mail, and Yahoo all strip or ignore video elements. There is no way to serve a real video player inside an email.</p>
+    <p>However, there are proven techniques to deliver video-like ad experiences that feel close to watching a video, using formats that work across all major email clients.</p>
+    <p>This document describes what's possible, what needs to change in Emperor, and the recommended approach.</p>
+
+    <hr>
+
+    <h2>Why Real Video Won't Work in Email</h2>
+
+    <table>
+        <tr>
+            <th>Email Client</th>
+            <th><code>&lt;video&gt;</code> support</th>
+            <th>Autoplay</th>
+            <th>JavaScript</th>
+        </tr>
+        <tr><td>Gmail (web & app)</td><td><span class="badge badge-no">Stripped</span></td><td>No</td><td>No</td></tr>
+        <tr><td>Outlook (desktop)</td><td><span class="badge badge-no">Stripped</span></td><td>No</td><td>No</td></tr>
+        <tr><td>Outlook (web)</td><td><span class="badge badge-no">Stripped</span></td><td>No</td><td>No</td></tr>
+        <tr><td>Apple Mail (macOS/iOS)</td><td><span class="badge badge-partial">Partial (no autoplay)</span></td><td>No</td><td>No</td></tr>
+        <tr><td>Yahoo Mail</td><td><span class="badge badge-no">Stripped</span></td><td>No</td><td>No</td></tr>
+        <tr><td>Thunderbird</td><td><span class="badge badge-no">Stripped</span></td><td>No</td><td>No</td></tr>
+    </table>
+
+    <p>Apple Mail is the only client with partial <code>&lt;video&gt;</code> support, but it requires user interaction to play and covers ~15-20% of email opens. Building for that alone is not viable as a primary strategy.</p>
+
+    <p><strong>Other formats considered but not recommended:</strong></p>
+    <ul>
+        <li><strong>APNG (Animated PNG):</strong> Better quality than GIF (full 24-bit color, no banding) but inconsistent email client support. Would require GIF fallback for Outlook, adding complexity without significant benefit. If we pursue this later, the pipeline is nearly identical to GIF — just a different FFmpeg output format.</li>
+    </ul>
+
+    <hr>
+
+    <h2>What We Can Do: Two Approaches</h2>
+
+    <h3><span class="tag tag-recommended">RECOMMENDED</span> Approach 1: Animated GIF Ads</h3>
+
+    <p><strong>What it is:</strong> A short animated GIF (3-8 seconds, 5-15 frames) that auto-plays in the email. Looks and feels like a silent looping video clip.</p>
+
+    <p><strong>Why it works:</strong></p>
+    <ul>
+        <li>GIFs are supported by every email client (even Outlook falls back to showing the first frame)</li>
+        <li>Auto-plays on load — no user interaction needed</li>
+        <li>Already image-based — fits directly into Emperor's existing <code>&lt;img src="/imp/..."&gt;</code> flow</li>
+    </ul>
+
+    <p><strong>What the advertiser provides:</strong></p>
+    <ul>
+        <li>A short video file (MP4/MOV, 3-8 seconds) or a pre-made animated GIF</li>
+        <li>Alternatively: a sequence of images (frames) that we assemble into a GIF</li>
+    </ul>
+
+    <p><strong>What changes in Emperor:</strong></p>
+
+    <table>
+        <tr><th>Component</th><th>Change</th></tr>
+        <tr><td><strong>Creative model</strong></td><td>No new <code>ImageSourceType</code> needed — GIFs can already be stored as images. If we need to store the source video file for re-processing, add <code>VIDEO</code> type. Consider adding <code>isVideo</code> boolean flag for reporting/filtering purposes.</td></tr>
+        <tr><td><strong>Creative upload (API)</strong></td><td>Accept video file (MP4/MOV/WebM, max 15 seconds, max 20MB) or animated GIF upload.</td></tr>
+        <tr><td><strong>Video-to-GIF conversion (API job)</strong></td><td>New queue job: <code>ConvertVideoToAnimatedGif</code>. Uses FFmpeg to extract frames and generate optimized GIF. Controls: frame rate (5-10 fps), color palette optimization, max dimensions from layout, max file size target (1-2MB).</td></tr>
+        <tr><td><strong>Display route (adserver)</strong></td><td><code>/display/</code> returns GIF with <code>Content-Type: image/gif</code>. <strong>Note:</strong> Verify if we already set content type dynamically based on uploaded image format — may require no changes.</td></tr>
+        <tr><td><strong>Native image builder</strong></td><td>No change for GIF creatives — the GIF IS the creative image. No text overlay rendering needed (advertiser bakes text into the video).</td></tr>
+        <tr><td><strong>Native image builder (hybrid)</strong></td><td><span class="tag tag-deferred">DEFERRED</span> Overlay headline/CTA on GIF frames requires the new layout builder (Polotno or in-house). Revisit after layout editor refactor.</td></tr>
+        <tr><td><strong>File size guardrails</strong></td><td>GIFs must stay under 2MB for reliable email delivery. FFmpeg conversion targets this via resolution scaling, frame rate reduction, and color palette optimization. Use existing global limits rather than per-layout settings if sufficient.</td></tr>
+    </table>
+
+    <p><strong>Limitations:</strong></p>
+    <ul>
+        <li>No sound (emails never have sound)</li>
+        <li>Outlook desktop shows only the first frame (static fallback — this is fine, ~10% of opens)</li>
+        <li>File size constraint: large/long GIFs get heavy fast. 3-5 seconds at 600px wide is the sweet spot.</li>
+        <li>Color banding on gradients (GIF is 256 colors max)</li>
+    </ul>
+
+    <p><strong>Example flow:</strong></p>
+    <div class="viz-container" id="conversion-flow"></div>
+
+    <hr>
+
+    <h3>Approach 2: Interactive Thumbnail + Landing Page Video (Click-to-Play)</h3>
+
+    <p><strong>What it is:</strong> A static or animated thumbnail image in the email with a prominent play button overlay. Clicking opens the landing page where the full video plays.</p>
+
+    <p><strong>Why it works:</strong></p>
+    <ul>
+        <li>Works in 100% of email clients (it's just an image + link)</li>
+        <li>No file size concerns for the email itself</li>
+        <li>Full video experience on the landing page (no email restrictions)</li>
+        <li>Higher intent signal — user chose to watch</li>
+    </ul>
+
+    <p><strong>What the advertiser provides:</strong></p>
+    <ul>
+        <li>Video file (hosted on their landing page or YouTube/Vimeo)</li>
+        <li>Thumbnail image (or we auto-generate from video first frame)</li>
+    </ul>
+
+    <p><strong>What changes in Emperor:</strong></p>
+
+    <table>
+        <tr><th>Component</th><th>Change</th></tr>
+        <tr><td><strong>Creative model</strong></td><td>No new <code>ImageSourceType</code> needed — this is essentially a standard image creative with a landing page URL. Consider adding <code>isVideo</code> boolean flag for reporting/filtering if we want to track video ads separately.</td></tr>
+        <tr><td><strong>Play button overlay</strong></td><td>NativeImageBuilder composites a play button icon (triangle in circle) over the thumbnail image. This is a standard ImageMagick composite operation on a single frame.</td></tr>
+        <tr><td><strong>Landing page URL</strong></td><td>The click URL redirects to the video landing page (already supported — it's just <code>landingPageUrl</code>).</td></tr>
+        <tr><td><strong>Creative upload (API)</strong></td><td>Accept video URL (YouTube/Vimeo/direct) + optional thumbnail. If no thumbnail provided, generate one from the video's first frame via FFmpeg.</td></tr>
+    </table>
+
+    <p><strong>This approach requires the least code changes</strong> — it's essentially a regular display/native ad with a play button overlay on the image. No new types needed.</p>
+
+    <hr>
+
+    <h2>Recommended Implementation Plan</h2>
+
+    <div class="viz-container" id="phase-chart"></div>
+
+    <h3>Phase 1: Click-to-Play Thumbnail (Lowest Effort, Immediate Value)</h3>
+
+    <p>This is the fastest path to "video ads in email":</p>
+    <ol>
+        <li>Add play button overlay capability to NativeImageBuilder (composite a semi-transparent play icon over the creative image).</li>
+        <li>Optionally add <code>isVideo</code> boolean flag to creative model for reporting/filtering purposes.</li>
+        <li>Advertiser sets <code>landingPageUrl</code> to their video landing page.</li>
+        <li>Frontend: add "Video Ad" option when creating a creative. Shows thumbnail upload + video landing page URL fields.</li>
+        <li>Deploy — video thumbnail ads work immediately in all email clients.</li>
+    </ol>
+    <p><strong>Effort:</strong> Small. It's an ImageMagick composite operation + optional flag. No new <code>ImageSourceType</code> needed — this is fundamentally a standard image creative with a landing page.</p>
+
+    <h3>Phase 2: Animated GIF Ads (Full Video-Like Experience)</h3>
+    <ol>
+        <li>Optionally add <code>VIDEO</code> to <code>ImageSourceType</code> enum if we need to store the source video file for re-processing. Otherwise, just store the converted GIF as a regular image.</li>
+        <li>Install FFmpeg in API container (or use a dedicated media processing container).</li>
+        <li>Implement <code>ConvertVideoToAnimatedGif</code> queue job:
+            <ul>
+                <li>Accept MP4/MOV/WebM upload (max 15s, max 20MB)</li>
+                <li>FFmpeg pipeline: extract frames → optimize palette → generate GIF → validate size</li>
+                <li>If GIF exceeds 2MB: reduce resolution/fps and retry (up to 3 attempts)</li>
+                <li>Store result in GCS</li>
+            </ul>
+        </li>
+        <li>Update display route to serve GIF with <code>Content-Type: image/gif</code>. <strong>Note:</strong> Verify if content type is already set dynamically based on image format — may require no changes.</li>
+        <li>Add creative validation: reject videos longer than 15 seconds or files larger than 20MB.</li>
+        <li>Frontend: video upload field with preview, duration indicator, file size warning.</li>
+    </ol>
+    <p><strong>Effort:</strong> Medium. FFmpeg integration + conversion pipeline + file size optimization loop.</p>
+
+    <h3><span class="tag tag-deferred">DEFERRED</span> Phase 3: Hybrid Native GIF Ads (Text Overlay on GIF)</h3>
+
+    <p><strong>Deferred until layout editor refactor (Polotno or in-house).</strong></p>
+    <ol>
+        <li>Extend NativeImageBuilder to handle animated GIF input:
+            <ul>
+                <li>Decompose GIF into frames</li>
+                <li>Composite headline/CTA/adIcon on each frame</li>
+                <li>Reassemble into output GIF</li>
+            </ul>
+        </li>
+        <li>This lets advertisers upload a video and Emperor renders it as a native ad with consistent branding — same headline/CTA treatment as static native ads.</li>
+    </ol>
+    <p><strong>Effort:</strong> High. Frame-by-frame ImageMagick processing is complex and CPU-intensive. This depends on the new layout builder — revisit after that refactor is complete. For now, require advertisers to bake text into their videos.</p>
+
+    <hr>
+
+    <h2>Data Model Changes</h2>
+
+    <h3>Creative Model (API)</h3>
+    <pre><code>ImageSourceType enum:
+  + VIDEO              // Only if we need to store original video file for re-processing
+                       // Otherwise, converted GIFs are stored as regular images
+
+New boolean field (alternative to new ImageSourceType):
+  + isVideo            // Flag for reporting/filtering video ads separately</code></pre>
+
+    <p>New fields on <code>creatives</code> table:</p>
+    <table>
+        <tr><th>Field</th><th>Type</th><th>Purpose</th></tr>
+        <tr><td><code>video_source</code></td><td>string, nullable</td><td>Original video file URL in GCS (for re-processing)</td></tr>
+        <tr><td><code>video_duration</code></td><td>float, nullable</td><td>Duration in seconds (from FFmpeg probe)</td></tr>
+        <tr><td><code>gif_file_size</code></td><td>integer, nullable</td><td>Generated GIF size in bytes (for monitoring)</td></tr>
+    </table>
+
+    <h3>Layout Settings</h3>
+    <p><strong>Note:</strong> Per-layout settings may be overkill if good global limits are sufficient. Consider using global configuration first.</p>
+    <table>
+        <tr><th>Field</th><th>Type</th><th>Default</th><th>Purpose</th><th>Notes</th></tr>
+        <tr><td><code>maxGifFileSize</code></td><td>integer</td><td>2097152 (2MB)</td><td>Max GIF output size</td><td>Could be global instead of per-layout</td></tr>
+        <tr><td><code>maxGifDuration</code></td><td>integer</td><td>8</td><td>Max video/GIF duration in seconds</td><td>Could be global instead of per-layout</td></tr>
+        <tr><td><code>gifFrameRate</code></td><td>integer</td><td>8</td><td>Target FPS for GIF conversion</td><td>Likely overkill — use sensible global default</td></tr>
+    </table>
+
+    <hr>
+
+    <h2>FFmpeg Conversion Pipeline (Phase 2)</h2>
+    <pre><code># Step 1: Generate optimized palette
+ffmpeg -i input.mp4 -vf "fps=8,scale=600:-1:flags=lanczos,palettegen=max_colors=192" palette.png
+
+# Step 2: Create GIF using palette
+ffmpeg -i input.mp4 -i palette.png -lavfi "fps=8,scale=600:-1:flags=lanczos[x];[x][1:v]paletteuse=dither=bayer:bayer_scale=3" -loop 0 output.gif
+
+# Step 3: Validate size
+# If output.gif > 2MB, retry with fps=5 and/or scale=400:-1</code></pre>
+    <p>PHP implementation wraps this in a process call with timeout and output validation.</p>
+
+    <hr>
+
+    <h2>Display Route Changes (Adserver)</h2>
+    <p><code>/display/{creativeId}/{layoutId}/{orientation}</code> currently always returns <code>Content-Type: image/png</code>.</p>
+    <p><strong>Question to verify:</strong> Does the display route already set <code>Content-Type</code> dynamically based on the uploaded image format? If so, no changes may be needed for serving GIFs.</p>
+    <p>If changes are needed:</p>
+    <pre><code>If image is GIF:
+    → Return GIF blob with Content-Type: image/gif, Cache-Control: public, max-age=1800
+If video thumbnail (play button overlay requested):
+    → Generate PNG with play button overlay via NativeImageBuilder, return as image/png
+Otherwise:
+    → Current behavior (PNG)</code></pre>
+
+    <hr>
+
+    <h2>File Size Budget</h2>
+    <p>Email providers have total message size limits. Ad images compete with newsletter content for this budget:</p>
+
+    <div class="viz-container" id="file-size-chart"></div>
+
+    <p><strong>Target: 2 MB max for animated GIF ads.</strong> This is achievable for 3-5 second clips at 600px width with palette optimization.</p>
+    <p>For comparison, current static PNG ads are typically 50-200 KB.</p>
+
+    <hr>
+
+    <h2>Acceptance Criteria</h2>
+
+    <h4>Phase 1 (Click-to-Play Thumbnail)</h4>
+    <ul class="checklist">
+        <li>Play button overlay rendered on thumbnail image by NativeImageBuilder.</li>
+        <li>Click redirects to video landing page URL.</li>
+        <li>Works in all email clients (it's a standard image + link).</li>
+        <li>Frontend shows "Video Ad" creative option with thumbnail + landing URL fields.</li>
+        <li>Optional: <code>isVideo</code> flag available for reporting/filtering purposes.</li>
+    </ul>
+
+    <h4>Phase 2 (Animated GIF)</h4>
+    <ul class="checklist">
+        <li>Video upload accepts MP4/MOV/WebM (max 15 seconds, max 20MB).</li>
+        <li>FFmpeg converts video to optimized animated GIF.</li>
+        <li>Generated GIF is under 2MB (auto-reduces quality if needed).</li>
+        <li><code>/display/</code> route serves GIF with correct content type (verify if already supported).</li>
+        <li>GIF auto-plays in Gmail, Apple Mail, Yahoo Mail, iOS Mail.</li>
+        <li>Outlook shows first frame as static fallback.</li>
+        <li>Creative validation rejects videos over 15 seconds.</li>
+        <li>Optional: <code>VIDEO</code> image source type if we need to preserve original video file.</li>
+    </ul>
+
+    <h4>Phase 3 (Hybrid Native GIF) — <span style="color: var(--accent-orange);">Deferred</span></h4>
+    <ul class="checklist">
+        <li><strong>Blocked on:</strong> New layout builder (Polotno or in-house).</li>
+        <li>NativeImageBuilder can overlay headline/CTA on animated GIF frames.</li>
+        <li>Output GIF has consistent branding across all frames.</li>
+        <li>File size remains under max limit after text overlay.</li>
+    </ul>
+
+    <hr>
+
+    <h2>Edge Cases</h2>
+    <table>
+        <tr><th>Scenario</th><th>Expected Behavior</th></tr>
+        <tr><td>Uploaded video is 30 seconds (over limit)</td><td>Reject at upload with validation error: "Video must be 15 seconds or shorter."</td></tr>
+        <tr><td>Generated GIF exceeds 2MB after all optimization attempts</td><td>Reject creative with error: "Video is too complex for email GIF. Use a shorter clip or simpler visuals." Log warning.</td></tr>
+        <tr><td>Advertiser uploads a GIF directly (not video)</td><td>Accept as-is if under 2MB. Skip FFmpeg conversion. Validate frame count and dimensions.</td></tr>
+        <tr><td>Layout is very small (e.g., 120x60)</td><td>GIF at this size will be tiny. Allow it — file size will be well under limit.</td></tr>
+        <tr><td>Outlook renders only first frame</td><td>Expected behavior. First frame should be visually meaningful (not blank/transition). FFmpeg should select a representative first frame.</td></tr>
+        <tr><td>Video has audio track</td><td>Audio is stripped during conversion (FFmpeg <code>-an</code> flag). No audio in email.</td></tr>
+        <tr><td>Creative is animated GIF but used in a non-email context (web display)</td><td>Serve GIF as-is. GIFs work everywhere.</td></tr>
+        <tr><td>Video upload with no visual content (black frames)</td><td>Allow — advertiser's choice. Could add optional quality check later.</td></tr>
+    </table>
+
+    <script>
+        // Simple conversion flow diagram
+        function createConversionFlow() {
+            const container = document.getElementById('conversion-flow');
+            const steps = [
+                { label: 'MP4 Upload', desc: 'Advertiser uploads 5-second video' },
+                { label: 'FFmpeg Extract', desc: 'Extract frames at 8fps (40 frames)' },
+                { label: 'Palette Gen', desc: 'Generate optimized 192-color palette' },
+                { label: 'GIF Create', desc: 'Create GIF at 600x250' },
+                { label: 'Size Check', desc: 'Validate < 2MB, retry if needed' },
+                { label: 'Store', desc: 'Save to GCS with isVideo flag' }
+            ];
+
+            let html = '<div style="display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center;">';
+            steps.forEach((step, i) => {
+                html += `<div class="flow-step" style="flex: 1; min-width: 120px;"><strong>${step.label}</strong><br><small style="color: var(--text-secondary);">${step.desc}</small></div>`;
+                if (i < steps.length - 1) {
+                    html += '<span style="color: var(--accent-blue); font-size: 1.2rem;">→</span>';
+                }
+            });
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        // Phase effort chart
+        function createPhaseChart() {
+            const container = d3.select("#phase-chart");
+            const width = Math.min(container.node().getBoundingClientRect().width, 500);
+            const height = 120;
+
+            const svg = container.append("svg")
+                .attr("width", width)
+                .attr("height", height);
+
+            const phases = [
+                { name: "Phase 1", label: "Click-to-Play", effort: 25, color: "#00ba7c" },
+                { name: "Phase 2", label: "Animated GIF", effort: 55, color: "#1d9bf0" },
+                { name: "Phase 3", label: "Hybrid Native", effort: 85, color: "#ff7a00", deferred: true }
+            ];
+
+            const barHeight = 24;
+            const barGap = 12;
+            const labelWidth = 100;
+
+            phases.forEach((p, i) => {
+                const y = i * (barHeight + barGap) + 10;
+
+                // Label
+                svg.append("text")
+                    .attr("x", 0)
+                    .attr("y", y + barHeight / 2 + 4)
+                    .attr("fill", "#e7e9ea")
+                    .attr("font-size", "12px")
+                    .text(p.label);
+
+                // Background bar
+                svg.append("rect")
+                    .attr("x", labelWidth)
+                    .attr("y", y)
+                    .attr("width", width - labelWidth - 60)
+                    .attr("height", barHeight)
+                    .attr("fill", "#2f3336")
+                    .attr("rx", 4);
+
+                // Filled bar
+                svg.append("rect")
+                    .attr("x", labelWidth)
+                    .attr("y", y)
+                    .attr("width", 0)
+                    .attr("height", barHeight)
+                    .attr("fill", p.color)
+                    .attr("rx", 4)
+                    .transition()
+                    .duration(600)
+                    .delay(i * 150)
+                    .attr("width", (p.effort / 100) * (width - labelWidth - 60));
+
+                // Effort label
+                svg.append("text")
+                    .attr("x", width - 50)
+                    .attr("y", y + barHeight / 2 + 4)
+                    .attr("fill", "#8b98a5")
+                    .attr("font-size", "11px")
+                    .text(p.effort <= 30 ? "Small" : p.effort <= 60 ? "Medium" : "High");
+            });
+        }
+
+        // File size chart
+        function createFileSizeChart() {
+            const container = d3.select("#file-size-chart");
+            const width = Math.min(container.node().getBoundingClientRect().width, 500);
+            const height = 140;
+
+            const svg = container.append("svg")
+                .attr("width", width)
+                .attr("height", height);
+
+            const data = [
+                { provider: "Gmail", max: 25, recommended: 2 },
+                { provider: "Outlook", max: 20, recommended: 2 },
+                { provider: "Apple Mail", max: 20, recommended: 2 },
+                { provider: "Yahoo", max: 25, recommended: 2 }
+            ];
+
+            const barHeight = 20;
+            const barGap = 8;
+            const labelWidth = 80;
+            const maxVal = 30;
+
+            data.forEach((d, i) => {
+                const y = i * (barHeight + barGap) + 10;
+                const scale = (width - labelWidth - 10) / maxVal;
+
+                // Label
+                svg.append("text")
+                    .attr("x", 0)
+                    .attr("y", y + barHeight / 2 + 4)
+                    .attr("fill", "#e7e9ea")
+                    .attr("font-size", "12px")
+                    .text(d.provider);
+
+                // Max bar (background)
+                svg.append("rect")
+                    .attr("x", labelWidth)
+                    .attr("y", y)
+                    .attr("width", d.max * scale)
+                    .attr("height", barHeight)
+                    .attr("fill", "#2f3336")
+                    .attr("rx", 3);
+
+                // Recommended bar
+                svg.append("rect")
+                    .attr("x", labelWidth)
+                    .attr("y", y)
+                    .attr("width", d.recommended * scale)
+                    .attr("height", barHeight)
+                    .attr("fill", "#00ba7c")
+                    .attr("rx", 3);
+            });
+
+            // 2MB target line
+            const targetX = labelWidth + (2 / maxVal) * (width - labelWidth - 10);
+            svg.append("line")
+                .attr("x1", targetX)
+                .attr("x2", targetX)
+                .attr("y1", 0)
+                .attr("y2", height - 10)
+                .attr("stroke", "#00ba7c")
+                .attr("stroke-width", 2)
+                .attr("stroke-dasharray", "4,4");
+
+            svg.append("text")
+                .attr("x", targetX + 5)
+                .attr("y", height - 2)
+                .attr("fill", "#00ba7c")
+                .attr("font-size", "10px")
+                .text("2MB target");
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            createConversionFlow();
+            createPhaseChart();
+            createFileSizeChart();
+        });
+    </script>
+</body>
+</html>
