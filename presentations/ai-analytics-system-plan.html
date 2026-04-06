@@ -1,0 +1,1420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI-Powered Newsletter Analytics &amp; Insights System</title>
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<style>
+  :root {
+    --bg: #0f172a;
+    --surface: #1e293b;
+    --surface2: #334155;
+    --border: #475569;
+    --text: #e2e8f0;
+    --text-muted: #94a3b8;
+    --accent: #38bdf8;
+    --accent2: #818cf8;
+    --green: #4ade80;
+    --red: #f87171;
+    --orange: #fb923c;
+    --yellow: #facc15;
+    --pink: #f472b6;
+    --teal: #2dd4bf;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    font-size: 17px;
+  }
+  .container { max-width: 960px; margin: 0 auto; padding: 0 24px; }
+
+  /* Hero */
+  .hero {
+    text-align: center;
+    padding: 80px 24px 60px;
+    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+    border-bottom: 1px solid var(--border);
+  }
+  .hero h1 {
+    font-size: 2.6rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 16px;
+  }
+  .hero p {
+    font-size: 1.2rem;
+    color: var(--text-muted);
+    max-width: 660px;
+    margin: 0 auto;
+  }
+  .badge {
+    display: inline-block;
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 20px;
+    background: rgba(56,189,248,0.15);
+    color: var(--accent);
+    border: 1px solid rgba(56,189,248,0.3);
+  }
+  .hero-meta {
+    display: flex;
+    justify-content: center;
+    gap: 32px;
+    margin-top: 28px;
+    flex-wrap: wrap;
+  }
+  .hero-meta-item {
+    text-align: center;
+  }
+  .hero-meta-item .label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .hero-meta-item .value {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #fff;
+  }
+
+  /* Sections */
+  section { padding: 60px 0; border-bottom: 1px solid var(--surface2); }
+  section:last-of-type { border-bottom: none; }
+  h2 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 12px;
+    color: #fff;
+  }
+  h3 {
+    font-size: 1.35rem;
+    font-weight: 600;
+    margin: 32px 0 12px;
+    color: var(--accent);
+  }
+  h4 {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: #fff;
+  }
+  p { margin-bottom: 16px; color: var(--text); }
+  .muted { color: var(--text-muted); }
+
+  /* Step number */
+  .step-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #fff;
+    font-size: 1.3rem;
+    font-weight: 800;
+    margin-bottom: 16px;
+    flex-shrink: 0;
+  }
+
+  /* Cards */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--surface2);
+    border-radius: 16px;
+    padding: 28px;
+    margin: 20px 0;
+  }
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
+    margin: 20px 0;
+  }
+  .card-grid .card { margin: 0; }
+  .card h4 { margin-bottom: 8px; }
+  .card p:last-child { margin-bottom: 0; }
+  .card .icon { font-size: 2rem; margin-bottom: 12px; display: block; }
+
+  /* Tables */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    font-size: 0.95rem;
+  }
+  th {
+    text-align: left;
+    padding: 12px 16px;
+    background: var(--surface2);
+    color: var(--accent);
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--surface2);
+    color: var(--text);
+  }
+  tr:last-child td { border-bottom: none; }
+  th:first-child { border-radius: 8px 0 0 0; }
+  th:last-child { border-radius: 0 8px 0 0; }
+
+  /* Status badges */
+  .status {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+  .status-green { background: rgba(74,222,128,0.15); color: var(--green); }
+  .status-orange { background: rgba(251,146,60,0.15); color: var(--orange); }
+  .status-red { background: rgba(248,113,113,0.15); color: var(--red); }
+  .status-blue { background: rgba(56,189,248,0.15); color: var(--accent); }
+  .status-purple { background: rgba(129,140,248,0.15); color: var(--accent2); }
+
+  /* Flow chart styles */
+  .flow-svg { width: 100%; margin: 24px 0; }
+  .flow-svg text { font-family: inherit; }
+
+  /* Checklist */
+  .checklist { list-style: none; margin: 16px 0; }
+  .checklist li {
+    padding: 10px 0 10px 36px;
+    position: relative;
+    border-bottom: 1px solid var(--surface2);
+    color: var(--text);
+  }
+  .checklist li:last-child { border-bottom: none; }
+  .checklist li::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 12px;
+    width: 22px; height: 22px;
+    border-radius: 6px;
+    background: rgba(74,222,128,0.15);
+    border: 2px solid var(--green);
+  }
+  .checklist li::after {
+    content: '\2713';
+    position: absolute;
+    left: 5px; top: 11px;
+    color: var(--green);
+    font-size: 0.85rem;
+    font-weight: 700;
+  }
+  .checklist li strong { color: #fff; }
+
+  /* Callout */
+  .callout {
+    background: linear-gradient(135deg, rgba(56,189,248,0.08), rgba(129,140,248,0.08));
+    border: 1px solid rgba(56,189,248,0.25);
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin: 24px 0;
+  }
+  .callout-warn {
+    background: rgba(251,146,60,0.08);
+    border-color: rgba(251,146,60,0.25);
+  }
+  .callout-green {
+    background: rgba(74,222,128,0.08);
+    border-color: rgba(74,222,128,0.25);
+  }
+  .callout strong { color: var(--accent); }
+  .callout-warn strong { color: var(--orange); }
+  .callout-green strong { color: var(--green); }
+
+  /* Chart containers */
+  .chart-container {
+    background: var(--surface);
+    border: 1px solid var(--surface2);
+    border-radius: 16px;
+    padding: 24px;
+    margin: 24px 0;
+    overflow: hidden;
+  }
+  .chart-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+  }
+
+  /* Tooltip */
+  .tooltip {
+    position: absolute;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 0.85rem;
+    color: var(--text);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s;
+    z-index: 100;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  }
+
+  /* Big number */
+  .big-number {
+    font-size: 3rem;
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .big-number-label {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  /* Timeline */
+  .timeline { position: relative; margin: 24px 0; padding-left: 40px; }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 16px; top: 0; bottom: 0;
+    width: 2px;
+    background: linear-gradient(180deg, var(--accent), var(--accent2), var(--green));
+  }
+  .timeline-item {
+    position: relative;
+    margin-bottom: 32px;
+  }
+  .timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -32px; top: 4px;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 3px solid var(--bg);
+  }
+  .timeline-item.future::before { background: var(--surface2); border-color: var(--border); }
+  .timeline-item h4 { color: #fff; margin-bottom: 4px; }
+  .timeline-item .weeks { font-size: 0.8rem; color: var(--accent); font-weight: 600; margin-bottom: 6px; }
+  .timeline-item p { margin-bottom: 0; font-size: 0.95rem; }
+
+  /* Footer */
+  footer {
+    text-align: center;
+    padding: 40px 24px;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  /* Animated gradient dividers */
+  .divider {
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent), var(--accent2), transparent);
+    margin: 0;
+    border: none;
+  }
+
+  /* JSON-like display */
+  .json-display {
+    background: #0d1117;
+    border: 1px solid var(--surface2);
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin: 16px 0;
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    font-size: 0.85rem;
+    line-height: 1.6;
+    overflow-x: auto;
+    color: var(--text-muted);
+  }
+  .json-key { color: var(--accent); }
+  .json-str { color: var(--green); }
+  .json-num { color: var(--orange); }
+  .json-label { color: var(--pink); }
+
+  /* Responsive */
+  @media (max-width: 640px) {
+    .hero h1 { font-size: 2rem; }
+    .hero { padding: 48px 16px 40px; }
+    .card-grid { grid-template-columns: 1fr; }
+    h2 { font-size: 1.5rem; }
+    body { font-size: 16px; }
+    section { padding: 40px 0; }
+    .hero-meta { gap: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="tooltip" id="tooltip"></div>
+
+<!-- HERO -->
+<header class="hero">
+  <span class="badge">System Plan</span>
+  <h1>AI-Powered Newsletter Analytics</h1>
+  <p>A plan to add AI-driven content analysis, ad-to-newsletter matching, and actionable insights to the Emperor advertising platform -- using the Anthropic Claude API.</p>
+  <div class="hero-meta">
+    <div class="hero-meta-item">
+      <div class="label">Target Volume</div>
+      <div class="value">~10,000 sendouts/mo</div>
+    </div>
+    <div class="hero-meta-item">
+      <div class="label">Est. Cost</div>
+      <div class="value">~$180-250/mo</div>
+    </div>
+    <div class="hero-meta-item">
+      <div class="label">Timeline</div>
+      <div class="value">~8 weeks</div>
+    </div>
+    <div class="hero-meta-item">
+      <div class="label">For</div>
+      <div class="value">Publishers + Internal Ops</div>
+    </div>
+  </div>
+</header>
+
+<hr class="divider">
+
+<!-- EXECUTIVE SUMMARY -->
+<section>
+  <div class="container">
+    <div class="step-num">1</div>
+    <h2>What Is This?</h2>
+    <p>Emperor currently serves ads in newsletters, but it has <strong>no understanding of what the newsletter is about</strong> or how well an ad matches the content. A sports ad is just as likely to appear in a cooking newsletter as in a sports one (if targeting allows both).</p>
+    <p>This plan adds an <strong>AI layer</strong> that reads every newsletter, understands its content, analyzes every ad creative (text and images), and scores how well each ad matches each newsletter. The result: smarter ad placement, better click rates, and actionable insights for publishers.</p>
+
+    <div class="callout-green callout">
+      <strong>Key discovery:</strong> The data we need already exists. Every ad impression in Emperor already records which newsletter sendout it came from. We don't need to change the data collection pipeline at all -- we just need to build new analysis on top of what's already there.
+    </div>
+
+    <h3>Who benefits?</h3>
+    <div class="card-grid">
+      <div class="card" style="border-top: 3px solid var(--accent);">
+        <span class="icon">&#128240;</span>
+        <h4>Publishers</h4>
+        <p class="muted">See how each newsletter send performs, which ads match their content best, and get AI-powered recommendations to improve engagement -- all through dashboard widgets and reports.</p>
+      </div>
+      <div class="card" style="border-top: 3px solid var(--accent2);">
+        <span class="icon">&#128188;</span>
+        <h4>Internal Ops/Biz Team</h4>
+        <p class="muted">Platform-wide analytics, content trend tracking, anomaly detection, and client health monitoring. Spot problems before publishers complain.</p>
+      </div>
+    </div>
+
+    <h3>Delivery methods</h3>
+    <ul class="checklist">
+      <li><strong>Dashboard widgets</strong> -- real-time performance and AI insights embedded in the existing publisher dashboard</li>
+      <li><strong>Scheduled reports</strong> -- weekly email digests with AI-generated narratives summarizing performance</li>
+      <li><strong>On-demand analysis</strong> -- publishers can request deeper analysis of specific sendouts or campaigns</li>
+    </ul>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ARCHITECTURE -->
+<section>
+  <div class="container">
+    <div class="step-num">2</div>
+    <h2>How It All Fits Together</h2>
+    <p>The system lives entirely within the existing Emperor backend (Laravel). There is no separate AI server to manage -- we call the Claude API directly over the internet, just like calling any other web service.</p>
+
+    <div id="arch-flow"></div>
+
+    <h3>The three data stores</h3>
+    <div class="card-grid">
+      <div class="card" style="border-left: 4px solid var(--accent);">
+        <h4>MySQL</h4>
+        <p class="muted">Stores AI analysis results, relevance scores, insights, and creative content profiles. This is "what the AI thinks" about each newsletter and ad.</p>
+      </div>
+      <div class="card" style="border-left: 4px solid var(--green);">
+        <h4>ClickHouse</h4>
+        <p class="muted">Stores sendout performance statistics (impressions, clicks, revenue) at hourly and daily granularity. This is "how things actually performed." Optimized for fast aggregation queries.</p>
+      </div>
+      <div class="card" style="border-left: 4px solid var(--orange);">
+        <h4>Aerospike</h4>
+        <p class="muted">In-memory cache for real-time data. Stores pre-computed match scores so the ad server can look them up instantly at serve time without calling the AI.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- AI INTEGRATION -->
+<section>
+  <div class="container">
+    <div class="step-num">3</div>
+    <h2>The AI: Claude API</h2>
+    <p>Instead of running our own AI server (which would cost $1,300-2,500/month in GPU rentals plus maintenance), we use Anthropic's Claude API. It's a pay-per-use service -- we send text and images, get structured analysis back.</p>
+
+    <div class="callout">
+      <strong>Why not self-host?</strong> Self-hosting an AI model like Qwen3 72B requires renting expensive GPU servers ($1,300-2,500/month), managing model deployments, handling scaling, and monitoring uptime. The Claude API eliminates all of that -- we just pay for what we use, starting at ~$180-250/month. That's 80-91% cheaper with zero infrastructure overhead.
+    </div>
+
+    <h3>Two models for different jobs</h3>
+    <table>
+      <thead>
+        <tr><th>Model</th><th>Used For</th><th>Why</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="status status-blue">Haiku</span></td>
+          <td>Content analysis, creative indexing, relevance scoring, anomaly detection, content-creative matching</td>
+          <td>Fast, cheap, great at structured data extraction. Handles 95%+ of the workload.</td>
+        </tr>
+        <tr>
+          <td><span class="status status-purple">Sonnet</span></td>
+          <td>Insight generation, weekly report narratives, complex recommendations</td>
+          <td>More capable at nuanced writing and multi-data-point synthesis. Used sparingly for quality.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>Smart cost-saving techniques</h3>
+    <div class="card-grid">
+      <div class="card">
+        <h4>Structured Output</h4>
+        <p class="muted">We tell Claude exactly what format to respond in (JSON with specific fields). This eliminates parsing errors and wasted tokens on free-form text.</p>
+      </div>
+      <div class="card">
+        <h4>Prompt Caching</h4>
+        <p class="muted">Instructions that don't change between calls (like "here are the IAB categories" or "score on a 0-1 scale") are cached by Anthropic. Cached tokens cost 90% less. We estimate ~40% of our input tokens will be cache hits.</p>
+      </div>
+      <div class="card">
+        <h4>Batch API</h4>
+        <p class="muted">For work that doesn't need instant results (overnight analysis, weekly reports), we use the Batch API which processes requests within 24 hours at 50% the normal price.</p>
+      </div>
+      <div class="card">
+        <h4>Graceful Degradation</h4>
+        <p class="muted">If the AI is down or rate-limited, nothing breaks. Ad serving continues normally. Analysis jobs queue up and retry automatically with increasing delays (3 attempts, then re-queued). The AI is an enhancement, not a dependency.</p>
+      </div>
+    </div>
+
+    <h3>Budget protection</h3>
+    <p>Monthly API spend is tracked. If spend exceeds a configurable threshold, non-critical AI jobs (insights, reports) are automatically paused while core analysis continues. Error rates and response times are monitored, with alerts triggered if sustained error rates exceed 5%.</p>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- COST ANALYSIS -->
+<section>
+  <div class="container">
+    <div class="step-num">4</div>
+    <h2>What Does It Cost?</h2>
+    <p>Based on 10,000 sendouts/month and 10,000 active creatives (~1,000 new or changed per month).</p>
+
+    <div id="cost-chart" class="chart-container">
+      <div class="chart-title">Monthly Cost Comparison: Self-Hosted vs. Claude API Options</div>
+    </div>
+
+    <h3>Where the tokens go</h3>
+    <p>The AI reads and writes text measured in "tokens" (roughly 1 token = 0.75 words). Here's how our monthly token budget breaks down:</p>
+
+    <div id="token-chart" class="chart-container">
+      <div class="chart-title">Monthly Token Usage by Workload (~324M input / ~58.5M output)</div>
+    </div>
+
+    <h3>The recommended approach</h3>
+    <p>Use Haiku (the fast, cheap model) for the bulk work via the Batch API, and Sonnet (the smart model) only for insight generation and reports.</p>
+
+    <table>
+      <thead>
+        <tr><th>Component</th><th>Model</th><th>Monthly Cost</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Sendout-creative matching (10K sendouts x ~20 creatives each)</td>
+          <td><span class="status status-blue">Haiku Batch</span></td>
+          <td>~$176</td>
+        </tr>
+        <tr>
+          <td>Content analysis + creative indexing</td>
+          <td><span class="status status-blue">Haiku Batch</span></td>
+          <td>~$70</td>
+        </tr>
+        <tr>
+          <td>Insight generation + weekly reports</td>
+          <td><span class="status status-purple">Sonnet</span></td>
+          <td>~$3</td>
+        </tr>
+        <tr>
+          <td><strong>Total (before caching)</strong></td>
+          <td></td>
+          <td><strong>~$249/mo</strong></td>
+        </tr>
+        <tr>
+          <td><strong>With prompt caching (~40% hit rate)</strong></td>
+          <td></td>
+          <td><strong>~$180-220/mo</strong></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout-green callout">
+      <strong>Bottom line:</strong> $180-250/month with Claude API vs. $1,300-2,500/month for self-hosted GPU. That's 80-91% savings with zero infrastructure to manage. Initial one-time cost to index all 10K existing creatives: ~$18.
+    </div>
+
+    <h3>How it scales</h3>
+    <p class="muted">At 20K sendouts/month: ~$450. At 50K: ~$1,100. Still cheaper than self-hosting at any realistic volume. The self-hosted GPU cost stays fixed regardless of whether you process 1,000 or 50,000 sendouts, making the API increasingly favorable at lower volumes. Anthropic's Batch API handles up to 100K requests/day -- far above our needs.</p>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- CONTENT ANALYSIS PIPELINE -->
+<section>
+  <div class="container">
+    <div class="step-num">5</div>
+    <h2>How Newsletter Analysis Works</h2>
+    <p>Every time a newsletter is sent (a "sendout"), the system automatically analyzes its content to understand what it's about.</p>
+
+    <div id="pipeline-flow"></div>
+
+    <h3>What the AI extracts from each newsletter</h3>
+    <div class="card-grid">
+      <div class="card">
+        <span class="icon">&#127991;</span>
+        <h4>Topics</h4>
+        <p class="muted">What the newsletter is about, with confidence scores. e.g., "professional sports" (94%), "fitness equipment" (72%), "athletic apparel" (68%)</p>
+      </div>
+      <div class="card">
+        <span class="icon">&#128101;</span>
+        <h4>Entities</h4>
+        <p class="muted">Named things mentioned -- brands, people, organizations. e.g., "NBA" (organization), "LeBron James" (person), "Nike" (brand)</p>
+      </div>
+      <div class="card">
+        <span class="icon">&#128522;</span>
+        <h4>Sentiment</h4>
+        <p class="muted">The overall tone -- positive, negative, neutral, or mixed. A score from 0 to 1 (0.78 = positive).</p>
+      </div>
+      <div class="card">
+        <span class="icon">&#128209;</span>
+        <h4>Summary + Keywords</h4>
+        <p class="muted">A brief AI-generated summary and extracted keywords. e.g., "NBA playoffs", "basketball", "sports gear", "championship"</p>
+      </div>
+      <div class="card">
+        <span class="icon">&#128194;</span>
+        <h4>IAB Category</h4>
+        <p class="muted">Industry-standard content classification. e.g., "IAB17-12" = Sports > Basketball. Used for matching against ad categories.</p>
+      </div>
+      <div class="card">
+        <span class="icon">&#128200;</span>
+        <h4>Readability Score</h4>
+        <p class="muted">How complex the writing is. Helps correlate content complexity with engagement patterns.</p>
+      </div>
+    </div>
+
+    <div class="callout">
+      <strong>Example output:</strong> A sports newsletter about NBA playoffs would be tagged with topics like "professional sports" and "basketball," entities like "NBA" and "LeBron James," positive sentiment (score 0.78), summary covering playoff highlights, and IAB category "Sports > Basketball." This profile is then stored and used to match ads.
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- CREATIVE INDEXING -->
+<section>
+  <div class="container">
+    <div class="step-num">6</div>
+    <h2>How Ad Creative Indexing Works</h2>
+    <p>Before we can match ads to newsletters, we need to understand what each ad is about. All ~10,000 active creatives are analyzed and indexed using Claude's ability to understand both text and images.</p>
+
+    <div class="callout-warn callout">
+      <strong>This runs in the background, not during ad serving.</strong> Creative indexing is a batch process. It happens when a creative is created or updated, and as a nightly catchup job. The ad server never waits for AI -- it uses pre-computed results.
+    </div>
+
+    <h3>What the AI extracts from each ad creative</h3>
+    <table>
+      <thead>
+        <tr><th>Extracted Data</th><th>Description</th><th>Example</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Topics</strong></td><td>What the ad is about</td><td>"sports gear", "athletic apparel"</td></tr>
+        <tr><td><strong>Product categories</strong></td><td>What's being sold</td><td>"footwear", "activewear"</td></tr>
+        <tr><td><strong>IAB categories</strong></td><td>Industry-standard ad classification</td><td>"IAB17-12", "IAB17-18"</td></tr>
+        <tr><td><strong>Entities</strong></td><td>Brands, products, people</td><td>"Nike", "Air Max"</td></tr>
+        <tr><td><strong>Tone</strong></td><td>The ad's mood/approach</td><td>"promotional", "informational", "urgent"</td></tr>
+        <tr><td><strong>Content summary</strong></td><td>AI description of the ad</td><td>"Nike running shoes promotion with athlete imagery"</td></tr>
+        <tr><td><strong>Visual elements</strong></td><td>What's in the image</td><td>"product shot", "lifestyle photo", "text overlay", "logo"</td></tr>
+        <tr><td><strong>Ad type</strong></td><td>Format classification</td><td>"native_text", "native_image", "display"</td></tr>
+      </tbody>
+    </table>
+
+    <h3>When does indexing happen?</h3>
+    <ul class="checklist">
+      <li><strong>When a creative becomes active</strong> -- triggered automatically when its status changes to ready/delivering</li>
+      <li><strong>When a creative's image changes</strong> -- triggered when an ad image is regenerated</li>
+      <li><strong>Nightly batch</strong> -- catches any creatives that were missed or failed during the day</li>
+      <li><strong>Monthly full re-index</strong> -- re-analyzes everything to benefit from AI model improvements over time</li>
+    </ul>
+
+    <p>For native ads, Claude sees both the text (headline, body, call-to-action) <em>and</em> the rendered ad image. For display ads (pre-made banners), Claude only sees the image -- which may contain baked-in text that the AI can read. The landing page URL is also provided for additional context.</p>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- CONTENT MATCHING -->
+<section>
+  <div class="container">
+    <div class="step-num">7</div>
+    <h2>The Content Matching Engine</h2>
+    <p>This is the core innovation. When a newsletter is analyzed, its content profile is compared against eligible ad creative profiles to produce <strong>match scores</strong> -- how well does this ad fit this newsletter?</p>
+
+    <h3>The problem it solves</h3>
+    <div class="card" style="border-left: 4px solid var(--red);">
+      <h4>Today: Random creative rotation</h4>
+      <p class="muted" style="margin-bottom:0;">When a campaign wins an ad slot, the specific creative shown is chosen randomly from eligible options. A Nike running shoes ad and a Nike basketball ad have equal chance of appearing in a basketball newsletter. There's no intelligence matching ad content to newsletter content.</p>
+    </div>
+
+    <div class="card" style="border-left: 4px solid var(--green); margin-top: 16px;">
+      <h4>Future: Content-aware weighted rotation</h4>
+      <p class="muted" style="margin-bottom:0;">The matching engine scores each creative against each newsletter. The basketball ad gets a high match score for the basketball newsletter. When the ad server picks a creative, it favors higher-scoring matches. No AI call at serve time -- the scores are pre-computed and cached.</p>
+    </div>
+
+    <h3>How matching works</h3>
+
+    <div id="matching-flow"></div>
+
+    <div class="callout">
+      <strong>Not every creative is scored against every newsletter.</strong> To keep costs manageable, we pre-filter: only creatives on campaigns targeting this newsletter's placement, only active creatives, and using IAB category overlap as a fast first pass before sending to the AI. This reduces the typical 10,000 creatives down to ~20 per sendout.
+    </div>
+
+    <h3>Relevance scoring</h3>
+    <p>Rather than rigid formulas (e.g., "topic match = 40%, entity overlap = 25%"), the AI evaluates the overall fit holistically -- considering topic alignment, entity overlap, sentiment compatibility, keyword relevance, and category match all at once. It returns:</p>
+
+    <div class="card-grid">
+      <div class="card" style="text-align:center;">
+        <div class="big-number" style="color: var(--green);">0.82</div>
+        <div class="big-number-label">Match score (0 to 1)</div>
+        <p class="muted" style="margin-top:8px; margin-bottom:0; font-size:0.9rem;">Higher = better match</p>
+      </div>
+      <div class="card">
+        <h4>Reasoning</h4>
+        <p class="muted" style="margin-bottom:0;">"Strong topical alignment between sports newsletter and athletic gear creative. Brand entities (Nike) appear in both. Positive sentiment matches promotional tone."</p>
+      </div>
+      <div class="card">
+        <h4>Factors</h4>
+        <p class="muted" style="margin-bottom:0;">Topic fit: <span class="status status-green">high</span> &nbsp; Audience alignment: <span class="status status-green">high</span> &nbsp; Tone match: <span class="status status-blue">good</span> &nbsp; Category overlap: <span class="status status-green">exact</span></p>
+      </div>
+    </div>
+
+    <p>The AI also provides <strong>actionable recommendations</strong> per creative: "Headline could reference specific NBA content for stronger tie-in," "Consider adding athlete imagery," etc.</p>
+
+    <h3>Available context signals</h3>
+    <p>What information does the matching engine have to work with?</p>
+    <table>
+      <thead>
+        <tr><th>Signal</th><th>Availability</th><th>Value</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Newsletter content</strong> (subject + body)</td><td>Always available</td><td><span class="status status-green">High</span> -- strongest indicator of what subscribers care about</td></tr>
+        <tr><td><strong>Newsletter IAB categories</strong></td><td>Always available</td><td><span class="status status-green">High</span> -- explicit content classification</td></tr>
+        <tr><td><strong>Newsletter geo/language</strong></td><td>Always available</td><td><span class="status status-blue">Medium</span> -- locale relevance</td></tr>
+        <tr><td><strong>Subscriber key-values</strong> (from publisher)</td><td>If publisher passes them</td><td><span class="status status-green">High</span> -- explicit segment data like age, gender, interests</td></tr>
+        <tr><td><strong>Subscriber location</strong> (IP-based)</td><td>At impression time only</td><td><span class="status status-blue">Medium</span></td></tr>
+        <tr><td><strong>Device type</strong></td><td>At impression time only</td><td><span class="status status-orange">Low</span></td></tr>
+        <tr><td><strong>Frequency history</strong></td><td>At impression time</td><td><span class="status status-orange">Low</span></td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout-warn callout">
+      <strong>Important limitation:</strong> Subscriber demographics (age, gender, personal interests) are NOT directly available from email providers. The richest signal is the newsletter content itself -- if someone subscribes to a sports newsletter, they're interested in sports. This is why content matching is so valuable.
+    </div>
+
+    <h3>Future: integration with ad serving</h3>
+    <p>The match scores get cached in Aerospike (the fast in-memory store). When the ad server picks a creative, instead of random shuffle, it does a <strong>weighted shuffle</strong> -- creatives with higher match scores are more likely to be picked. The ad server already knows the sendout ID, so looking up pre-computed scores is a fast cache read. No AI call happens during ad serving. This is a lightweight code change in one file.</p>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- SENDOUT STATISTICS -->
+<section>
+  <div class="container">
+    <div class="step-num">8</div>
+    <h2>Sendout Performance Tracking</h2>
+    <p>For the first time, Emperor will track performance at the <strong>individual newsletter send</strong> level, not just by campaign or date range.</p>
+
+    <h3>How data is aggregated over time</h3>
+    <div id="stats-flow"></div>
+
+    <table>
+      <thead>
+        <tr><th>Time Window</th><th>Granularity</th><th>Retention</th><th>Details</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Hours 0-23 (first day)</td>
+          <td>Hourly</td>
+          <td>3 months</td>
+          <td>Impressions, clicks, revenue, CTR per hour. Shows the "opening curve" -- how engagement decays over the first 24 hours.</td>
+        </tr>
+        <tr>
+          <td>Days 2-4+</td>
+          <td>Daily</td>
+          <td>6 months</td>
+          <td>Per-creative breakdown, per-placement breakdown, cumulative totals. Shows the "long tail" of late opens.</td>
+        </tr>
+        <tr>
+          <td>All time</td>
+          <td>Aggregated</td>
+          <td>1 year (via analysis)</td>
+          <td>Total impressions, clicks, revenue, CTR, unique creatives served.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- RECOMMENDATIONS -->
+<section>
+  <div class="container">
+    <div class="step-num">9</div>
+    <h2>AI-Powered Recommendations</h2>
+    <p>The system doesn't just analyze -- it provides specific, actionable suggestions to improve performance.</p>
+
+    <div class="card-grid">
+      <div class="card" style="border-top: 3px solid var(--accent);">
+        <span class="icon">&#128337;</span>
+        <h4>Send Time Optimization</h4>
+        <p class="muted">Based on 90 days of hourly performance data, the AI identifies when newsletters perform best. Example: "Your newsletters get 23% higher CTR when sent between 9-10 AM on Tuesdays and Thursdays." Suggests specific scheduling changes.</p>
+      </div>
+      <div class="card" style="border-top: 3px solid var(--orange);">
+        <span class="icon">&#128248;</span>
+        <h4>Creative Fatigue Detection</h4>
+        <p class="muted">Tracks each creative's click-through rate over time. When CTR starts declining (e.g., "Summer Sale Banner" down 35% over 2 weeks), it alerts the team and suggests refreshing the imagery, testing alternative headlines, or rotating to backup creatives.</p>
+      </div>
+      <div class="card" style="border-top: 3px solid var(--green);">
+        <span class="icon">&#9993;</span>
+        <h4>Subject Line Insights</h4>
+        <p class="muted">Analyzes which subject line patterns drive engagement. Example: "Newsletters with questions in subject lines show 23% higher open rates" or "Subject lines with specific numbers ('5 Must-See Highlights') outperform vague ones." Contrasts high-performing vs low-performing patterns.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ALERT SYSTEM -->
+<section>
+  <div class="container">
+    <div class="step-num">10</div>
+    <h2>Alert System</h2>
+    <p>Automated monitoring that catches problems early, before publishers or advertisers notice.</p>
+
+    <table>
+      <thead>
+        <tr><th>Alert Type</th><th>Trigger</th><th>Severity</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>CTR Drop</strong></td>
+          <td>Today's click-through rate is less than 70% of the 30-day average</td>
+          <td><span class="status status-orange">Warning</span></td>
+        </tr>
+        <tr>
+          <td><strong>Revenue Anomaly</strong></td>
+          <td>Revenue falls below 50% of expected</td>
+          <td><span class="status status-red">Critical</span></td>
+        </tr>
+        <tr>
+          <td><strong>Volume Spike</strong></td>
+          <td>Impressions exceed 200% of normal</td>
+          <td><span class="status status-blue">Info</span></td>
+        </tr>
+        <tr>
+          <td><strong>Creative Failure</strong></td>
+          <td>A creative has zero clicks for 24 hours</td>
+          <td><span class="status status-orange">Warning</span></td>
+        </tr>
+        <tr>
+          <td><strong>Relevance Mismatch</strong></td>
+          <td>Average ad-to-newsletter match score drops below 0.3</td>
+          <td><span class="status status-orange">Warning</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>Each alert includes a description of the problem, supporting data (numbers, affected newsletters), and <strong>suggested actions</strong> -- like "Review recent creative changes" or "Check placement delivery status."</p>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- USER-FACING FEATURES -->
+<section>
+  <div class="container">
+    <div class="step-num">11</div>
+    <h2>What Users Will See</h2>
+
+    <h3>Publisher dashboard</h3>
+    <p>Publishers get new widgets in their existing dashboard:</p>
+
+    <div class="card" style="border: 1px solid var(--accent); background: linear-gradient(135deg, rgba(56,189,248,0.05), rgba(129,140,248,0.05));">
+      <h4 style="color: var(--accent);">Recent Sendout Performance</h4>
+      <p class="muted" style="font-size: 0.9rem; margin-bottom: 16px;">Each newsletter send, with its metrics and AI analysis at a glance.</p>
+      <div style="border-top: 1px solid var(--surface2); padding-top: 12px;">
+        <p style="margin-bottom:8px;"><strong>Sports Weekly - Feb 10</strong></p>
+        <p class="muted" style="font-size:0.9rem; margin-bottom:4px;">45K impressions -- 1.2K clicks -- 2.67% CTR -- $125 revenue</p>
+        <p class="muted" style="font-size:0.9rem; margin-bottom:16px;">Topics: <span class="status status-blue">sports</span> <span class="status status-blue">fitness</span> &nbsp; Sentiment: <span class="status status-green">Positive</span></p>
+        <p style="margin-bottom:8px;"><strong>Tech Digest - Feb 9</strong></p>
+        <p class="muted" style="font-size:0.9rem; margin-bottom:4px;">38K impressions -- 890 clicks -- 2.34% CTR -- $98 revenue</p>
+        <p class="muted" style="font-size:0.9rem; margin-bottom:16px;">Topics: <span class="status status-blue">technology</span> <span class="status status-blue">gadgets</span> &nbsp; Sentiment: <span class="status status-blue">Neutral</span></p>
+        <p style="margin-bottom:8px;"><strong>Daily News - Feb 8</strong></p>
+        <p class="muted" style="font-size:0.9rem; margin-bottom:4px;">52K impressions -- 1.5K clicks -- 2.88% CTR -- $145 revenue</p>
+        <p class="muted" style="font-size:0.9rem; margin-bottom:0;">Topics: <span class="status status-blue">news</span> <span class="status status-blue">politics</span> &nbsp; Sentiment: <span class="status status-orange">Mixed</span></p>
+      </div>
+    </div>
+
+    <div class="card" style="border: 1px solid var(--accent2); background: linear-gradient(135deg, rgba(129,140,248,0.05), rgba(244,114,182,0.05));">
+      <h4 style="color: var(--accent2);">AI Insights Feed</h4>
+      <p class="muted" style="font-size: 0.9rem; margin-bottom: 16px;">Proactive suggestions and alerts from the AI.</p>
+      <div style="border-top: 1px solid var(--surface2); padding-top: 12px;">
+        <p style="margin-bottom:4px;"><span class="status status-orange">Warning</span> &nbsp; <strong>Creative Fatigue</strong> <span class="muted" style="font-size:0.8rem;">2 hours ago</span></p>
+        <p class="muted" style="font-size:0.9rem; margin-bottom:16px;">"Summer Sale Banner" showing declining performance (-35% CTR over 2 weeks)</p>
+        <p style="margin-bottom:4px;"><span class="status status-blue">Suggestion</span> &nbsp; <strong>Send Time</strong> <span class="muted" style="font-size:0.8rem;">Yesterday</span></p>
+        <p class="muted" style="font-size:0.9rem; margin-bottom:16px;">Your newsletters perform 23% better on Tuesdays between 9-10 AM</p>
+        <p style="margin-bottom:4px;"><span class="status status-green">Report</span> &nbsp; <strong>Weekly Summary</strong> <span class="muted" style="font-size:0.8rem;">3 days ago</span></p>
+        <p class="muted" style="font-size:0.9rem; margin-bottom:0;">CTR up 12% compared to last week. Top-performing newsletter: Sports Weekly.</p>
+      </div>
+    </div>
+
+    <h3>Internal analytics dashboard</h3>
+    <p>The ops/biz team gets a platform-wide view:</p>
+    <div class="card-grid">
+      <div class="card" style="text-align:center;">
+        <div class="big-number" style="color: var(--accent);">10,000</div>
+        <div class="big-number-label">Sendouts analyzed</div>
+      </div>
+      <div class="card" style="text-align:center;">
+        <div class="big-number" style="color: var(--green);">0.68</div>
+        <div class="big-number-label">Avg relevance score</div>
+      </div>
+      <div class="card" style="text-align:center;">
+        <div class="big-number" style="color: var(--orange);">23</div>
+        <div class="big-number-label">Anomalies detected</div>
+      </div>
+      <div class="card" style="text-align:center;">
+        <div class="big-number" style="color: var(--accent2);">156</div>
+        <div class="big-number-label">Recommendations</div>
+      </div>
+    </div>
+
+    <p>Plus content trend tracking (topic distribution across newsletters), client health tables (sendouts, CTR, relevance score, alert count per publisher), and drill-down views.</p>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- AI USE CASES -->
+<section>
+  <div class="container">
+    <div class="step-num">12</div>
+    <h2>All AI Use Cases</h2>
+
+    <h3>Planned for this system</h3>
+    <table>
+      <thead>
+        <tr><th>Use Case</th><th>What It Does</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Creative Content Indexing</strong></td><td>Analyzes all active ad creatives (text + images) to understand what each ad is about</td></tr>
+        <tr><td><strong>Sendout Content Analysis</strong></td><td>Reads each newsletter and extracts topics, entities, sentiment, categories, keywords</td></tr>
+        <tr><td><strong>Content-Creative Matching</strong></td><td>Scores how well each ad matches each newsletter's content</td></tr>
+        <tr><td><strong>Relevance Scoring</strong></td><td>Holistic AI assessment of ad-newsletter fit with reasoning and recommendations</td></tr>
+        <tr><td><strong>Subject Line Optimization</strong></td><td>Identifies which subject line patterns drive the most engagement</td></tr>
+        <tr><td><strong>Send Time Recommendations</strong></td><td>Finds optimal send times based on historical hourly performance data</td></tr>
+        <tr><td><strong>Creative Fatigue Detection</strong></td><td>Alerts when an ad's click rate starts declining over time</td></tr>
+        <tr><td><strong>Performance Anomaly Detection</strong></td><td>Catches unusual drops in CTR or revenue before they become big problems</td></tr>
+        <tr><td><strong>Topic Trend Analysis</strong></td><td>Tracks content themes across all newsletters to spot trends</td></tr>
+        <tr><td><strong>Sentiment Correlation</strong></td><td>Discovers how newsletter tone (positive, negative) affects ad performance</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Future possibilities</h3>
+    <div class="card-grid">
+      <div class="card">
+        <h4>Weighted Creative Rotation <span class="status status-green" style="font-size:0.7rem;">High potential</span></h4>
+        <p class="muted">Use match scores to bias which ad creative is shown (instead of random). A small code change in one file.</p>
+      </div>
+      <div class="card">
+        <h4>Predictive CTR <span class="status status-green" style="font-size:0.7rem;">High potential</span></h4>
+        <p class="muted">Forecast click-through rate before a newsletter is sent, based on content match quality.</p>
+      </div>
+      <div class="card">
+        <h4>A/B Test Recommendations <span class="status status-green" style="font-size:0.7rem;">High potential</span></h4>
+        <p class="muted">AI suggests what to test next based on performance patterns and content analysis.</p>
+      </div>
+      <div class="card">
+        <h4>Dynamic Creative Optimization <span class="status status-green" style="font-size:0.7rem;">High potential</span></h4>
+        <p class="muted">Real-time adjustments to ad creatives based on newsletter context.</p>
+      </div>
+      <div class="card">
+        <h4>Audience Segmentation <span class="status status-blue" style="font-size:0.7rem;">Medium potential</span></h4>
+        <p class="muted">Identify subscriber segments from behavioral patterns across newsletters.</p>
+      </div>
+      <div class="card">
+        <h4>Landing Page Analysis <span class="status status-blue" style="font-size:0.7rem;">Medium potential</span></h4>
+        <p class="muted">Scrape and analyze ad landing pages for richer content profiles.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- IMPLEMENTATION -->
+<section>
+  <div class="container">
+    <div class="step-num">13</div>
+    <h2>Implementation Timeline</h2>
+    <p>The system is built in 4 phases over ~8 weeks, with a future Phase 5 for ad server integration.</p>
+
+    <div id="timeline-chart" class="chart-container">
+      <div class="chart-title">Implementation Phases (Gantt View)</div>
+    </div>
+
+    <div class="timeline">
+      <div class="timeline-item">
+        <div class="weeks">Weeks 1-2</div>
+        <h4>Phase 1: Data Infrastructure</h4>
+        <p class="muted">Set up the database tables for storing statistics, analysis results, and creative profiles. Build the API endpoints for retrieving sendout stats. This is the foundation everything else builds on.</p>
+      </div>
+      <div class="timeline-item">
+        <div class="weeks">Weeks 3-4</div>
+        <h4>Phase 2: AI Integration + Creative Indexing</h4>
+        <p class="muted">Connect to the Claude API. Build the newsletter content analysis pipeline. Build the creative indexing pipeline (multimodal -- reads both text and images). Run the initial full index of all 10K active creatives. Hook into creative lifecycle events so new/updated creatives are automatically indexed.</p>
+      </div>
+      <div class="timeline-item">
+        <div class="weeks">Weeks 5-6</div>
+        <h4>Phase 3: Content Matching + Recommendations</h4>
+        <p class="muted">Build the sendout-creative matching engine with pre-filtering. Build relevance scoring. Implement recommendation generators (send time, fatigue, subject line). Create the anomaly detection system with automated alerts.</p>
+      </div>
+      <div class="timeline-item">
+        <div class="weeks">Weeks 7-8</div>
+        <h4>Phase 4: User-Facing Features</h4>
+        <p class="muted">Build publisher dashboard widgets (sendout performance, AI insights feed, creative match scores). Build internal analytics dashboard. Implement scheduled report generation and email delivery for insight digests.</p>
+      </div>
+      <div class="timeline-item future">
+        <div class="weeks">Future</div>
+        <h4>Phase 5: Ad Server Integration</h4>
+        <p class="muted">Cache top creative match scores in Aerospike. Modify the ad server's creative selection to use weighted shuffle based on match scores (instead of random). Build A/B test framework to measure the lift. Monitor latency impact.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- TECHNICAL CONSIDERATIONS -->
+<section>
+  <div class="container">
+    <div class="step-num">14</div>
+    <h2>Technical Safeguards</h2>
+
+    <h3>Performance</h3>
+    <div class="card-grid">
+      <div class="card">
+        <h4>AI calls are async</h4>
+        <p class="muted">Haiku responds in 1-3 seconds, Sonnet in 3-8 seconds. All AI work runs in background queue jobs -- nothing blocks the user or the ad server.</p>
+      </div>
+      <div class="card">
+        <h4>Statistics are fast</h4>
+        <p class="muted">ClickHouse is optimized for aggregation queries. Sendout stats return in under a second, even across millions of events.</p>
+      </div>
+    </div>
+
+    <h3>Error handling</h3>
+    <ul class="checklist">
+      <li><strong>AI down?</strong> Ad serving and sendout creation are completely independent of AI. Analysis jobs retry with exponential backoff (3 attempts, then re-queued with delay).</li>
+      <li><strong>Partial failure?</strong> If content analysis succeeds but relevance scoring fails, the analysis is still saved. Scoring retries independently.</li>
+      <li><strong>Over budget?</strong> Monthly spend is tracked. If it exceeds the threshold, non-critical jobs (insights, reports) pause while core analysis continues.</li>
+      <li><strong>Monitoring:</strong> API response times, error rates, and token usage are logged. Alerts fire if sustained error rates exceed 5%.</li>
+    </ul>
+
+    <h3>Data retention</h3>
+    <table>
+      <thead>
+        <tr><th>Data Type</th><th>Kept For</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Hourly stats</td><td>3 months</td></tr>
+        <tr><td>Daily stats</td><td>6 months</td></tr>
+        <tr><td>Sendout analyses</td><td>1 year</td></tr>
+        <tr><td>Creative content profiles</td><td>Indefinite (updated on change)</td></tr>
+        <tr><td>Relevance scores</td><td>6 months</td></tr>
+        <tr><td>AI insights</td><td>1 year</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<footer>
+  <p>Emperor AI Analytics System Plan &mdash; Internal Documentation</p>
+  <p class="muted" style="margin-top:8px; font-size:0.8rem;">Based on the <a href="AI_ANALYTICS_SYSTEM_PLAN.md">AI Analytics System Plan</a> technical specification.</p>
+</footer>
+
+<script>
+// ─── HELPERS ─────────────────────────────────────────────────────
+const tooltip = d3.select('#tooltip');
+function showTip(evt, html) {
+  tooltip.html(html).style('opacity',1)
+    .style('left', (evt.pageX+12)+'px')
+    .style('top', (evt.pageY-28)+'px');
+}
+function hideTip() { tooltip.style('opacity',0); }
+
+// ─── ARCHITECTURE FLOW ──────────────────────────────────────────
+(function(){
+  const w=900, h=320;
+  const svg = d3.select('#arch-flow').append('svg')
+    .attr('viewBox',`0 0 ${w} ${h}`).attr('class','flow-svg').style('max-width','100%');
+
+  // Define arrow marker
+  svg.append('defs').append('marker')
+    .attr('id','arr').attr('viewBox','0 0 10 10')
+    .attr('refX',10).attr('refY',5).attr('markerWidth',7).attr('markerHeight',7)
+    .attr('orient','auto')
+    .append('path').attr('d','M0,0 L10,5 L0,10 Z').attr('fill','#475569');
+
+  // Emperor Backend box
+  svg.append('rect').attr('x',20).attr('y',10).attr('width',860).attr('height',140).attr('rx',16)
+    .attr('fill','#818cf8').attr('fill-opacity',0.08).attr('stroke','#818cf8').attr('stroke-width',1.5);
+  svg.append('text').attr('x',450).attr('y',32).attr('text-anchor','middle')
+    .attr('fill','#818cf8').attr('font-size','12px').attr('font-weight',700).text('EMPEROR BACKEND (Laravel)');
+
+  // Internal boxes
+  const boxes = [
+    {x:50,y:50,w:170,h:80,label:'API Routes\n/sendouts/*\n/insights/*',color:'#38bdf8'},
+    {x:250,y:50,w:170,h:80,label:'Queue Jobs\nAnalysis\nMatching',color:'#f472b6'},
+    {x:450,y:50,w:170,h:80,label:'Scheduled Cmds\nsendout:analyze\nai:detect-anomalies',color:'#facc15'},
+    {x:680,y:50,w:170,h:80,label:'Claude API\nClient Service\nHaiku + Sonnet',color:'#4ade80'},
+  ];
+  boxes.forEach(b=>{
+    svg.append('rect').attr('x',b.x).attr('y',b.y).attr('width',b.w).attr('height',b.h).attr('rx',10)
+      .attr('fill',b.color).attr('fill-opacity',0.12).attr('stroke',b.color).attr('stroke-width',1.5);
+    b.label.split('\n').forEach((ln,i)=>{
+      svg.append('text').attr('x',b.x+b.w/2).attr('y',b.y+22+i*18).attr('text-anchor','middle')
+        .attr('fill','#e2e8f0').attr('font-size','11px').attr('font-weight',i===0?700:400).text(ln);
+    });
+  });
+
+  // Arrows to Claude client
+  [[220,90,250,90],[420,90,450,90],[620,90,680,90]].forEach(([x1,y1,x2,y2])=>{
+    svg.append('line').attr('x1',x1).attr('y1',y1).attr('x2',x2).attr('y2',y2)
+      .attr('stroke','#475569').attr('stroke-width',1.5).attr('marker-end','url(#arr)');
+  });
+
+  // Arrow down to Anthropic
+  svg.append('line').attr('x1',765).attr('y1',130).attr('x2',765).attr('y2',170)
+    .attr('stroke','#475569').attr('stroke-width',2).attr('marker-end','url(#arr)');
+  svg.append('text').attr('x',790).attr('y',157).attr('fill','#64748b').attr('font-size','10px').text('HTTPS');
+
+  // Anthropic box
+  svg.append('rect').attr('x',680).attr('y',175).attr('width',170).attr('height',50).attr('rx',10)
+    .attr('fill','#4ade80').attr('fill-opacity',0.12).attr('stroke','#4ade80').attr('stroke-width',1.5);
+  svg.append('text').attr('x',765).attr('y',197).attr('text-anchor','middle')
+    .attr('fill','#e2e8f0').attr('font-size','12px').attr('font-weight',700).text('Anthropic Claude API');
+  svg.append('text').attr('x',765).attr('y',214).attr('text-anchor','middle')
+    .attr('fill','#94a3b8').attr('font-size','10px').text('api.anthropic.com');
+
+  // Data layer box
+  svg.append('rect').attr('x',20).attr('y',240).attr('width',630).attr('height',70).attr('rx',16)
+    .attr('fill','#38bdf8').attr('fill-opacity',0.05).attr('stroke','#334155').attr('stroke-width',1.5);
+  svg.append('text').attr('x',335).attr('y',258).attr('text-anchor','middle')
+    .attr('fill','#64748b').attr('font-size','11px').attr('font-weight',600).text('DATA LAYER');
+
+  const dbs=[
+    {x:40,y:265,w:190,label:'MySQL',sub:'Analyses, Scores, Insights',color:'#38bdf8'},
+    {x:245,y:265,w:190,label:'ClickHouse',sub:'Hourly + Daily Stats',color:'#4ade80'},
+    {x:450,y:265,w:190,label:'Aerospike',sub:'Real-time Cache',color:'#fb923c'},
+  ];
+  dbs.forEach(d=>{
+    svg.append('rect').attr('x',d.x).attr('y',d.y).attr('width',d.w).attr('height',36).attr('rx',8)
+      .attr('fill',d.color).attr('fill-opacity',0.12).attr('stroke',d.color).attr('stroke-width',1);
+    svg.append('text').attr('x',d.x+d.w/2).attr('y',d.y+15).attr('text-anchor','middle')
+      .attr('fill','#e2e8f0').attr('font-size','11px').attr('font-weight',700).text(d.label);
+    svg.append('text').attr('x',d.x+d.w/2).attr('y',d.y+29).attr('text-anchor','middle')
+      .attr('fill','#94a3b8').attr('font-size','9px').text(d.sub);
+  });
+
+  // Arrow from backend to data layer
+  svg.append('line').attr('x1',335).attr('y1',150).attr('x2',335).attr('y2',240)
+    .attr('stroke','#475569').attr('stroke-width',2).attr('marker-end','url(#arr)');
+})();
+
+// ─── COST COMPARISON CHART ──────────────────────────────────────
+(function(){
+  const data = [
+    {label:'Self-hosted\n(A100 GPU)', cost:1725, color:'#f87171', range:'$1,300-2,150'},
+    {label:'Self-hosted\n(H100 GPU)', cost:2285, color:'#f87171', range:'$2,100-2,470'},
+    {label:'Claude Haiku\n(standard)', cost:493, color:'#38bdf8', range:'$493'},
+    {label:'Claude Haiku\n(Batch API)', cost:247, color:'#38bdf8', range:'$247'},
+    {label:'Claude Sonnet\n(standard)', cost:1850, color:'#818cf8', range:'$1,850'},
+    {label:'Claude Sonnet\n(Batch API)', cost:925, color:'#818cf8', range:'$925'},
+    {label:'Recommended\nMix + Caching', cost:200, color:'#4ade80', range:'$180-250'},
+  ];
+  const w=860, h=data.length*52+30, barMax=450;
+  const maxCost = 2500;
+  const svg = d3.select('#cost-chart').append('svg')
+    .attr('viewBox',`0 0 ${w} ${h}`).style('width','100%');
+
+  data.forEach((d,i)=>{
+    const y = 10+i*52;
+    const bw = barMax*(d.cost/maxCost);
+    // label
+    d.label.split('\n').forEach((ln,li)=>{
+      svg.append('text').attr('x',160).attr('y',y+14+li*14)
+        .attr('text-anchor','end').attr('fill','#e2e8f0')
+        .attr('font-size','12px').attr('font-weight',li===0?700:400).text(ln);
+    });
+    // bg bar
+    svg.append('rect').attr('x',175).attr('y',y+4).attr('width',barMax).attr('height',28).attr('rx',8)
+      .attr('fill','#1e293b');
+    // fill bar
+    svg.append('rect').attr('x',175).attr('y',y+4)
+      .attr('width',0).attr('height',28).attr('rx',8)
+      .attr('fill',d.color).attr('fill-opacity',0.6)
+      .on('mouseover',(evt)=>showTip(evt,`<strong>${d.label.replace('\n',' ')}</strong><br>${d.range}/month`))
+      .on('mouseout',hideTip)
+      .transition().duration(800).delay(i*100).attr('width',bw);
+    // cost label
+    svg.append('text').attr('x',180+bw+8).attr('y',y+23)
+      .attr('fill',d.color).attr('font-size','12px').attr('font-weight',700)
+      .text(d.range+'/mo');
+  });
+})();
+
+// ─── TOKEN DISTRIBUTION DONUT ───────────────────────────────────
+(function(){
+  const data = [
+    {label:'Sendout-Creative Matching',input:240,output:40,color:'#38bdf8'},
+    {label:'Sendout Analysis + Relevance',input:80,output:18,color:'#818cf8'},
+    {label:'Creative Indexing',input:3.5,output:0.4,color:'#f472b6'},
+    {label:'Anomaly Detection + Reports',input:0.5,output:0.1,color:'#facc15'},
+  ];
+  const total = data.reduce((s,d)=>s+d.input,0);
+  const w=500, h=280, r=100;
+  const svg = d3.select('#token-chart').append('svg')
+    .attr('viewBox',`0 0 ${w} ${h}`).style('width','100%').style('max-width','500px').style('display','block').style('margin','0 auto');
+  const g = svg.append('g').attr('transform',`translate(${w/2},${h/2})`);
+
+  const pie = d3.pie().value(d=>d.input).sort(null).padAngle(0.03);
+  const arc = d3.arc().innerRadius(r*0.55).outerRadius(r);
+  const arcHover = d3.arc().innerRadius(r*0.55).outerRadius(r+8);
+
+  g.selectAll('path').data(pie(data)).join('path')
+    .attr('d',arc).attr('fill',d=>d.data.color).attr('fill-opacity',0.8)
+    .attr('stroke',d=>d.data.color).attr('stroke-width',2)
+    .on('mouseover',function(evt,d){
+      d3.select(this).transition().duration(150).attr('d',arcHover);
+      showTip(evt,`<strong>${d.data.label}</strong><br>Input: ~${d.data.input}M tokens<br>Output: ~${d.data.output}M tokens<br>${(d.data.input/total*100).toFixed(0)}% of total input`);
+    })
+    .on('mouseout',function(evt,d){
+      d3.select(this).transition().duration(150).attr('d',arc);
+      hideTip();
+    });
+
+  // center text
+  g.append('text').attr('text-anchor','middle').attr('y',-6)
+    .attr('fill','#fff').attr('font-size','18px').attr('font-weight',800).text('~324M');
+  g.append('text').attr('text-anchor','middle').attr('y',14)
+    .attr('fill','#94a3b8').attr('font-size','11px').text('input tokens/mo');
+
+  // legend
+  const leg = svg.append('g').attr('transform',`translate(${w/2-120},${h-30})`);
+  data.forEach((d,i)=>{
+    const lx = (i%2)*240, ly = Math.floor(i/2)*18;
+    leg.append('rect').attr('x',lx).attr('y',ly).attr('width',10).attr('height',10).attr('rx',2).attr('fill',d.color);
+    leg.append('text').attr('x',lx+16).attr('y',ly+9).attr('fill','#94a3b8').attr('font-size','10px').text(d.label);
+  });
+})();
+
+// ─── PIPELINE FLOW ──────────────────────────────────────────────
+(function(){
+  const steps = [
+    {label:'Newsletter\nSent', color:'#38bdf8'},
+    {label:'Strip HTML\nExtract Text', color:'#818cf8'},
+    {label:'Claude AI\n(Haiku)', color:'#4ade80'},
+    {label:'Store\nAnalysis', color:'#f472b6'},
+    {label:'Score\nCreatives', color:'#facc15'},
+  ];
+  const w=900, h=100, nodeW=155, nodeH=60;
+  const svg = d3.select('#pipeline-flow').append('svg')
+    .attr('viewBox',`0 0 ${w} ${h}`).attr('class','flow-svg').style('max-width','100%');
+  const sp = (w-nodeW)/(steps.length-1);
+
+  svg.append('defs').append('marker')
+    .attr('id','arr4').attr('viewBox','0 0 10 10')
+    .attr('refX',10).attr('refY',5).attr('markerWidth',7).attr('markerHeight',7)
+    .attr('orient','auto')
+    .append('path').attr('d','M0,0 L10,5 L0,10 Z').attr('fill','#475569');
+
+  steps.forEach((s,i)=>{
+    if(i<steps.length-1)
+      svg.append('line').attr('x1',i*sp+nodeW).attr('y1',h/2).attr('x2',(i+1)*sp).attr('y2',h/2)
+        .attr('stroke','#475569').attr('stroke-width',2).attr('marker-end','url(#arr4)');
+    const g = svg.append('g').attr('transform',`translate(${i*sp},${h/2-nodeH/2})`);
+    g.append('rect').attr('width',nodeW).attr('height',nodeH).attr('rx',12)
+      .attr('fill',s.color).attr('fill-opacity',0.15).attr('stroke',s.color).attr('stroke-width',1.5);
+    s.label.split('\n').forEach((ln,li)=>{
+      g.append('text').attr('x',nodeW/2).attr('y',nodeH/2+(li-0.5)*16)
+        .attr('text-anchor','middle').attr('dominant-baseline','middle')
+        .attr('fill','#e2e8f0').attr('font-size','12px').attr('font-weight',600).text(ln);
+    });
+  });
+})();
+
+// ─── MATCHING FLOW ──────────────────────────────────────────────
+(function(){
+  const w=900, h=200;
+  const svg = d3.select('#matching-flow').append('svg')
+    .attr('viewBox',`0 0 ${w} ${h}`).attr('class','flow-svg').style('max-width','100%');
+
+  svg.append('defs').append('marker')
+    .attr('id','arr5').attr('viewBox','0 0 10 10')
+    .attr('refX',10).attr('refY',5).attr('markerWidth',7).attr('markerHeight',7)
+    .attr('orient','auto')
+    .append('path').attr('d','M0,0 L10,5 L0,10 Z').attr('fill','#475569');
+
+  // Two inputs merging
+  const boxes = [
+    {x:20,y:10,w:200,h:50,label:'Newsletter Profile',sub:'(from analysis)',color:'#38bdf8'},
+    {x:20,y:130,w:200,h:50,label:'Creative Profile',sub:'(from indexing)',color:'#f472b6'},
+    {x:310,y:55,w:200,h:80,label:'Pre-filter\n(~10K → ~20)',sub:'IAB category, targeting',color:'#facc15'},
+    {x:590,y:55,w:170,h:80,label:'Claude AI\nHaiku (Batch)',sub:'Score each pair',color:'#4ade80'},
+    {x:830,y:55,w:50,h:80,label:'',sub:'',color:'transparent'},
+  ];
+
+  // Arrows from inputs to prefilter
+  svg.append('line').attr('x1',220).attr('y1',35).attr('x2',310).attr('y2',80)
+    .attr('stroke','#475569').attr('stroke-width',2).attr('marker-end','url(#arr5)');
+  svg.append('line').attr('x1',220).attr('y1',155).attr('x2',310).attr('y2',110)
+    .attr('stroke','#475569').attr('stroke-width',2).attr('marker-end','url(#arr5)');
+  // prefilter to Claude
+  svg.append('line').attr('x1',510).attr('y1',95).attr('x2',590).attr('y2',95)
+    .attr('stroke','#475569').attr('stroke-width',2).attr('marker-end','url(#arr5)');
+  // Claude to output
+  svg.append('line').attr('x1',760).attr('y1',95).attr('x2',830).attr('y2',95)
+    .attr('stroke','#475569').attr('stroke-width',2).attr('marker-end','url(#arr5)');
+
+  boxes.slice(0,4).forEach(b=>{
+    const g = svg.append('g').attr('transform',`translate(${b.x},${b.y})`);
+    g.append('rect').attr('width',b.w).attr('height',b.h).attr('rx',10)
+      .attr('fill',b.color).attr('fill-opacity',0.15).attr('stroke',b.color).attr('stroke-width',1.5);
+    const lines = b.label.split('\n');
+    lines.forEach((ln,i)=>{
+      g.append('text').attr('x',b.w/2).attr('y', b.h/2-8+(i-(lines.length-1)/2)*16)
+        .attr('text-anchor','middle').attr('dominant-baseline','middle')
+        .attr('fill','#e2e8f0').attr('font-size','11px').attr('font-weight',700).text(ln);
+    });
+    if(b.sub){
+      g.append('text').attr('x',b.w/2).attr('y',b.h/2+12+((lines.length-1)*4))
+        .attr('text-anchor','middle').attr('fill','#94a3b8').attr('font-size','9px').text(b.sub);
+    }
+  });
+
+  // Output label
+  svg.append('text').attr('x',850).attr('y',85).attr('fill','#4ade80').attr('font-size','14px').attr('font-weight',800).text('0.82');
+  svg.append('text').attr('x',850).attr('y',102).attr('fill','#94a3b8').attr('font-size','10px').text('Match');
+  svg.append('text').attr('x',850).attr('y',114).attr('fill','#94a3b8').attr('font-size','10px').text('Score');
+})();
+
+// ─── STATS AGGREGATION FLOW ────────────────────────────────────
+(function(){
+  const steps = [
+    {label:'Sendout\nSent (T=0)', color:'#38bdf8'},
+    {label:'Hours 0-23\nHourly Stats', color:'#818cf8'},
+    {label:'Days 2-4+\nDaily Stats', color:'#f472b6'},
+    {label:'All Time\nAggregated', color:'#4ade80'},
+  ];
+  const w=800, h=90, nodeW=170, nodeH=52;
+  const svg = d3.select('#stats-flow').append('svg')
+    .attr('viewBox',`0 0 ${w} ${h}`).attr('class','flow-svg').style('max-width','100%');
+  const sp = (w-nodeW)/(steps.length-1);
+
+  svg.append('defs').append('marker')
+    .attr('id','arr6').attr('viewBox','0 0 10 10')
+    .attr('refX',10).attr('refY',5).attr('markerWidth',7).attr('markerHeight',7)
+    .attr('orient','auto')
+    .append('path').attr('d','M0,0 L10,5 L0,10 Z').attr('fill','#475569');
+
+  steps.forEach((s,i)=>{
+    if(i<steps.length-1)
+      svg.append('line').attr('x1',i*sp+nodeW).attr('y1',h/2).attr('x2',(i+1)*sp).attr('y2',h/2)
+        .attr('stroke','#475569').attr('stroke-width',2).attr('marker-end','url(#arr6)');
+    const g = svg.append('g').attr('transform',`translate(${i*sp},${h/2-nodeH/2})`);
+    g.append('rect').attr('width',nodeW).attr('height',nodeH).attr('rx',10)
+      .attr('fill',s.color).attr('fill-opacity',0.15).attr('stroke',s.color).attr('stroke-width',1.5);
+    s.label.split('\n').forEach((ln,li)=>{
+      g.append('text').attr('x',nodeW/2).attr('y',nodeH/2+(li-0.5)*16)
+        .attr('text-anchor','middle').attr('dominant-baseline','middle')
+        .attr('fill','#e2e8f0').attr('font-size','11px').attr('font-weight',600).text(ln);
+    });
+  });
+})();
+
+// ─── TIMELINE GANTT ─────────────────────────────────────────────
+(function(){
+  const phases = [
+    {label:'Phase 1: Data Infrastructure', start:0, dur:2, color:'#38bdf8'},
+    {label:'Phase 2: AI + Creative Indexing', start:2, dur:2, color:'#818cf8'},
+    {label:'Phase 3: Matching + Recs', start:4, dur:2, color:'#f472b6'},
+    {label:'Phase 4: User Features', start:6, dur:2, color:'#4ade80'},
+    {label:'Phase 5: Ad Server (Future)', start:9, dur:2, color:'#475569'},
+  ];
+  const w=860, h=phases.length*48+40;
+  const svg = d3.select('#timeline-chart').append('svg')
+    .attr('viewBox',`0 0 ${w} ${h}`).style('width','100%');
+  const barStart=220, barArea=w-barStart-20;
+  const totalWeeks=12;
+
+  // week labels
+  for(let i=0;i<=totalWeeks;i++){
+    const x = barStart + barArea*(i/totalWeeks);
+    svg.append('text').attr('x',x).attr('y',18).attr('text-anchor','middle')
+      .attr('fill','#64748b').attr('font-size','10px').text(i===0?'Start':`Wk ${i}`);
+    svg.append('line').attr('x1',x).attr('y1',24).attr('x2',x).attr('y2',h-10)
+      .attr('stroke','#1e293b').attr('stroke-width',1);
+  }
+
+  phases.forEach((p,i)=>{
+    const y = 34+i*48;
+    const x1 = barStart + barArea*(p.start/totalWeeks);
+    const bw = barArea*(p.dur/totalWeeks);
+    // label
+    svg.append('text').attr('x',barStart-10).attr('y',y+20)
+      .attr('text-anchor','end').attr('fill','#e2e8f0')
+      .attr('font-size','12px').attr('font-weight',600).text(p.label);
+    // bar bg
+    svg.append('rect').attr('x',x1).attr('y',y+4).attr('width',0).attr('height',28).attr('rx',8)
+      .attr('fill',p.color).attr('fill-opacity',0.5)
+      .attr('stroke',p.color).attr('stroke-width',1.5)
+      .transition().duration(600).delay(i*120).attr('width',bw);
+  });
+})();
+</script>
+</body>
+</html>
