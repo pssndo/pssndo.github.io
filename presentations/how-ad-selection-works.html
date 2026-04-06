@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>How Ad Selection Works in Emperor</title>
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<style>
+  :root {
+    --bg: #0f172a;
+    --surface: #1e293b;
+    --surface2: #334155;
+    --border: #475569;
+    --text: #e2e8f0;
+    --text-muted: #94a3b8;
+    --accent: #38bdf8;
+    --accent2: #818cf8;
+    --green: #4ade80;
+    --red: #f87171;
+    --orange: #fb923c;
+    --yellow: #facc15;
+    --pink: #f472b6;
+    --teal: #2dd4bf;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    font-size: 17px;
+  }
+  .container { max-width: 960px; margin: 0 auto; padding: 0 24px; }
+
+  /* Hero */
+  .hero {
+    text-align: center;
+    padding: 80px 24px 60px;
+    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+    border-bottom: 1px solid var(--border);
+  }
+  .hero h1 {
+    font-size: 2.8rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 16px;
+  }
+  .hero p {
+    font-size: 1.25rem;
+    color: var(--text-muted);
+    max-width: 600px;
+    margin: 0 auto;
+  }
+  .badge {
+    display: inline-block;
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 20px;
+    background: rgba(56,189,248,0.15);
+    color: var(--accent);
+    border: 1px solid rgba(56,189,248,0.3);
+  }
+
+  /* Sections */
+  section {
+    padding: 60px 0;
+    border-bottom: 1px solid var(--surface2);
+  }
+  section:last-child { border-bottom: none; }
+  h2 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 12px;
+    color: #fff;
+  }
+  h3 {
+    font-size: 1.35rem;
+    font-weight: 600;
+    margin: 32px 0 12px;
+    color: var(--accent);
+  }
+  p { margin-bottom: 16px; color: var(--text); }
+  .muted { color: var(--text-muted); }
+
+  /* Step number */
+  .step-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #fff;
+    font-size: 1.3rem;
+    font-weight: 800;
+    margin-bottom: 16px;
+    flex-shrink: 0;
+  }
+
+  /* Cards */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--surface2);
+    border-radius: 16px;
+    padding: 28px;
+    margin: 20px 0;
+  }
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
+    margin: 20px 0;
+  }
+  .card-grid .card { margin: 0; }
+  .card h4 {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: #fff;
+  }
+  .card p:last-child { margin-bottom: 0; }
+  .card .icon {
+    font-size: 2rem;
+    margin-bottom: 12px;
+    display: block;
+  }
+
+  /* Tables */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    font-size: 0.95rem;
+  }
+  th {
+    text-align: left;
+    padding: 12px 16px;
+    background: var(--surface2);
+    color: var(--accent);
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--surface2);
+    color: var(--text);
+  }
+  tr:last-child td { border-bottom: none; }
+  th:first-child { border-radius: 8px 0 0 0; }
+  th:last-child { border-radius: 0 8px 0 0; }
+
+  /* Status badges */
+  .status {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+  .status-green { background: rgba(74,222,128,0.15); color: var(--green); }
+  .status-orange { background: rgba(251,146,60,0.15); color: var(--orange); }
+  .status-red { background: rgba(248,113,113,0.15); color: var(--red); }
+
+  /* Flow chart styles */
+  .flow-svg { width: 100%; margin: 24px 0; }
+  .flow-svg text { font-family: inherit; }
+
+  /* Checklist */
+  .checklist {
+    list-style: none;
+    margin: 16px 0;
+  }
+  .checklist li {
+    padding: 10px 0 10px 36px;
+    position: relative;
+    border-bottom: 1px solid var(--surface2);
+    color: var(--text);
+  }
+  .checklist li:last-child { border-bottom: none; }
+  .checklist li::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 12px;
+    width: 22px; height: 22px;
+    border-radius: 6px;
+    background: rgba(74,222,128,0.15);
+    border: 2px solid var(--green);
+  }
+  .checklist li::after {
+    content: '\2713';
+    position: absolute;
+    left: 5px; top: 11px;
+    color: var(--green);
+    font-size: 0.85rem;
+    font-weight: 700;
+  }
+  .checklist li strong { color: #fff; }
+
+  /* Callout */
+  .callout {
+    background: linear-gradient(135deg, rgba(56,189,248,0.08), rgba(129,140,248,0.08));
+    border: 1px solid rgba(56,189,248,0.25);
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin: 24px 0;
+  }
+  .callout-warn {
+    background: rgba(251,146,60,0.08);
+    border-color: rgba(251,146,60,0.25);
+  }
+  .callout strong { color: var(--accent); }
+  .callout-warn strong { color: var(--orange); }
+
+  /* Chart containers */
+  .chart-container {
+    background: var(--surface);
+    border: 1px solid var(--surface2);
+    border-radius: 16px;
+    padding: 24px;
+    margin: 24px 0;
+    overflow: hidden;
+  }
+  .chart-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+  }
+
+  /* Tooltip */
+  .tooltip {
+    position: absolute;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 0.85rem;
+    color: var(--text);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s;
+    z-index: 100;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  }
+
+  /* Footer */
+  footer {
+    text-align: center;
+    padding: 40px 24px;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  /* Interactive flow node hover */
+  .flow-node { cursor: default; transition: filter 0.15s; }
+  .flow-node:hover { filter: brightness(1.15); }
+
+  /* Animated gradient dividers */
+  .divider {
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent), var(--accent2), transparent);
+    margin: 0;
+    border: none;
+  }
+
+  /* Responsive */
+  @media (max-width: 640px) {
+    .hero h1 { font-size: 2rem; }
+    .hero { padding: 48px 16px 40px; }
+    .card-grid { grid-template-columns: 1fr; }
+    h2 { font-size: 1.5rem; }
+    body { font-size: 16px; }
+    section { padding: 40px 0; }
+  }
+</style>
+</head>
+<body>
+
+<div class="tooltip" id="tooltip"></div>
+
+<!-- HERO -->
+<header class="hero">
+  <span class="badge">Internal Documentation</span>
+  <h1>How Ad Selection Works</h1>
+  <p>A plain-language guide to how Emperor decides which ad to show when a subscriber opens a newsletter.</p>
+</header>
+
+<hr class="divider">
+
+<!-- BIG PICTURE -->
+<section>
+  <div class="container">
+    <div class="step-num">0</div>
+    <h2>The Big Picture</h2>
+    <p>When a subscriber opens a newsletter email, every ad slot (called a <strong>placement</strong>) in that email makes a request to Emperor's ad server. The ad server has a fraction of a second to decide which ad to show.</p>
+
+    <div id="bigpicture-flow"></div>
+
+    <div class="callout">
+      <strong>Think of it like this:</strong> The newsletter is a magazine. Each ad slot is a blank space reserved for advertising. When the reader opens the magazine, Emperor instantly fills each blank space with the most appropriate ad it can find.
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- STEP 1 -->
+<section>
+  <div class="container">
+    <div class="step-num">1</div>
+    <h2>What Emperor Knows About the Request</h2>
+    <p>When the ad slot fires, Emperor receives the following information:</p>
+
+    <div class="card-grid">
+      <div class="card">
+        <span class="icon">&#128204;</span>
+        <h4>Which Ad Slot</h4>
+        <p class="muted">Encoded in the tracking URL embedded in the newsletter. e.g., "Top banner in Sports Daily"</p>
+      </div>
+      <div class="card">
+        <span class="icon">&#128100;</span>
+        <h4>Which Subscriber</h4>
+        <p class="muted">Hashed email address from the tracking URL (anonymous, not readable)</p>
+      </div>
+      <div class="card">
+        <span class="icon">&#128231;</span>
+        <h4>Which Newsletter Send</h4>
+        <p class="muted">Sendout identifier. e.g., "Sports Daily - Feb 10 edition"</p>
+      </div>
+      <div class="card">
+        <span class="icon">&#128241;</span>
+        <h4>Screen Type</h4>
+        <p class="muted">Desktop, Mobile, or Tablet -- determined from a URL parameter</p>
+      </div>
+      <div class="card">
+        <span class="icon">&#127758;</span>
+        <h4>Location</h4>
+        <p class="muted">Looked up from the subscriber's IP address. e.g., "Berlin, Germany"</p>
+      </div>
+      <div class="card">
+        <span class="icon">&#128295;</span>
+        <h4>Custom Data</h4>
+        <p class="muted">Any extra parameters the publisher adds to the URL. e.g., gender, segment, age</p>
+      </div>
+    </div>
+
+    <div class="callout-warn callout">
+      <strong>Important:</strong> Emperor does <em>not</em> receive personal details like name, age, or interests directly from the email provider. The richest user signal is the newsletter content itself -- if someone subscribes to a sports newsletter, they are likely interested in sports.
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- STEP 2 -->
+<section>
+  <div class="container">
+    <div class="step-num">2</div>
+    <h2>Check for Guaranteed Deals (Sponsorships)</h2>
+    <p>Before any competitive auction happens, Emperor checks if there is a <strong>sponsorship</strong> booked for this ad slot on this date.</p>
+
+    <div class="card" style="border-left: 4px solid var(--yellow);">
+      <h4>What is a sponsorship?</h4>
+      <p>A sponsorship is a pre-sold, guaranteed deal. An advertiser pays a fixed price (e.g., $2,500 for 50,000 impressions) to <strong>own</strong> an ad slot for a specific period.</p>
+      <p class="muted" style="margin-bottom:0;">Think of it like buying a billboard for a month -- it's yours, no competition.</p>
+    </div>
+
+    <ul class="checklist">
+      <li><strong>If a sponsorship exists</strong> and passes basic checks (right day, right time, right geography), it wins immediately</li>
+      <li><strong>No auction takes place</strong> -- the sponsored ad is served</li>
+      <li><strong>Sponsorships are the highest priority</strong> in the entire system</li>
+    </ul>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- STEP 3 -->
+<section>
+  <div class="container">
+    <div class="step-num">3</div>
+    <h2>The Auction (Priority Cascade)</h2>
+    <p>If no sponsorship applies, Emperor runs an <strong>auction</strong> to decide which ad campaign gets the slot.</p>
+
+    <h3>How priority works</h3>
+    <p>Every ad campaign (called a <strong>line item</strong>) has a priority number. <strong>Lower numbers = higher priority.</strong> Emperor works through priority levels from highest to lowest. It only moves to the next level if no campaign at the current level qualifies.</p>
+
+    <div id="priority-chart" class="chart-container">
+      <div class="chart-title">Priority Levels (lower = more important)</div>
+    </div>
+
+    <h3>How the auction decides between campaigns at the same priority</h3>
+    <p>Within each priority level, campaigns compete based on their <strong>eCPM</strong> (effective cost per 1,000 impressions) -- essentially, how much the advertiser is willing to pay.</p>
+
+    <div class="card-grid">
+      <div class="card" style="border-top: 3px solid var(--accent);">
+        <h4>Direct Campaigns</h4>
+        <p class="muted">Use a pre-set eCPM price configured when the campaign is booked.</p>
+      </div>
+      <div class="card" style="border-top: 3px solid var(--accent2);">
+        <h4>Programmatic / Exchange</h4>
+        <p class="muted">Submit real-time bids via OpenRTB (an industry standard protocol for automated ad buying).</p>
+      </div>
+      <div class="card" style="border-top: 3px solid var(--green);">
+        <h4>Winner</h4>
+        <p class="muted">The higher eCPM/bid wins. To keep things fair, Emperor shuffles campaigns within the same eCPM tier 95% of the time.</p>
+      </div>
+    </div>
+
+    <h3>Weighted rotation (Priority 5 only)</h3>
+    <p>At priority 5, campaigns can be assigned a <strong>split delivery percentage</strong>. Emperor uses weighted random selection to honor these ratios over time.</p>
+
+    <div id="split-chart" class="chart-container">
+      <div class="chart-title">Example: Split Delivery Allocation</div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- STEP 4 -->
+<section>
+  <div class="container">
+    <div class="step-num">4</div>
+    <h2>Eligibility Checks (Preconditions)</h2>
+    <p>Before a campaign can win, it must pass a series of <strong>11 eligibility checks</strong>. Think of these as filters -- if any filter fails, the campaign is skipped and the next candidate is tried.</p>
+
+    <div id="checks-chart" class="chart-container">
+      <div class="chart-title">The 11 Checks Every Campaign Must Pass</div>
+    </div>
+
+    <p><strong>The first campaign to pass all checks wins the slot.</strong></p>
+    <p class="muted">Campaigns that fail are logged with a reason code for troubleshooting (e.g., "FRQ" = frequency cap exceeded, "GEO" = wrong location, "PAC" = pacing throttled).</p>
+
+    <h3>Delivery pacing explained</h3>
+    <p>Pacing controls how fast a campaign delivers its budget over time:</p>
+
+    <table>
+      <thead>
+        <tr><th>Pacing Mode</th><th>How it works</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Even Delivery</strong></td>
+          <td>Spreads impressions proportionally over the campaign's duration. If a 10-day campaign has a budget of 10,000 impressions, it aims for ~1,000/day. If it's ahead of schedule, it slows down.</td>
+        </tr>
+        <tr>
+          <td><strong>As Soon As Possible</strong></td>
+          <td>No throttling. Serves as fast as possible until the budget runs out.</td>
+        </tr>
+        <tr>
+          <td><strong>Performance Optimization</strong></td>
+          <td>Compares the click-through rate (CTR) on each ad slot to the campaign's overall average CTR. Slots with above-average CTR get more impressions; underperforming slots get throttled.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div id="pacing-chart" class="chart-container">
+      <div class="chart-title">Even Delivery Pacing Example (10-day campaign, 10,000 impressions budget)</div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- STEP 5 -->
+<section>
+  <div class="container">
+    <div class="step-num">5</div>
+    <h2>Picking the Specific Ad (Creative Selection)</h2>
+    <p>A campaign can have multiple ad creatives (different images, headlines, designs). Once a campaign wins the slot, Emperor needs to pick <strong>which creative</strong> to show.</p>
+
+    <h3>Creative types</h3>
+    <div class="card-grid">
+      <div class="card">
+        <span class="icon">&#127912;</span>
+        <h4>Native (Text + Image)</h4>
+        <p class="muted">Emperor generates the final ad by combining the advertiser's image with text (headline, body, call-to-action button) using the publisher's layout template.</p>
+      </div>
+      <div class="card">
+        <span class="icon">&#128196;</span>
+        <h4>Native (Text Only)</h4>
+        <p class="muted">Same as above but with a blank background instead of an advertiser image. Text-only ad.</p>
+      </div>
+      <div class="card">
+        <span class="icon">&#128444;</span>
+        <h4>Display (Banner)</h4>
+        <p class="muted">The advertiser provides a finished image. Emperor serves it as-is. May contain text baked into the image.</p>
+      </div>
+    </div>
+
+    <h3>How a creative is selected</h3>
+
+    <div id="creative-flow"></div>
+
+    <div class="callout-warn callout">
+      <strong>This is effectively random rotation</strong> -- all eligible creatives have an equal chance of being shown. There is currently <em>no</em> optimization based on:
+      <ul style="margin:12px 0 0 20px; color: var(--text);">
+        <li>How well the ad content matches the newsletter content</li>
+        <li>Which creative has the best click-through rate</li>
+        <li>How recently the subscriber has seen a specific creative</li>
+        <li>A/B testing between creative variants</li>
+      </ul>
+      <p style="margin: 12px 0 0; color: var(--orange);">This is the gap the planned <strong>AI Content Matching Engine</strong> aims to fill.</p>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- STEP 6 -->
+<section>
+  <div class="container">
+    <div class="step-num">6</div>
+    <h2>Serving the Ad and Tracking</h2>
+    <p>Once the creative is selected, Emperor returns three things:</p>
+
+    <div class="card-grid">
+      <div class="card" style="text-align:center;">
+        <span class="icon">&#128444;</span>
+        <h4>The Ad Image</h4>
+        <p class="muted">A URL to the pre-rendered image in cloud storage.</p>
+      </div>
+      <div class="card" style="text-align:center;">
+        <span class="icon">&#128065;</span>
+        <h4>Impression Pixel</h4>
+        <p class="muted">A tiny invisible image that records the ad was displayed.</p>
+      </div>
+      <div class="card" style="text-align:center;">
+        <span class="icon">&#128279;</span>
+        <h4>Click Tracking URL</h4>
+        <p class="muted">Records the click, then redirects to the advertiser's page.</p>
+      </div>
+    </div>
+
+    <h3>What happens after serving</h3>
+    <ul class="checklist">
+      <li><strong>15-second cache:</strong> If the same email has 3 ad slots, they all share one decision cycle -- ensuring consistent ad selection across all slots in one email open</li>
+      <li><strong>Frequency counter updated:</strong> The subscriber's "times seen this ad" count is incremented</li>
+      <li><strong>Event logged:</strong> The impression event (who, where, what device, which ad, which campaign) is queued for the analytics database</li>
+      <li><strong>Advertiser pixels fired:</strong> Any external tracking pixels from the advertiser are fired in the background</li>
+    </ul>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- FULL FLOW -->
+<section>
+  <div class="container">
+    <h2>The Complete Decision Flow</h2>
+    <p>Here's the entire process visualized from email open to ad served:</p>
+    <div id="full-flow"></div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- OPTIMIZATION STATUS -->
+<section>
+  <div class="container">
+    <h2>What's Optimized Today vs. What's Not</h2>
+    <p>A quick look at which parts of ad selection are smart, and which parts have room for improvement.</p>
+
+    <div id="optim-chart" class="chart-container">
+      <div class="chart-title">Optimization Status by Area</div>
+    </div>
+
+    <table>
+      <thead>
+        <tr><th>Area</th><th>Current State</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Which campaign wins a slot</strong></td>
+          <td><span class="status status-green">Fully optimized</span> Priority cascade, eCPM auction, sponsorship guarantees, split delivery weighting</td>
+        </tr>
+        <tr>
+          <td><strong>Impression allocation across slots</strong></td>
+          <td><span class="status status-orange">Partially optimized</span> Performance pacing sends more impressions to high-CTR ad slots</td>
+        </tr>
+        <tr>
+          <td><strong>Fraud prevention</strong></td>
+          <td><span class="status status-green">Fully implemented</span> 18 fraud checks, VPN detection, bot detection</td>
+        </tr>
+        <tr>
+          <td><strong>Frequency control</strong></td>
+          <td><span class="status status-green">Fully implemented</span> Per-subscriber caps at hourly, daily, and lifetime levels</td>
+        </tr>
+        <tr>
+          <td><strong>Which creative is shown</strong></td>
+          <td><span class="status status-red">Not optimized</span> Random rotation within eligible creatives</td>
+        </tr>
+        <tr>
+          <td><strong>Content relevance</strong></td>
+          <td><span class="status status-red">Not implemented</span> No awareness of newsletter content vs. ad content</td>
+        </tr>
+        <tr>
+          <td><strong>User interest matching</strong></td>
+          <td><span class="status status-orange">Limited</span> Only custom key-value targeting if the publisher passes subscriber data in the URL</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<footer>
+  <p>Emperor Ad Selection &mdash; Internal Documentation</p>
+  <p class="muted" style="margin-top:8px; font-size:0.8rem;">This document describes the ad selection process as currently implemented.</p>
+</footer>
+
+<script>
+// ─── HELPERS ─────────────────────────────────────────────────────
+const tooltip = d3.select('#tooltip');
+function showTip(evt, html) {
+  tooltip.html(html).style('opacity',1)
+    .style('left', (evt.pageX+12)+'px')
+    .style('top', (evt.pageY-28)+'px');
+}
+function hideTip() { tooltip.style('opacity',0); }
+
+// ─── BIG PICTURE FLOW ───────────────────────────────────────────
+(function(){
+  const steps = [
+    {label:'Subscriber\nopens email', color:'#38bdf8', icon:'📧'},
+    {label:'Each ad slot fires\na request to Emperor', color:'#818cf8', icon:'📡'},
+    {label:'Emperor picks\nthe best ad', color:'#f472b6', icon:'🧠'},
+    {label:'Ad is displayed\n(impression tracked)', color:'#4ade80', icon:'👁️'},
+    {label:'If clicked → track\n& redirect to advertiser', color:'#facc15', icon:'👆'},
+  ];
+  const w=900, h=120, nodeW=150, nodeH=70;
+  const svg = d3.select('#bigpicture-flow').append('svg')
+    .attr('viewBox', `0 0 ${w} ${h}`)
+    .attr('class','flow-svg')
+    .style('max-width','100%');
+  const spacing = (w - nodeW) / (steps.length - 1);
+
+  // arrows
+  steps.forEach((s,i)=>{
+    if(i < steps.length-1){
+      svg.append('line')
+        .attr('x1', i*spacing+nodeW).attr('y1', h/2)
+        .attr('x2', (i+1)*spacing).attr('y2', h/2)
+        .attr('stroke','#475569').attr('stroke-width',2)
+        .attr('marker-end','url(#arrowhead)');
+    }
+  });
+  // arrowhead marker
+  svg.append('defs').append('marker')
+    .attr('id','arrowhead').attr('viewBox','0 0 10 10')
+    .attr('refX',10).attr('refY',5).attr('markerWidth',8).attr('markerHeight',8)
+    .attr('orient','auto')
+    .append('path').attr('d','M0,0 L10,5 L0,10 Z').attr('fill','#475569');
+
+  // nodes
+  steps.forEach((s,i)=>{
+    const g = svg.append('g')
+      .attr('class','flow-node')
+      .attr('transform',`translate(${i*spacing},${h/2-nodeH/2})`);
+    g.append('rect')
+      .attr('width',nodeW).attr('height',nodeH)
+      .attr('rx',12).attr('fill',s.color).attr('fill-opacity',0.15)
+      .attr('stroke',s.color).attr('stroke-width',1.5);
+    const lines = s.label.split('\n');
+    lines.forEach((line,li)=>{
+      g.append('text')
+        .attr('x',nodeW/2).attr('y', nodeH/2 + (li - (lines.length-1)/2)*16)
+        .attr('text-anchor','middle').attr('dominant-baseline','middle')
+        .attr('fill','#e2e8f0').attr('font-size','11px').attr('font-weight',600)
+        .text(line);
+    });
+  });
+})();
+
+// ─── PRIORITY CHART ─────────────────────────────────────────────
+(function(){
+  const data = [
+    {label:'Priority 0-4', desc:'Premium campaigns', pct:25, color:'#f87171'},
+    {label:'Priority 5', desc:'Standard (+ split delivery)', pct:50, color:'#fb923c'},
+    {label:'Priority 6+', desc:'Lower-priority / remnant', pct:20, color:'#facc15'},
+    {label:'Priority 999', desc:'Fallback (no ad shown)', pct:5, color:'#475569'},
+  ];
+  const w=860, h=200, barH=36, gap=12;
+  const svg = d3.select('#priority-chart').append('svg')
+    .attr('viewBox',`0 0 ${w} ${h}`).style('width','100%');
+  const maxW = 500;
+  data.forEach((d,i)=>{
+    const y = 10 + i*(barH+gap);
+    const bw = maxW*(d.pct/50);
+    // label
+    svg.append('text').attr('x',0).attr('y',y+barH/2+1)
+      .attr('dominant-baseline','middle').attr('fill','#e2e8f0')
+      .attr('font-size','13px').attr('font-weight',700).text(d.label);
+    // bar
+    svg.append('rect').attr('x',160).attr('y',y)
+      .attr('width',0).attr('height',barH).attr('rx',8)
+      .attr('fill',d.color).attr('fill-opacity',0.25)
+      .attr('stroke',d.color).attr('stroke-width',1.5)
+      .on('mouseover',(evt)=>showTip(evt,`<strong>${d.label}</strong><br>${d.desc}`))
+      .on('mouseout',hideTip)
+      .transition().duration(800).delay(i*120).attr('width',bw);
+    // desc
+    svg.append('text').attr('x',170+bw).attr('y',y+barH/2+1)
+      .attr('dominant-baseline','middle').attr('fill','#94a3b8')
+      .attr('font-size','12px').text(d.desc)
+      .attr('opacity',0).transition().duration(400).delay(i*120+600).attr('opacity',1);
+  });
+
+  svg.append('text').attr('x',0).attr('y',h-8)
+    .attr('fill','#64748b').attr('font-size','11px')
+    .text('Emperor tries each priority level top-to-bottom. It stops as soon as a campaign qualifies.');
+})();
+
+// ─── SPLIT DELIVERY DONUT ───────────────────────────────────────
+(function(){
+  const data = [{label:'Campaign A',value:50,color:'#38bdf8'},{label:'Campaign B',value:30,color:'#818cf8'},{label:'Campaign C',value:20,color:'#f472b6'}];
+  const w=400, h=250, r=90;
+  const svg = d3.select('#split-chart').append('svg')
+    .attr('viewBox',`0 0 ${w} ${h}`).style('width','100%').style('max-width','400px').style('display','block').style('margin','0 auto');
+  const g = svg.append('g').attr('transform',`translate(${w/2},${h/2})`);
+
+  const pie = d3.pie().value(d=>d.value).sort(null).padAngle(0.03);
+  const arc = d3.arc().innerRadius(r*0.55).outerRadius(r);
+  const arcHover = d3.arc().innerRadius(r*0.55).outerRadius(r+8);
+
+  g.selectAll('path').data(pie(data)).join('path')
+    .attr('d',arc).attr('fill',d=>d.data.color).attr('fill-opacity',0.8)
+    .attr('stroke',d=>d.data.color).attr('stroke-width',2)
+    .on('mouseover',function(evt,d){
+      d3.select(this).transition().duration(150).attr('d',arcHover);
+      showTip(evt,`<strong>${d.data.label}</strong><br>${d.data.value}% of impressions`);
+    })
+    .on('mouseout',function(evt,d){
+      d3.select(this).transition().duration(150).attr('d',arc);
+      hideTip();
+    });
+
+  // labels
+  const labelArc = d3.arc().innerRadius(r+20).outerRadius(r+20);
+  g.selectAll('text.lbl').data(pie(data)).join('text')
+    .attr('transform',d=>`translate(${labelArc.centroid(d)})`)
+    .attr('text-anchor','middle').attr('fill','#e2e8f0')
+    .attr('font-size','12px').attr('font-weight',700)
+    .text(d=>`${d.data.label} (${d.data.value}%)`);
+})();
+
+// ─── 11 CHECKS CHART ───────────────────────────────────────────
+(function(){
+  const checks = [
+    {name:'Day & Time', desc:'Is this the right day of the week and time of day?', cat:'Targeting'},
+    {name:'Custom Rules', desc:'Does the subscriber match custom conditions? (e.g., age > 25)', cat:'Targeting'},
+    {name:'Location', desc:'Is the subscriber in the right country, region, or city?', cat:'Targeting'},
+    {name:'Audience Lists', desc:'Is the subscriber on an approved list (or NOT on a blocked list)?', cat:'Targeting'},
+    {name:'Device Type', desc:'Is the subscriber on the right type of device?', cat:'Targeting'},
+    {name:'Order Budget', desc:'Has the overall campaign budget been spent?', cat:'Budget'},
+    {name:'Line Item Budget', desc:'Has this booking\'s budget been spent? Rolling volume limits.', cat:'Budget'},
+    {name:'Fraud Detection', desc:'Does this request look legitimate? (18 specialized fraud checks)', cat:'Safety'},
+    {name:'Frequency Cap', desc:'Has this subscriber already seen this ad too many times?', cat:'Delivery'},
+    {name:'Pacing', desc:'Should this ad be shown now to spread delivery evenly?', cat:'Delivery'},
+    {name:'Has Creative', desc:'Does this campaign have an ad ready for this slot and screen size?', cat:'Delivery'},
+  ];
+  const catColors = {Targeting:'#38bdf8',Budget:'#facc15',Safety:'#f87171',Delivery:'#4ade80'};
+  const w=860, h=checks.length*42+20;
+  const svg = d3.select('#checks-chart').append('svg')
+    .attr('viewBox',`0 0 ${w} ${h}`).style('width','100%');
+
+  checks.forEach((c,i)=>{
+    const y = 10+i*42;
+    // number circle
+    svg.append('circle').attr('cx',18).attr('cy',y+16).attr('r',14)
+      .attr('fill',catColors[c.cat]).attr('fill-opacity',0.2)
+      .attr('stroke',catColors[c.cat]).attr('stroke-width',1.5);
+    svg.append('text').attr('x',18).attr('y',y+17)
+      .attr('text-anchor','middle').attr('dominant-baseline','middle')
+      .attr('fill',catColors[c.cat]).attr('font-size','11px').attr('font-weight',700)
+      .text(i+1);
+    // name
+    svg.append('text').attr('x',44).attr('y',y+10)
+      .attr('fill','#e2e8f0').attr('font-size','13px').attr('font-weight',700)
+      .text(c.name);
+    // desc
+    svg.append('text').attr('x',44).attr('y',y+28)
+      .attr('fill','#94a3b8').attr('font-size','11px')
+      .text(c.desc);
+    // category pill
+    svg.append('rect').attr('x',w-100).attr('y',y+4).attr('width',80).attr('height',24).attr('rx',12)
+      .attr('fill',catColors[c.cat]).attr('fill-opacity',0.15)
+      .attr('stroke',catColors[c.cat]).attr('stroke-width',1);
+    svg.append('text').attr('x',w-60).attr('y',y+17)
+      .attr('text-anchor','middle').attr('dominant-baseline','middle')
+      .attr('fill',catColors[c.cat]).attr('font-size','10px').attr('font-weight',600)
+      .text(c.cat);
+    // divider
+    if(i<checks.length-1)
+      svg.append('line').attr('x1',44).attr('y1',y+38).attr('x2',w-110).attr('y2',y+38)
+        .attr('stroke','#1e293b').attr('stroke-width',1);
+  });
+})();
+
+// ─── PACING CHART ───────────────────────────────────────────────
+(function(){
+  const budget=10000, days=10;
+  const ideal = d3.range(days).map(i=>({day:i+1, val:budget/days*(i+1)}));
+  const actual = [
+    {day:1,val:1200},{day:2,val:2100},{day:3,val:2800},{day:4,val:3600},{day:5,val:4800},
+    {day:6,val:5600},{day:7,val:6500},{day:8,val:7600},{day:9,val:8800},{day:10,val:10000}
+  ];
+  const w=820, h=260, m={t:20,r:30,b:40,l:60};
+  const iw=w-m.l-m.r, ih=h-m.t-m.b;
+  const svg = d3.select('#pacing-chart').append('svg')
+    .attr('viewBox',`0 0 ${w} ${h}`).style('width','100%');
+  const g = svg.append('g').attr('transform',`translate(${m.l},${m.t})`);
+
+  const x = d3.scaleLinear().domain([1,10]).range([0,iw]);
+  const y = d3.scaleLinear().domain([0,10000]).range([ih,0]);
+
+  // grid
+  y.ticks(5).forEach(t=>{
+    g.append('line').attr('x1',0).attr('x2',iw).attr('y1',y(t)).attr('y2',y(t))
+      .attr('stroke','#1e293b');
+  });
+
+  // axes
+  g.append('g').attr('transform',`translate(0,${ih})`).call(d3.axisBottom(x).ticks(10).tickFormat(d=>`Day ${d}`))
+    .selectAll('text').attr('fill','#94a3b8').attr('font-size','11px');
+  g.append('g').call(d3.axisLeft(y).ticks(5).tickFormat(d3.format(',')))
+    .selectAll('text').attr('fill','#94a3b8').attr('font-size','11px');
+  g.selectAll('.domain,.tick line').attr('stroke','#334155');
+
+  // ideal line
+  const line = d3.line().x(d=>x(d.day)).y(d=>y(d.val)).curve(d3.curveMonotoneX);
+  g.append('path').datum(ideal).attr('d',line)
+    .attr('fill','none').attr('stroke','#475569').attr('stroke-width',2)
+    .attr('stroke-dasharray','6,4');
+  // actual line
+  g.append('path').datum(actual).attr('d',line)
+    .attr('fill','none').attr('stroke','#38bdf8').attr('stroke-width',3);
+  // dots
+  g.selectAll('circle.act').data(actual).join('circle')
+    .attr('cx',d=>x(d.day)).attr('cy',d=>y(d.val)).attr('r',5)
+    .attr('fill','#38bdf8').attr('stroke','#0f172a').attr('stroke-width',2)
+    .on('mouseover',(evt,d)=>showTip(evt,`<strong>Day ${d.day}</strong><br>Delivered: ${d3.format(',')(d.val)}<br>Ideal: ${d3.format(',')(budget/days*d.day)}`))
+    .on('mouseout',hideTip);
+
+  // legend
+  g.append('line').attr('x1',iw-200).attr('y1',10).attr('x2',iw-170).attr('y2',10).attr('stroke','#38bdf8').attr('stroke-width',3);
+  g.append('text').attr('x',iw-164).attr('y',14).attr('fill','#94a3b8').attr('font-size','11px').text('Actual delivery');
+  g.append('line').attr('x1',iw-200).attr('y1',30).attr('x2',iw-170).attr('y2',30).attr('stroke','#475569').attr('stroke-width',2).attr('stroke-dasharray','6,4');
+  g.append('text').attr('x',iw-164).attr('y',34).attr('fill','#94a3b8').attr('font-size','11px').text('Ideal (even) pace');
+})();
+
+// ─── CREATIVE SELECTION FLOW ────────────────────────────────────
+(function(){
+  const steps = [
+    {label:'All creatives\nin this campaign', color:'#818cf8'},
+    {label:'Filter by slot,\nscreen size, status', color:'#38bdf8'},
+    {label:'Shuffle\nrandomly', color:'#fb923c'},
+    {label:'Check schedule\n(day-parting)', color:'#facc15'},
+    {label:'First one that\npasses = winner', color:'#4ade80'},
+  ];
+  const w=900, h=100, nodeW=155, nodeH=56;
+  const svg = d3.select('#creative-flow').append('svg')
+    .attr('viewBox',`0 0 ${w} ${h}`).attr('class','flow-svg').style('max-width','100%');
+  const sp = (w-nodeW)/(steps.length-1);
+
+  svg.append('defs').append('marker')
+    .attr('id','arr2').attr('viewBox','0 0 10 10')
+    .attr('refX',10).attr('refY',5).attr('markerWidth',7).attr('markerHeight',7)
+    .attr('orient','auto')
+    .append('path').attr('d','M0,0 L10,5 L0,10 Z').attr('fill','#475569');
+
+  steps.forEach((s,i)=>{
+    if(i<steps.length-1)
+      svg.append('line').attr('x1',i*sp+nodeW).attr('y1',h/2).attr('x2',(i+1)*sp).attr('y2',h/2)
+        .attr('stroke','#475569').attr('stroke-width',2).attr('marker-end','url(#arr2)');
+    const g = svg.append('g').attr('transform',`translate(${i*sp},${h/2-nodeH/2})`).attr('class','flow-node');
+    g.append('rect').attr('width',nodeW).attr('height',nodeH).attr('rx',10)
+      .attr('fill',s.color).attr('fill-opacity',0.15).attr('stroke',s.color).attr('stroke-width',1.5);
+    s.label.split('\n').forEach((ln,li)=>{
+      g.append('text').attr('x',nodeW/2).attr('y',nodeH/2+(li-0.5)*15)
+        .attr('text-anchor','middle').attr('dominant-baseline','middle')
+        .attr('fill','#e2e8f0').attr('font-size','11px').attr('font-weight',600).text(ln);
+    });
+  });
+})();
+
+// ─── FULL DECISION FLOW (vertical) ─────────────────────────────
+(function(){
+  const nodes = [
+    {id:0, label:'Email Opened', y:0, color:'#38bdf8', w:200},
+    {id:1, label:'Sponsorship?', y:80, color:'#facc15', w:180, diamond:true},
+    {id:2, label:'Serve Sponsored Ad', y:80, color:'#4ade80', w:200, x:380},
+    {id:3, label:'Auction\n(Priority Cascade)', y:170, color:'#818cf8', w:200},
+    {id:4, label:'11 Eligibility Checks', y:260, color:'#f87171', w:200},
+    {id:5, label:'Campaign Wins', y:350, color:'#4ade80', w:180},
+    {id:6, label:'Pick Creative\n(Random Rotation)', y:440, color:'#fb923c', w:220},
+    {id:7, label:'Serve Ad +\nTrack Impression', y:530, color:'#4ade80', w:220},
+  ];
+  const w=700, h=600, cx=250;
+  const svg = d3.select('#full-flow').append('svg')
+    .attr('viewBox',`0 0 ${w} ${h}`).attr('class','flow-svg').style('max-width','100%');
+
+  svg.append('defs').append('marker')
+    .attr('id','arr3').attr('viewBox','0 0 10 10')
+    .attr('refX',10).attr('refY',5).attr('markerWidth',7).attr('markerHeight',7)
+    .attr('orient','auto')
+    .append('path').attr('d','M0,0 L10,5 L0,10 Z').attr('fill','#475569');
+
+  const nodeH = 48;
+  // vertical arrows
+  [[0,1],[3,4],[4,5],[5,6],[6,7]].forEach(([a,b])=>{
+    svg.append('line').attr('x1',cx).attr('y1',nodes[a].y+nodeH).attr('x2',cx).attr('y2',nodes[b].y)
+      .attr('stroke','#475569').attr('stroke-width',2).attr('marker-end','url(#arr3)');
+  });
+  // no arrow
+  svg.append('line').attr('x1',cx).attr('y1',nodes[1].y+nodeH).attr('x2',cx).attr('y2',nodes[3].y)
+    .attr('stroke','#475569').attr('stroke-width',2).attr('marker-end','url(#arr3)');
+  // yes branch
+  svg.append('line').attr('x1',cx+nodes[1].w/2).attr('y1',nodes[1].y+nodeH/2)
+    .attr('x2',380).attr('y2',nodes[2].y+nodeH/2)
+    .attr('stroke','#4ade80').attr('stroke-width',2).attr('marker-end','url(#arr3)');
+  // labels
+  svg.append('text').attr('x',cx-6).attr('y',nodes[1].y+nodeH+18)
+    .attr('text-anchor','end').attr('fill','#94a3b8').attr('font-size','11px').attr('font-weight',600).text('No');
+  svg.append('text').attr('x',cx+nodes[1].w/2+6).attr('y',nodes[1].y+nodeH/2-6)
+    .attr('fill','#4ade80').attr('font-size','11px').attr('font-weight',600).text('Yes');
+
+  // render nodes
+  nodes.forEach(n=>{
+    const nx = n.x || (cx - n.w/2);
+    const g = svg.append('g').attr('transform',`translate(${nx},${n.y})`).attr('class','flow-node');
+    g.append('rect').attr('width',n.w).attr('height',nodeH).attr('rx',n.diamond?2:12)
+      .attr('fill',n.color).attr('fill-opacity',0.15)
+      .attr('stroke',n.color).attr('stroke-width',1.5)
+      .attr('transform', n.diamond ? `rotate(0)` : '');
+    const lines = n.label.split('\n');
+    lines.forEach((ln,li)=>{
+      g.append('text').attr('x',n.w/2).attr('y',nodeH/2+(li-(lines.length-1)/2)*16)
+        .attr('text-anchor','middle').attr('dominant-baseline','middle')
+        .attr('fill','#e2e8f0').attr('font-size','12px').attr('font-weight',700).text(ln);
+    });
+  });
+})();
+
+// ─── OPTIMIZATION STATUS CHART ──────────────────────────────────
+(function(){
+  const data = [
+    {label:'Campaign Selection', pct:100, color:'#4ade80'},
+    {label:'Fraud Prevention', pct:100, color:'#4ade80'},
+    {label:'Frequency Control', pct:100, color:'#4ade80'},
+    {label:'Impression Allocation', pct:60, color:'#fb923c'},
+    {label:'User Interest Matching', pct:25, color:'#fb923c'},
+    {label:'Creative Selection', pct:5, color:'#f87171'},
+    {label:'Content Relevance', pct:0, color:'#f87171'},
+  ];
+  const w=820, h=data.length*46+10, barMax=500;
+  const svg = d3.select('#optim-chart').append('svg')
+    .attr('viewBox',`0 0 ${w} ${h}`).style('width','100%');
+  data.forEach((d,i)=>{
+    const y = 6+i*46;
+    svg.append('text').attr('x',180).attr('y',y+18)
+      .attr('text-anchor','end').attr('fill','#e2e8f0')
+      .attr('font-size','12px').attr('font-weight',600).text(d.label);
+    // bg bar
+    svg.append('rect').attr('x',190).attr('y',y+4).attr('width',barMax).attr('height',24).attr('rx',12)
+      .attr('fill','#1e293b');
+    // fill bar
+    svg.append('rect').attr('x',190).attr('y',y+4)
+      .attr('width',0).attr('height',24).attr('rx',12)
+      .attr('fill',d.color).attr('fill-opacity',0.6)
+      .on('mouseover',(evt)=>showTip(evt,`<strong>${d.label}</strong><br>${d.pct}% optimized`))
+      .on('mouseout',hideTip)
+      .transition().duration(800).delay(i*80)
+      .attr('width', Math.max(barMax*(d.pct/100),0));
+    // pct label
+    svg.append('text').attr('x',190+barMax+10).attr('y',y+20)
+      .attr('fill',d.color).attr('font-size','12px').attr('font-weight',700)
+      .text(d.pct+'%');
+  });
+})();
+</script>
+</body>
+</html>
