@@ -359,6 +359,17 @@
     <div class="callout-warn callout">
       <strong>Important:</strong> Emperor does <em>not</em> receive personal details like name, age, or interests directly from the email provider. The richest user signal is the newsletter content itself -- if someone subscribes to a sports newsletter, they are likely interested in sports.
     </div>
+
+    <div class="card-grid">
+      <div class="card" style="border-left: 4px solid var(--orange);">
+        <h4>Email Client Proxies</h4>
+        <p class="muted" style="margin-bottom:0;">Many email apps (like Apple Mail and Gmail) load images through their own servers to protect user privacy. This means Emperor sometimes sees the proxy's location and device info instead of the real subscriber's. Emperor knows about these proxy networks and adjusts accordingly -- for example, location data may be less precise for these requests, and fraud checks are tuned to avoid falsely flagging proxy traffic.</p>
+      </div>
+      <div class="card" style="border-left: 4px solid var(--teal);">
+        <h4>Custom Data Builds Up Over Time</h4>
+        <p class="muted" style="margin-bottom:0;">When a publisher sends custom data (like <code>interest=sports</code>) in one newsletter and <code>interest=finance</code> in another, Emperor remembers both. Over multiple emails, Emperor builds up a collection of data points for each subscriber. This accumulated data can be used for targeting in future ad requests.</p>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -382,6 +393,15 @@
       <li><strong>No auction takes place</strong> -- the sponsored ad is served</li>
       <li><strong>Sponsorships are the highest priority</strong> in the entire system</li>
     </ul>
+
+    <div class="callout">
+      <strong>Fewer safety checks for sponsorships:</strong> Unlike regular campaigns that must pass all 11 eligibility checks (see Step 4), sponsorships skip most of them. They only verify the schedule, location, and whether an ad image is available. Budget limits, frequency caps, pacing, and even fraud checks are all bypassed. The advertiser paid for guaranteed delivery, so Emperor honors that promise -- even if the same subscriber sees the ad many times.
+    </div>
+
+    <div class="card" style="border-left: 4px solid var(--accent2);">
+      <h4>Forced Line Items</h4>
+      <p>Similar to sponsorships, some campaigns can be marked as "forced." These are typically house ads (promoting the publisher's own content) or must-deliver campaigns. Forced campaigns still go through the auction (unlike sponsorships), but they skip budget limits, frequency caps, and pacing -- making them very hard to block. Think of them as VIP guests who still wait in line but get waved through most checkpoints.</p>
+    </div>
   </div>
 </section>
 
@@ -415,12 +435,21 @@
       </div>
       <div class="card" style="border-top: 3px solid var(--green);">
         <h4>Winner</h4>
-        <p class="muted">The higher eCPM/bid wins. To keep things fair, Emperor shuffles campaigns within the same eCPM tier 95% of the time.</p>
+        <p class="muted">The higher eCPM/bid wins.</p>
       </div>
     </div>
 
+    <div class="callout">
+      <strong>The 95% / 5% fairness rule:</strong> Emperor groups campaigns by their bid price and shuffles within each group. 95% of the time, this shuffle stays within price groups (so equal bids get equal chances, but higher bids still win). The other 5% of the time, Emperor does a <em>completely random</em> shuffle -- ignoring bid prices entirely. Why? Without this, a campaign bidding just one cent less than another would <em>almost never</em> win. The 5% random chance prevents any single campaign from permanently dominating a slot by a tiny margin, and gives lower-bidding campaigns occasional impressions so their performance can still be measured.
+    </div>
+
+    <div class="card" style="border-left: 4px solid var(--accent2);">
+      <h4>How Exchange (Programmatic) Bidding Works</h4>
+      <p class="muted" style="margin-bottom:0;">When automated ad-buying platforms are in the mix, Emperor doesn't ask them all for bids upfront (that would be slow). Instead, exchange campaigns are included in the priority lineup with an estimated bid. The real bid request only happens when it's the exchange's turn to compete. If the exchange returns a bid that beats the minimum price, it wins. If not, Emperor moves to the next candidate. This saves time by avoiding unnecessary bid requests when a higher-priority campaign would have won anyway.</p>
+    </div>
+
     <h3>Weighted rotation (Priority 5 only)</h3>
-    <p>At priority 5, campaigns can be assigned a <strong>split delivery percentage</strong>. Emperor uses weighted random selection to honor these ratios over time.</p>
+    <p>At priority 5, campaigns can be assigned a <strong>split delivery percentage</strong>. Emperor uses weighted random selection to honor these ratios over time. It works like a raffle wheel -- Campaign A with 50% gets half the wheel, Campaign B with 30% gets a smaller slice, and Campaign C with 20% gets the smallest. Emperor "spins the wheel" for each ad request, and over thousands of spins, the distribution matches the configured percentages.</p>
 
     <div id="split-chart" class="chart-container">
       <div class="chart-title">Example: Split Delivery Allocation</div>
@@ -442,7 +471,16 @@
     </div>
 
     <p><strong>The first campaign to pass all checks wins the slot.</strong></p>
-    <p class="muted">Campaigns that fail are logged with a reason code for troubleshooting (e.g., "FRQ" = frequency cap exceeded, "GEO" = wrong location, "PAC" = pacing throttled).</p>
+
+    <div class="callout">
+      <strong>What happens when a check fails?</strong> Every time a campaign is skipped, Emperor logs a short code explaining why. This "skipped history" is essential for troubleshooting -- if an advertiser says "my campaign isn't showing," the operations team can look up exactly which check blocked it and how many times. The codes include: <strong>DT</strong> (wrong day/time), <strong>KV</strong> (targeting rules didn't match), <strong>GEO</strong> (wrong location), <strong>AUD</strong> (audience list mismatch), <strong>DEV</strong> (wrong device), <strong>OBG</strong> (campaign budget spent), <strong>LBG</strong> (line item budget spent), <strong>FRD</strong> (flagged as fraud), <strong>FRQ</strong> (subscriber saw it too many times), <strong>PAC</strong> (pacing says "slow down"), <strong>CRE</strong> (no ad image available).
+    </div>
+
+    <h3>More on fraud detection</h3>
+    <p class="muted">Emperor runs 18 specialized fraud checks on every request, including: detecting known bots (by their digital fingerprint), flagging VPN and proxy users, scoring IP addresses for suspicious history, catching duplicate or replayed requests, identifying email client proxies (like Apple's privacy protection), and flagging requests from data centers (real people don't browse from server farms). Each check adds to a risk score -- if the total score is too high, the request is rejected.</p>
+
+    <h3>More on frequency capping</h3>
+    <p class="muted">Frequency caps work at three time scales: <strong>per hour</strong> (e.g., "show this ad at most once per hour"), <strong>per day</strong> (e.g., "max 3 times per day"), and <strong>per lifetime</strong> (e.g., "max 10 times total for this entire campaign"). These limits can be set on each campaign individually. If a campaign doesn't have its own limits, it inherits the limits from its parent order (the umbrella group of campaigns). Emperor tracks how many times each subscriber has seen each ad, and these counters automatically reset when their time window expires.</p>
 
     <h3>Delivery pacing explained</h3>
     <p>Pacing controls how fast a campaign delivers its budget over time:</p>
@@ -454,15 +492,15 @@
       <tbody>
         <tr>
           <td><strong>Even Delivery</strong></td>
-          <td>Spreads impressions proportionally over the campaign's duration. If a 10-day campaign has a budget of 10,000 impressions, it aims for ~1,000/day. If it's ahead of schedule, it slows down.</td>
+          <td>Spreads impressions evenly over the campaign's duration. Emperor compares "how much time has passed" to "how much budget has been spent." If a 10-day campaign has spent 60% of its budget but only 40% of the time has passed, it's ahead of schedule and gets slowed down. If it's behind schedule, delivery speeds up. The slowdown isn't a hard block -- it's a probability. The further ahead of schedule, the less likely each individual ad request will be accepted.</td>
         </tr>
         <tr>
           <td><strong>As Soon As Possible</strong></td>
-          <td>No throttling. Serves as fast as possible until the budget runs out.</td>
+          <td>No throttling at all. Serves as fast as possible until the budget runs out. Best for short-burst campaigns like flash sales or event promotions where the advertiser wants maximum exposure right away.</td>
         </tr>
         <tr>
           <td><strong>Performance Optimization</strong></td>
-          <td>Compares the click-through rate (CTR) on each ad slot to the campaign's overall average CTR. Slots with above-average CTR get more impressions; underperforming slots get throttled.</td>
+          <td>Compares the click-through rate (CTR) on <em>each individual ad slot</em> to the campaign's <em>overall average CTR</em> across all slots. Slots where people click more often get more impressions; slots where people rarely click get fewer. For example, if an ad gets 3.5% clicks in the "Sports Daily" banner but only 0.8% in the "Tech Weekly" sidebar, Emperor will favor the Sports Daily slot. <strong>This is the only performance-based optimization in the system today</strong> -- it decides <em>where</em> to show ads, but not <em>which</em> ad image to show.</td>
         </tr>
       </tbody>
     </table>
@@ -487,23 +525,31 @@
       <div class="card">
         <span class="icon">&#127912;</span>
         <h4>Native (Text + Image)</h4>
-        <p class="muted">Emperor generates the final ad by combining the advertiser's image with text (headline, body, call-to-action button) using the publisher's layout template.</p>
+        <p class="muted">Emperor generates the final ad image by combining the advertiser's image with text (headline, body, call-to-action button) using the publisher's layout template. The publisher controls the visual style -- fonts, colors, layout -- so the ad blends naturally into the newsletter. Each unique combination of ad content + template + screen size produces its own rendered image, stored in cloud storage.</p>
       </div>
       <div class="card">
         <span class="icon">&#128196;</span>
         <h4>Native (Text Only)</h4>
-        <p class="muted">Same as above but with a blank background instead of an advertiser image. Text-only ad.</p>
+        <p class="muted">Same as above but with a solid background instead of an advertiser image. Used when the advertiser wants a text-focused ad or doesn't have image assets. Still rendered into an image by Emperor using the publisher's template.</p>
       </div>
       <div class="card">
         <span class="icon">&#128444;</span>
         <h4>Display (Banner)</h4>
-        <p class="muted">The advertiser provides a finished image. Emperor serves it as-is. May contain text baked into the image.</p>
+        <p class="muted">The advertiser provides a finished image. Emperor serves it as-is with no modifications. The image itself may contain text baked into it -- Emperor has no control over or knowledge of the visual content inside display ads.</p>
       </div>
     </div>
 
     <h3>How a creative is selected</h3>
 
     <div id="creative-flow"></div>
+
+    <div class="callout">
+      <strong>Screen orientation fallback:</strong> Each ad creative is designed for a specific screen orientation (portrait or landscape). If no creative matches the exact orientation of the subscriber's screen, Emperor doesn't give up -- it falls back. Portrait requests can use landscape creatives, and mobile requests can fall back to landscape. This prevents showing an empty ad slot just because the campaign only has ads in one orientation.
+    </div>
+
+    <div class="callout">
+      <strong>Creative-level overrides:</strong> Individual creatives can optionally override their parent campaign's delivery settings (like pacing mode). So a campaign using "Even Delivery" pacing could have one specific creative that uses "As Soon As Possible" -- allowing fine-grained control at the creative level.
+    </div>
 
     <div class="callout-warn callout">
       <strong>This is effectively random rotation</strong> -- all eligible creatives have an equal chance of being shown. There is currently <em>no</em> optimization based on:
@@ -512,6 +558,7 @@
         <li>Which creative has the best click-through rate</li>
         <li>How recently the subscriber has seen a specific creative</li>
         <li>A/B testing between creative variants</li>
+        <li>Subscriber demographics or interests</li>
       </ul>
       <p style="margin: 12px 0 0; color: var(--orange);">This is the gap the planned <strong>AI Content Matching Engine</strong> aims to fill.</p>
     </div>
@@ -547,10 +594,11 @@
 
     <h3>What happens after serving</h3>
     <ul class="checklist">
-      <li><strong>15-second cache:</strong> If the same email has 3 ad slots, they all share one decision cycle -- ensuring consistent ad selection across all slots in one email open</li>
-      <li><strong>Frequency counter updated:</strong> The subscriber's "times seen this ad" count is incremented</li>
-      <li><strong>Event logged:</strong> The impression event (who, where, what device, which ad, which campaign) is queued for the analytics database</li>
-      <li><strong>Advertiser pixels fired:</strong> Any external tracking pixels from the advertiser are fired in the background</li>
+      <li><strong>15-second decision cache:</strong> If the same email has 3 ad slots, they all share one decision cycle -- ensuring consistent ad selection across all slots in one email open. The cache is keyed on the subscriber + newsletter send combination. This also acts as a <strong>deduplication safety net</strong>: if an email client loads the same image twice (common with preview panes), the second load reuses the cached result instead of counting as a new impression.</li>
+      <li><strong>Frequency counters updated:</strong> The subscriber's "times seen this ad" counts are incremented -- separate counters for each time window (hourly, daily, lifetime) and each campaign/order.</li>
+      <li><strong>Impression event queued:</strong> The full impression event (subscriber hash, location, device, which ad, which campaign, which creative, timestamp, fraud score) is queued for the analytics database. Events are batched and written in the background so they don't slow down the ad response.</li>
+      <li><strong>Advertiser tracking pixels fired:</strong> Any third-party tracking pixels from the advertiser (for their own analytics or verification vendors) are fired in the background after the response is sent.</li>
+      <li><strong>Quality control data sent:</strong> If the campaign has quality control enabled, additional verification data is sent to third-party measurement providers. This lets advertisers independently confirm their ads were delivered to real people in the correct locations.</li>
     </ul>
   </div>
 </section>
@@ -585,31 +633,43 @@
       <tbody>
         <tr>
           <td><strong>Which campaign wins a slot</strong></td>
-          <td><span class="status status-green">Fully optimized</span> Priority cascade, eCPM auction, sponsorship guarantees, split delivery weighting</td>
+          <td><span class="status status-green">Fully optimized</span> Priority cascade (0-999), eCPM auction with 95%/5% fairness shuffle, sponsorship guarantees (with reduced checks), forced line items, split delivery weighting</td>
         </tr>
         <tr>
           <td><strong>Impression allocation across slots</strong></td>
-          <td><span class="status status-orange">Partially optimized</span> Performance pacing sends more impressions to high-CTR ad slots</td>
+          <td><span class="status status-orange">Partially optimized</span> Performance pacing compares per-slot click rates to the campaign average -- high-performing slots get more impressions. Only active when pacing mode is set to "Performance Optimization."</td>
         </tr>
         <tr>
           <td><strong>Fraud prevention</strong></td>
-          <td><span class="status status-green">Fully implemented</span> 18 fraud checks, VPN detection, bot detection</td>
+          <td><span class="status status-green">Fully implemented</span> 18 specialized checks: bot detection, VPN/proxy flagging, IP reputation scoring, duplicate/replay detection, email client proxy identification, datacenter IP detection</td>
         </tr>
         <tr>
           <td><strong>Frequency control</strong></td>
-          <td><span class="status status-green">Fully implemented</span> Per-subscriber caps at hourly, daily, and lifetime levels</td>
+          <td><span class="status status-green">Fully implemented</span> Per-subscriber caps at hourly, daily, and lifetime levels. Campaign-level caps with order-level fallback.</td>
+        </tr>
+        <tr>
+          <td><strong>Delivery pacing</strong></td>
+          <td><span class="status status-green">Fully implemented</span> Three modes: Even (spreads delivery over time using probability), ASAP (no limits), Performance (favors high-click-rate slots)</td>
+        </tr>
+        <tr>
+          <td><strong>Request deduplication</strong></td>
+          <td><span class="status status-green">Fully implemented</span> 15-second decision cache prevents double-counting from email preview panes and image re-fetches</td>
         </tr>
         <tr>
           <td><strong>Which creative is shown</strong></td>
-          <td><span class="status status-red">Not optimized</span> Random rotation within eligible creatives</td>
+          <td><span class="status status-red">Not optimized</span> Random rotation. No click-rate-based selection, no content matching, no A/B testing, no subscriber-aware selection.</td>
         </tr>
         <tr>
           <td><strong>Content relevance</strong></td>
-          <td><span class="status status-red">Not implemented</span> No awareness of newsletter content vs. ad content</td>
+          <td><span class="status status-red">Not implemented</span> No awareness of newsletter content vs. ad content. A sports ad has the same chance of appearing in a sports newsletter as in a cooking newsletter (if targeting allows both).</td>
         </tr>
         <tr>
           <td><strong>User interest matching</strong></td>
-          <td><span class="status status-orange">Limited</span> Only custom key-value targeting if the publisher passes subscriber data in the URL</td>
+          <td><span class="status status-orange">Limited</span> Only custom key-value targeting if the publisher passes subscriber data in the URL. Data accumulates over time, but there is no automatic interest modeling.</td>
+        </tr>
+        <tr>
+          <td><strong>Quality control</strong></td>
+          <td><span class="status status-orange">Partially implemented</span> Third-party verification packages can be attached to campaigns for independent delivery confirmation, but no automated quality scoring.</td>
         </tr>
       </tbody>
     </table>
@@ -864,13 +924,14 @@ function hideTip() { tooltip.style('opacity',0); }
 // ─── CREATIVE SELECTION FLOW ────────────────────────────────────
 (function(){
   const steps = [
-    {label:'All creatives\nin this campaign', color:'#818cf8'},
-    {label:'Filter by slot,\nscreen size, status', color:'#38bdf8'},
+    {label:'All creatives\nin campaign', color:'#818cf8'},
+    {label:'Filter: slot\n+ status', color:'#38bdf8'},
+    {label:'Filter: screen\n(with fallback)', color:'#2dd4bf'},
     {label:'Shuffle\nrandomly', color:'#fb923c'},
     {label:'Check schedule\n(day-parting)', color:'#facc15'},
-    {label:'First one that\npasses = winner', color:'#4ade80'},
+    {label:'First pass\n= winner', color:'#4ade80'},
   ];
-  const w=900, h=100, nodeW=155, nodeH=56;
+  const w=900, h=100, nodeW=133, nodeH=56;
   const svg = d3.select('#creative-flow').append('svg')
     .attr('viewBox',`0 0 ${w} ${h}`).attr('class','flow-svg').style('max-width','100%');
   const sp = (w-nodeW)/(steps.length-1);
@@ -900,15 +961,17 @@ function hideTip() { tooltip.style('opacity',0); }
 (function(){
   const nodes = [
     {id:0, label:'Email Opened', y:0, color:'#38bdf8', w:200},
-    {id:1, label:'Sponsorship?', y:80, color:'#facc15', w:180, diamond:true},
-    {id:2, label:'Serve Sponsored Ad', y:80, color:'#4ade80', w:200, x:380},
-    {id:3, label:'Auction\n(Priority Cascade)', y:170, color:'#818cf8', w:200},
-    {id:4, label:'11 Eligibility Checks', y:260, color:'#f87171', w:200},
-    {id:5, label:'Campaign Wins', y:350, color:'#4ade80', w:180},
-    {id:6, label:'Pick Creative\n(Random Rotation)', y:440, color:'#fb923c', w:220},
-    {id:7, label:'Serve Ad +\nTrack Impression', y:530, color:'#4ade80', w:220},
+    {id:1, label:'Cached? (15s)', y:70, color:'#2dd4bf', w:180, diamond:true},
+    {id:8, label:'Return Cached\nDecision', y:70, color:'#4ade80', w:180, x:400},
+    {id:2, label:'Sponsorship?', y:150, color:'#facc15', w:180, diamond:true},
+    {id:3, label:'Serve Sponsored Ad\n(reduced checks)', y:150, color:'#4ade80', w:200, x:400},
+    {id:4, label:'Auction: Priority 0→999\n(95%/5% eCPM shuffle)', y:240, color:'#818cf8', w:240},
+    {id:5, label:'11 Eligibility Checks\n(log skip codes if fail)', y:340, color:'#f87171', w:240},
+    {id:6, label:'Campaign Wins', y:430, color:'#4ade80', w:180},
+    {id:7, label:'Pick Creative\n(Random Rotation)', y:510, color:'#fb923c', w:220},
+    {id:9, label:'Serve Ad + Cache +\nTrack + Fire Pixels', y:600, color:'#4ade80', w:240},
   ];
-  const w=700, h=600, cx=250;
+  const w=700, h=680, cx=250;
   const svg = d3.select('#full-flow').append('svg')
     .attr('viewBox',`0 0 ${w} ${h}`).attr('class','flow-svg').style('max-width','100%');
 
@@ -919,22 +982,35 @@ function hideTip() { tooltip.style('opacity',0); }
     .append('path').attr('d','M0,0 L10,5 L0,10 Z').attr('fill','#475569');
 
   const nodeH = 48;
-  // vertical arrows
-  [[0,1],[3,4],[4,5],[5,6],[6,7]].forEach(([a,b])=>{
-    svg.append('line').attr('x1',cx).attr('y1',nodes[a].y+nodeH).attr('x2',cx).attr('y2',nodes[b].y)
+  // Build a lookup by id for easier referencing
+  const nById = {};
+  nodes.forEach(n => nById[n.id] = n);
+
+  // vertical arrows (main flow): Email→Cache?→Sponsorship?→Auction→Checks→Wins→Creative→Serve
+  [[0,1],[2,4],[4,5],[5,6],[6,7],[7,9]].forEach(([a,b])=>{
+    svg.append('line').attr('x1',cx).attr('y1',nById[a].y+nodeH).attr('x2',cx).attr('y2',nById[b].y)
       .attr('stroke','#475569').attr('stroke-width',2).attr('marker-end','url(#arr3)');
   });
-  // no arrow
-  svg.append('line').attr('x1',cx).attr('y1',nodes[1].y+nodeH).attr('x2',cx).attr('y2',nodes[3].y)
+  // Cache? No → Sponsorship?
+  svg.append('line').attr('x1',cx).attr('y1',nById[1].y+nodeH).attr('x2',cx).attr('y2',nById[2].y)
     .attr('stroke','#475569').attr('stroke-width',2).attr('marker-end','url(#arr3)');
-  // yes branch
-  svg.append('line').attr('x1',cx+nodes[1].w/2).attr('y1',nodes[1].y+nodeH/2)
-    .attr('x2',380).attr('y2',nodes[2].y+nodeH/2)
+  // Cache? Yes → Return cached
+  svg.append('line').attr('x1',cx+nById[1].w/2).attr('y1',nById[1].y+nodeH/2)
+    .attr('x2',400).attr('y2',nById[8].y+nodeH/2)
     .attr('stroke','#4ade80').attr('stroke-width',2).attr('marker-end','url(#arr3)');
-  // labels
-  svg.append('text').attr('x',cx-6).attr('y',nodes[1].y+nodeH+18)
+  // Sponsorship? Yes → Serve sponsored
+  svg.append('line').attr('x1',cx+nById[2].w/2).attr('y1',nById[2].y+nodeH/2)
+    .attr('x2',400).attr('y2',nById[3].y+nodeH/2)
+    .attr('stroke','#4ade80').attr('stroke-width',2).attr('marker-end','url(#arr3)');
+  // Labels for Cache? decision
+  svg.append('text').attr('x',cx-6).attr('y',nById[1].y+nodeH+16)
     .attr('text-anchor','end').attr('fill','#94a3b8').attr('font-size','11px').attr('font-weight',600).text('No');
-  svg.append('text').attr('x',cx+nodes[1].w/2+6).attr('y',nodes[1].y+nodeH/2-6)
+  svg.append('text').attr('x',cx+nById[1].w/2+6).attr('y',nById[1].y+nodeH/2-6)
+    .attr('fill','#4ade80').attr('font-size','11px').attr('font-weight',600).text('Yes');
+  // Labels for Sponsorship? decision
+  svg.append('text').attr('x',cx-6).attr('y',nById[2].y+nodeH+16)
+    .attr('text-anchor','end').attr('fill','#94a3b8').attr('font-size','11px').attr('font-weight',600).text('No');
+  svg.append('text').attr('x',cx+nById[2].w/2+6).attr('y',nById[2].y+nodeH/2-6)
     .attr('fill','#4ade80').attr('font-size','11px').attr('font-weight',600).text('Yes');
 
   // render nodes
@@ -960,7 +1036,10 @@ function hideTip() { tooltip.style('opacity',0); }
     {label:'Campaign Selection', pct:100, color:'#4ade80'},
     {label:'Fraud Prevention', pct:100, color:'#4ade80'},
     {label:'Frequency Control', pct:100, color:'#4ade80'},
+    {label:'Delivery Pacing', pct:100, color:'#4ade80'},
+    {label:'Request Deduplication', pct:100, color:'#4ade80'},
     {label:'Impression Allocation', pct:60, color:'#fb923c'},
+    {label:'Quality Control', pct:50, color:'#fb923c'},
     {label:'User Interest Matching', pct:25, color:'#fb923c'},
     {label:'Creative Selection', pct:5, color:'#f87171'},
     {label:'Content Relevance', pct:0, color:'#f87171'},
