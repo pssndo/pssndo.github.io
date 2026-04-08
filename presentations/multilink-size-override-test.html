@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Multi-CTA Size Override Test - Email Rendering</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f5f5f5;
+      padding: 20px;
+      margin: 0;
+    }
+
+    .email-container {
+      max-width: 600px;
+      margin: 0 auto;
+      background-color: #ffffff;
+      padding: 20px;
+    }
+
+    .test-section {
+      margin-bottom: 60px;
+      border: 2px solid #333;
+      padding: 20px;
+      background-color: #fafafa;
+    }
+
+    .test-header {
+      background-color: #333;
+      color: white;
+      padding: 10px;
+      margin: -20px -20px 20px -20px;
+      font-weight: bold;
+    }
+
+    .scenario-title {
+      font-size: 14px;
+      font-weight: bold;
+      margin-bottom: 5px;
+      color: #d32f2f;
+    }
+
+    .scenario-desc {
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 15px;
+      font-style: italic;
+    }
+
+    .lorem-content {
+      background-color: #e3f2fd;
+      padding: 15px;
+      margin: 15px 0;
+      border-left: 4px solid #2196f3;
+    }
+
+    .lorem-content h3 {
+      margin: 0 0 10px 0;
+      color: #1976d2;
+    }
+
+    .lorem-content p {
+      margin: 0;
+      line-height: 1.6;
+      color: #333;
+    }
+
+    /* Visualize image map areas with semi-transparent overlay */
+    area {
+      cursor: pointer;
+    }
+
+    /* Add visual grid overlay using CSS (for modern browsers) */
+    .map-container {
+      position: relative;
+      display: inline-block;
+    }
+
+    .map-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 566px;
+      height: 450px;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    .map-overlay-small {
+      height: 250px;
+    }
+
+    .map-overlay-large {
+      height: 600px;
+    }
+
+    /* Create checkerboard pattern for the map overlay */
+    .grid-cell {
+      position: absolute;
+      border: 1px solid rgba(255, 0, 0, 0.3);
+      background-color: rgba(255, 0, 0, 0.05);
+      box-sizing: border-box;
+    }
+
+    .grid-cell:hover {
+      background-color: rgba(255, 0, 0, 0.2);
+    }
+
+    .warning-box {
+      background-color: #fff3cd;
+      border: 2px solid #ffc107;
+      padding: 10px;
+      margin: 10px 0;
+      font-size: 12px;
+      color: #856404;
+    }
+
+    .clickable-area-legend {
+      font-size: 11px;
+      color: #666;
+      margin-top: 10px;
+      padding: 10px;
+      background-color: #f0f0f0;
+      border-left: 3px solid #ff5722;
+    }
+  </style>
+</head>
+<body>
+
+<div class="email-container">
+
+  <!-- Email Header -->
+  <div style="text-align: center; padding: 20px 0; border-bottom: 2px solid #333;">
+    <h1 style="margin: 0; font-size: 24px;">Newsletter Header</h1>
+    <p style="margin: 5px 0 0 0; color: #666;">Weekly Update - April 2026</p>
+  </div>
+
+  <!-- Lorem Content Before Ad -->
+  <div class="lorem-content">
+    <h3>Article: The Future of Email Marketing</h3>
+    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+  </div>
+
+  <!-- ========================================= -->
+  <!-- TEST 1: Proper Size (566x450 = 566x450) -->
+  <!-- ========================================= -->
+  <div class="test-section">
+    <div class="test-header">TEST 1: PROPER SIZE MATCH</div>
+    <div class="scenario-title">Scenario: Image 566x450 | Map 566x450</div>
+    <div class="scenario-desc">✅ Normal case - image and map dimensions match perfectly</div>
+
+    <div class="warning-box">
+      <strong>Expected:</strong> All 25 clickable regions (5x5 grid) align perfectly with image. No overflow.
+    </div>
+
+    <div style="text-align: center;">
+      <div class="map-container">
+        <!-- Grid overlay visualization -->
+        <div class="map-overlay" id="overlay-1"></div>
+
+        <table role="presentation" style="width: 100%; border: 0; border-spacing: 0;">
+          <tr>
+            <td align="center" style="font-size: 0;">
+              <a href="https://e2e-1775468753149.example.com/click/2/d26e9779/EMAIL/SENDOUT_ID?">
+                <img alt="Ad Creative - Proper Size" src="https://picsum.photos/566/450" usemap="#multicta-proper" style="display: block; width: 566px; height: 450px;" width="566" height="450">
+              </a>
+              <map name="multicta-proper">
+                <area shape="rect" coords="0,0,113,90" href="https://e2e-1775468753149.example.com/click/2/d26e9779/EMAIL/SENDOUT_ID?X=1&Y=1" alt="Region 1,1">
+                <area shape="rect" coords="113,0,226,90" href="https://e2e-1775468753149.example.com/click/2/d26e9779/EMAIL/SENDOUT_ID?X=2&Y=1" alt="Region 2,1">
+                <area shape="rect" coords="226,0,340,90" href="https://e2e-1775468753149.example.com/click/2/d26e9779/EMAIL/SENDOUT_ID?X=3&Y=1" alt="Region 3,1">
+                <area shape="rect" coords="340,0,453,90" href="https://e2e-1775468753149.example.com/click/2/d26e9779/EMAIL/SENDOUT_ID?X=4&Y=1" alt="Region 4,1">
+                <area shape="rect" coords="453,0,566,90" href="https://e2e-1775468753149.example.com/click/2/d26e9779/EMAIL/SENDOUT_ID?X=5&Y=1" alt="Region 5,1">
+                <area shape="rect" coords="0,90,113,180" href="https://e2e-1775468753149.example.com/click/2/d26e9779/EMAIL/SENDOUT_ID?X=1&Y=2" alt="Region 1,2">
+                <area shape="rect" coords="113,90,226,180" href="https://e2e-1775468753149.example.com/click/2/d26e9779/EMAIL/SENDOUT_ID?X=2&Y=2" alt="Region 2,2">
+                <area shape="rect" coords="226,90,340,180" href="https://e2e-1775468753149.example.com/click/2/d26e9779/EMAIL/SENDOUT_ID?X=3&Y=2" alt="Region 3,2">
+                <area shape="rect" coords="340,90,453,180" href="https://e2e-1775468753149.example.com/click/2/d26e9779/EMAIL/SENDOUT_ID?X=4&Y=2" alt="Region 4,2">
+                <area shape="rect" coords="453,90,566,180" href="https://e2e-1775468753149.example.com/click/2/d26e9779/EMAIL/SENDOUT_ID?X=5&Y=2" alt="Region 5,2">
+                <area shape="rect" coords="0,180,113,270" href="https://e2e-1775468753149.example.com/click/2/d26e9779/EMAIL/SENDOUT_ID?X=1&Y=3" alt="Region 1,3">
+                <area shape="rect" coords="113,180,226,270" href="https://e2e-1775468753149.example.com/click/2/d26e9779/EMAIL/SENDOUT_ID?X=2&Y=3" alt="Region 2,3">
+                <area shape="rect" coords="226,180,340,270" href="https://e2e-1775468753149.example.com/click/2/d26e9779/EMAIL/SENDOUT_ID?X=3&Y=3" alt="Region 3,3">
+                <area shape="rect" coords="340,180,453,270" href="https://e2e-1775468753149.example.com/click/2/d26e9779/EMAIL/SENDOUT_ID?X=4&Y=3" alt="Region 4,3">
+                <area shape="rect" coords="453,180,566,270" href="https://e2e-1775468753149.example.com/click/2/d26e9779/EMAIL/SENDOUT_ID?X=5&Y=3" alt="Region 5,3">
+                <area shape="rect" coords="0,270,113,360" href="https://e2e-1775468753149.example.com/click/2/d26e9779/EMAIL/SENDOUT_ID?X=1&Y=4" alt="Region 1,4">
+                <area shape="rect" coords="113,270,226,360" href="https://e2e-1775468753149.example.com/click/2/d26e9779/EMAIL/SENDOUT_ID?X=2&Y=4" alt="Region 2,4">
+                <area shape="rect" coords="226,270,340,360" href="https://e2e-1775468753149.example.com/click/2/d26e9779/EMAIL/SENDOUT_ID?X=3&Y=4" alt="Region 3,4">
+                <area shape="rect" coords="340,270,453,360" href="https://e2e-1775468753149.example.com/click/2/d26e9779/EMAIL/SENDOUT_ID?X=4&Y=4" alt="Region 4,4">
+                <area shape="rect" coords="453,270,566,360" href="https://e2e-1775468753149.example.com/click/2/d26e9779/EMAIL/SENDOUT_ID?X=5&Y=4" alt="Region 5,4">
+                <area shape="rect" coords="0,360,113,450" href="https://e2e-1775468753149.example.com/click/2/d26e9779/EMAIL/SENDOUT_ID?X=1&Y=5" alt="Region 1,5">
+                <area shape="rect" coords="113,360,226,450" href="https://e2e-1775468753149.example.com/click/2/d26e9779/EMAIL/SENDOUT_ID?X=2&Y=5" alt="Region 2,5">
+                <area shape="rect" coords="226,360,340,450" href="https://e2e-1775468753149.example.com/click/2/d26e9779/EMAIL/SENDOUT_ID?X=3&Y=5" alt="Region 3,5">
+                <area shape="rect" coords="340,360,453,450" href="https://e2e-1775468753149.example.com/click/2/d26e9779/EMAIL/SENDOUT_ID?X=4&Y=5" alt="Region 4,5">
+                <area shape="rect" coords="453,360,566,450" href="https://e2e-1775468753149.example.com/click/2/d26e9779/EMAIL/SENDOUT_ID?X=5&Y=5" alt="Region 5,5">
+              </map>
+            </td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="clickable-area-legend">
+      🔴 Red overlay shows clickable map regions (25 total). Hover to see individual cells.
+    </div>
+  </div>
+
+  <!-- Lorem Content Between Ads -->
+  <div class="lorem-content">
+    <h3>Publisher Content: Important Article</h3>
+    <p><strong>THIS IS CRITICAL PUBLISHER CONTENT</strong> - Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+  </div>
+
+  <!-- ================================================ -->
+  <!-- TEST 2: SMALLER Image (566x250 vs Map 566x450) -->
+  <!-- ================================================ -->
+  <div class="test-section">
+    <div class="test-header">TEST 2: SMALLER IMAGE (SIZE OVERRIDE)</div>
+    <div class="scenario-title">Scenario: Image 566x250 | Map 566x450</div>
+    <div class="scenario-desc">⚠️ CRITICAL TEST - Image is 200px shorter than map. Does overflow intercept clicks below?</div>
+
+    <div class="warning-box">
+      <strong>RISK:</strong> Map extends 200px beyond image bottom. The bottom ~200px of the map (rows 4-5) extend into publisher content below. Test if clicking the text below triggers map areas.
+    </div>
+
+    <div style="text-align: center;">
+      <div class="map-container">
+        <!-- Grid overlay visualization - NOTE: Map is 450px tall but image is only 250px -->
+        <div class="map-overlay" id="overlay-2"></div>
+
+        <table role="presentation" style="width: 100%; border: 0; border-spacing: 0;">
+          <tr>
+            <td align="center" style="font-size: 0;">
+              <a href="https://e2e-1775468753149.example.com/click/2/d26e9779-small/EMAIL/SENDOUT_ID?">
+                <img alt="Ad Creative - Smaller Size" src="https://picsum.photos/566/250" usemap="#multicta-small" style="display: block; width: 566px;" width="566">
+              </a>
+              <map name="multicta-small">
+                <!-- SAME MAP as proper size - but image is only 250px tall! -->
+                <area shape="rect" coords="0,0,113,90" href="https://e2e-1775468753149.example.com/click/2/d26e9779-small/EMAIL/SENDOUT_ID?X=1&Y=1" alt="Region 1,1">
+                <area shape="rect" coords="113,0,226,90" href="https://e2e-1775468753149.example.com/click/2/d26e9779-small/EMAIL/SENDOUT_ID?X=2&Y=1" alt="Region 2,1">
+                <area shape="rect" coords="226,0,340,90" href="https://e2e-1775468753149.example.com/click/2/d26e9779-small/EMAIL/SENDOUT_ID?X=3&Y=1" alt="Region 3,1">
+                <area shape="rect" coords="340,0,453,90" href="https://e2e-1775468753149.example.com/click/2/d26e9779-small/EMAIL/SENDOUT_ID?X=4&Y=1" alt="Region 4,1">
+                <area shape="rect" coords="453,0,566,90" href="https://e2e-1775468753149.example.com/click/2/d26e9779-small/EMAIL/SENDOUT_ID?X=5&Y=1" alt="Region 5,1">
+                <area shape="rect" coords="0,90,113,180" href="https://e2e-1775468753149.example.com/click/2/d26e9779-small/EMAIL/SENDOUT_ID?X=1&Y=2" alt="Region 1,2">
+                <area shape="rect" coords="113,90,226,180" href="https://e2e-1775468753149.example.com/click/2/d26e9779-small/EMAIL/SENDOUT_ID?X=2&Y=2" alt="Region 2,2">
+                <area shape="rect" coords="226,90,340,180" href="https://e2e-1775468753149.example.com/click/2/d26e9779-small/EMAIL/SENDOUT_ID?X=3&Y=2" alt="Region 3,2">
+                <area shape="rect" coords="340,90,453,180" href="https://e2e-1775468753149.example.com/click/2/d26e9779-small/EMAIL/SENDOUT_ID?X=4&Y=2" alt="Region 4,2">
+                <area shape="rect" coords="453,90,566,180" href="https://e2e-1775468753149.example.com/click/2/d26e9779-small/EMAIL/SENDOUT_ID?X=5&Y=2" alt="Region 5,2">
+                <area shape="rect" coords="0,180,113,270" href="https://e2e-1775468753149.example.com/click/2/d26e9779-small/EMAIL/SENDOUT_ID?X=1&Y=3" alt="Region 1,3">
+                <area shape="rect" coords="113,180,226,270" href="https://e2e-1775468753149.example.com/click/2/d26e9779-small/EMAIL/SENDOUT_ID?X=2&Y=3" alt="Region 2,3">
+                <area shape="rect" coords="226,180,340,270" href="https://e2e-1775468753149.example.com/click/2/d26e9779-small/EMAIL/SENDOUT_ID?X=3&Y=3" alt="Region 3,3">
+                <area shape="rect" coords="340,180,453,270" href="https://e2e-1775468753149.example.com/click/2/d26e9779-small/EMAIL/SENDOUT_ID?X=4&Y=3" alt="Region 4,3">
+                <area shape="rect" coords="453,180,566,270" href="https://e2e-1775468753149.example.com/click/2/d26e9779-small/EMAIL/SENDOUT_ID?X=5&Y=3" alt="Region 5,3">
+                <!-- THESE AREAS (Y=4 and Y=5) extend BEYOND the 250px image into publisher content below -->
+                <area shape="rect" coords="0,270,113,360" href="https://e2e-1775468753149.example.com/click/2/d26e9779-small/EMAIL/SENDOUT_ID?X=1&Y=4" alt="Region 1,4 - OVERFLOW">
+                <area shape="rect" coords="113,270,226,360" href="https://e2e-1775468753149.example.com/click/2/d26e9779-small/EMAIL/SENDOUT_ID?X=2&Y=4" alt="Region 2,4 - OVERFLOW">
+                <area shape="rect" coords="226,270,340,360" href="https://e2e-1775468753149.example.com/click/2/d26e9779-small/EMAIL/SENDOUT_ID?X=3&Y=4" alt="Region 3,4 - OVERFLOW">
+                <area shape="rect" coords="340,270,453,360" href="https://e2e-1775468753149.example.com/click/2/d26e9779-small/EMAIL/SENDOUT_ID?X=4&Y=4" alt="Region 4,4 - OVERFLOW">
+                <area shape="rect" coords="453,270,566,360" href="https://e2e-1775468753149.example.com/click/2/d26e9779-small/EMAIL/SENDOUT_ID?X=5&Y=4" alt="Region 5,4 - OVERFLOW">
+                <area shape="rect" coords="0,360,113,450" href="https://e2e-1775468753149.example.com/click/2/d26e9779-small/EMAIL/SENDOUT_ID?X=1&Y=5" alt="Region 1,5 - OVERFLOW">
+                <area shape="rect" coords="113,360,226,450" href="https://e2e-1775468753149.example.com/click/2/d26e9779-small/EMAIL/SENDOUT_ID?X=2&Y=5" alt="Region 2,5 - OVERFLOW">
+                <area shape="rect" coords="226,360,340,450" href="https://e2e-1775468753149.example.com/click/2/d26e9779-small/EMAIL/SENDOUT_ID?X=3&Y=5" alt="Region 3,5 - OVERFLOW">
+                <area shape="rect" coords="340,360,453,450" href="https://e2e-1775468753149.example.com/click/2/d26e9779-small/EMAIL/SENDOUT_ID?X=4&Y=5" alt="Region 4,5 - OVERFLOW">
+                <area shape="rect" coords="453,360,566,450" href="https://e2e-1775468753149.example.com/click/2/d26e9779-small/EMAIL/SENDOUT_ID?X=5&Y=5" alt="Region 5,5 - OVERFLOW">
+              </map>
+            </td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="clickable-area-legend">
+      🔴 Red overlay shows the FULL 450px map area. Image is only 250px. <strong>Try clicking this text - does it trigger the overflow map areas?</strong>
+    </div>
+  </div>
+
+  <!-- Lorem Content After Small Ad - CRITICAL TEST AREA -->
+  <div class="lorem-content" style="background-color: #ffebee; border-left-color: #f44336;">
+    <h3>🚨 CLICK TEST ZONE - Publisher Content Below Smaller Ad</h3>
+    <p><strong>CLICK ANYWHERE IN THIS BOX</strong> - If you are redirected to the ad URL (e2e-1775468753149.example.com), the image map overflow is intercepting clicks. If you can select/highlight this text normally, the overflow is NOT active.</p>
+    <p style="margin-top: 10px;">Lorem ipsum dolor sit amet, consectetur adipiscing elit. This content appears immediately below a 250px tall image that has a 450px tall image map attached.</p>
+  </div>
+
+  <!-- ================================================ -->
+  <!-- TEST 3: LARGER Image (566x600 vs Map 566x450) -->
+  <!-- ================================================ -->
+  <div class="test-section">
+    <div class="test-header">TEST 3: LARGER IMAGE (SIZE OVERRIDE)</div>
+    <div class="scenario-title">Scenario: Image 566x600 | Map 566x450</div>
+    <div class="scenario-desc">⚠️ Image is 150px taller than map. Bottom portion of image is NOT clickable.</div>
+
+    <div class="warning-box">
+      <strong>Expected:</strong> Top 450px of image has clickable regions. Bottom 150px of image has NO map coverage - clicks go to the default link wrapper. Less risky than smaller image case.
+    </div>
+
+    <div style="text-align: center;">
+      <div class="map-container">
+        <!-- Grid overlay visualization - Map is only 450px but image is 600px -->
+        <div class="map-overlay map-overlay-large" id="overlay-3"></div>
+
+        <table role="presentation" style="width: 100%; border: 0; border-spacing: 0;">
+          <tr>
+            <td align="center" style="font-size: 0;">
+              <a href="https://e2e-1775468753149.example.com/click/2/d26e9779-large/EMAIL/SENDOUT_ID?">
+                <img alt="Ad Creative - Larger Size" src="https://picsum.photos/566/600" usemap="#multicta-large" style="display: block; width: 566px;" width="566">
+              </a>
+              <map name="multicta-large">
+                <!-- SAME MAP as proper size - but image is 600px tall! Bottom 150px has no map coverage -->
+                <area shape="rect" coords="0,0,113,90" href="https://e2e-1775468753149.example.com/click/2/d26e9779-large/EMAIL/SENDOUT_ID?X=1&Y=1" alt="Region 1,1">
+                <area shape="rect" coords="113,0,226,90" href="https://e2e-1775468753149.example.com/click/2/d26e9779-large/EMAIL/SENDOUT_ID?X=2&Y=1" alt="Region 2,1">
+                <area shape="rect" coords="226,0,340,90" href="https://e2e-1775468753149.example.com/click/2/d26e9779-large/EMAIL/SENDOUT_ID?X=3&Y=1" alt="Region 3,1">
+                <area shape="rect" coords="340,0,453,90" href="https://e2e-1775468753149.example.com/click/2/d26e9779-large/EMAIL/SENDOUT_ID?X=4&Y=1" alt="Region 4,1">
+                <area shape="rect" coords="453,0,566,90" href="https://e2e-1775468753149.example.com/click/2/d26e9779-large/EMAIL/SENDOUT_ID?X=5&Y=1" alt="Region 5,1">
+                <area shape="rect" coords="0,90,113,180" href="https://e2e-1775468753149.example.com/click/2/d26e9779-large/EMAIL/SENDOUT_ID?X=1&Y=2" alt="Region 1,2">
+                <area shape="rect" coords="113,90,226,180" href="https://e2e-1775468753149.example.com/click/2/d26e9779-large/EMAIL/SENDOUT_ID?X=2&Y=2" alt="Region 2,2">
+                <area shape="rect" coords="226,90,340,180" href="https://e2e-1775468753149.example.com/click/2/d26e9779-large/EMAIL/SENDOUT_ID?X=3&Y=2" alt="Region 3,2">
+                <area shape="rect" coords="340,90,453,180" href="https://e2e-1775468753149.example.com/click/2/d26e9779-large/EMAIL/SENDOUT_ID?X=4&Y=2" alt="Region 4,2">
+                <area shape="rect" coords="453,90,566,180" href="https://e2e-1775468753149.example.com/click/2/d26e9779-large/EMAIL/SENDOUT_ID?X=5&Y=2" alt="Region 5,2">
+                <area shape="rect" coords="0,180,113,270" href="https://e2e-1775468753149.example.com/click/2/d26e9779-large/EMAIL/SENDOUT_ID?X=1&Y=3" alt="Region 1,3">
+                <area shape="rect" coords="113,180,226,270" href="https://e2e-1775468753149.example.com/click/2/d26e9779-large/EMAIL/SENDOUT_ID?X=2&Y=3" alt="Region 2,3">
+                <area shape="rect" coords="226,180,340,270" href="https://e2e-1775468753149.example.com/click/2/d26e9779-large/EMAIL/SENDOUT_ID?X=3&Y=3" alt="Region 3,3">
+                <area shape="rect" coords="340,180,453,270" href="https://e2e-1775468753149.example.com/click/2/d26e9779-large/EMAIL/SENDOUT_ID?X=4&Y=3" alt="Region 4,3">
+                <area shape="rect" coords="453,180,566,270" href="https://e2e-1775468753149.example.com/click/2/d26e9779-large/EMAIL/SENDOUT_ID?X=5&Y=3" alt="Region 5,3">
+                <area shape="rect" coords="0,270,113,360" href="https://e2e-1775468753149.example.com/click/2/d26e9779-large/EMAIL/SENDOUT_ID?X=1&Y=4" alt="Region 1,4">
+                <area shape="rect" coords="113,270,226,360" href="https://e2e-1775468753149.example.com/click/2/d26e9779-large/EMAIL/SENDOUT_ID?X=2&Y=4" alt="Region 2,4">
+                <area shape="rect" coords="226,270,340,360" href="https://e2e-1775468753149.example.com/click/2/d26e9779-large/EMAIL/SENDOUT_ID?X=3&Y=4" alt="Region 3,4">
+                <area shape="rect" coords="340,270,453,360" href="https://e2e-1775468753149.example.com/click/2/d26e9779-large/EMAIL/SENDOUT_ID?X=4&Y=4" alt="Region 4,4">
+                <area shape="rect" coords="453,270,566,360" href="https://e2e-1775468753149.example.com/click/2/d26e9779-large/EMAIL/SENDOUT_ID?X=5&Y=4" alt="Region 5,4">
+                <area shape="rect" coords="0,360,113,450" href="https://e2e-1775468753149.example.com/click/2/d26e9779-large/EMAIL/SENDOUT_ID?X=1&Y=5" alt="Region 1,5">
+                <area shape="rect" coords="113,360,226,450" href="https://e2e-1775468753149.example.com/click/2/d26e9779-large/EMAIL/SENDOUT_ID?X=2&Y=5" alt="Region 2,5">
+                <area shape="rect" coords="226,360,340,450" href="https://e2e-1775468753149.example.com/click/2/d26e9779-large/EMAIL/SENDOUT_ID?X=3&Y=5" alt="Region 3,5">
+                <area shape="rect" coords="340,360,453,450" href="https://e2e-1775468753149.example.com/click/2/d26e9779-large/EMAIL/SENDOUT_ID?X=4&Y=5" alt="Region 4,5">
+                <area shape="rect" coords="453,360,566,450" href="https://e2e-1775468753149.example.com/click/2/d26e9779-large/EMAIL/SENDOUT_ID?X=5&Y=5" alt="Region 5,5">
+                <!-- Bottom 150px of image (450-600px) has NO map coverage -->
+              </map>
+            </td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="clickable-area-legend">
+      🔴 Red overlay shows 450px map. Image is 600px tall. <strong>Bottom 150px of image is NOT covered by map - clicks fall through to the default link.</strong>
+    </div>
+  </div>
+
+  <!-- Lorem Content After Large Ad -->
+  <div class="lorem-content">
+    <h3>Publisher Content: More Articles</h3>
+    <p>Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.</p>
+  </div>
+
+  <!-- Email Footer -->
+  <div style="text-align: center; padding: 20px 0; margin-top: 40px; border-top: 2px solid #333; color: #666; font-size: 12px;">
+    <p>© 2026 Newsletter Publisher | <a href="#">Unsubscribe</a></p>
+  </div>
+
+</div>
+
+<script>
+  // Draw visual grid overlay for each test case
+  function drawGridOverlay(overlayId, mapHeight) {
+    const overlay = document.getElementById(overlayId);
+    if (!overlay) return;
+
+    const cols = 5;
+    const rows = 5;
+    const width = 566;
+    const height = mapHeight;
+
+    const cellWidth = width / cols;
+    const cellHeight = height / rows;
+
+    for (let row = 0; row < rows; row++) {
+      for (let col = 0; col < cols; col++) {
+        const cell = document.createElement('div');
+        cell.className = 'grid-cell';
+        cell.style.left = (col * cellWidth) + 'px';
+        cell.style.top = (row * cellHeight) + 'px';
+        cell.style.width = cellWidth + 'px';
+        cell.style.height = cellHeight + 'px';
+        cell.title = `Region X=${col + 1}, Y=${row + 1}`;
+
+        // Checkerboard pattern
+        if ((row + col) % 2 === 0) {
+          cell.style.backgroundColor = 'rgba(255, 0, 0, 0.08)';
+        }
+
+        overlay.appendChild(cell);
+      }
+    }
+  }
+
+  // Draw overlays for all three test cases
+  drawGridOverlay('overlay-1', 450); // Proper size
+  drawGridOverlay('overlay-2', 450); // Small image (map extends beyond)
+  drawGridOverlay('overlay-3', 450); // Large image (map doesn't cover bottom)
+
+  // Add click listener to test if map areas intercept clicks outside image
+  document.addEventListener('click', function(e) {
+    if (e.target.tagName === 'AREA') {
+      e.preventDefault();
+      const coords = e.target.getAttribute('coords');
+      const href = e.target.getAttribute('href');
+      const alt = e.target.getAttribute('alt');
+      alert(`Image map area clicked!\n\nRegion: ${alt}\nCoords: ${coords}\nURL: ${href}\n\nIn production, this would redirect to the tracking URL.`);
+    }
+  });
+</script>
+
+</body>
+</html>
