@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feature Bundles System - Epic Specification</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 3rem 2rem;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 2rem;
+        }
+
+        .section {
+            margin-bottom: 3rem;
+        }
+
+        .section h2 {
+            color: #667eea;
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .section h3 {
+            color: #764ba2;
+            font-size: 1.5rem;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .section h4 {
+            color: #555;
+            font-size: 1.2rem;
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .overview-box {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            border-left: 4px solid #667eea;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            background: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        th {
+            background: #667eea;
+            color: white;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .code-block {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 1.5rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1rem 0;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .code-block .keyword {
+            color: #569cd6;
+        }
+
+        .code-block .string {
+            color: #ce9178;
+        }
+
+        .code-block .comment {
+            color: #6a9955;
+        }
+
+        .endpoint {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            border-left: 4px solid #764ba2;
+        }
+
+        .endpoint-method {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            font-weight: 600;
+            margin-right: 0.5rem;
+            font-size: 0.85rem;
+        }
+
+        .method-get { background: #4caf50; color: white; }
+        .method-post { background: #2196f3; color: white; }
+        .method-put { background: #ff9800; color: white; }
+        .method-delete { background: #f44336; color: white; }
+
+        .warning-box {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .warning-box h4 {
+            color: #856404;
+            margin-top: 0;
+        }
+
+        .warning-icon {
+            font-size: 1.5rem;
+            margin-right: 0.5rem;
+        }
+
+        .feature-list {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .feature-list li {
+            padding: 0.75rem;
+            margin: 0.5rem 0;
+            background: #f8f9fa;
+            border-radius: 6px;
+            border-left: 3px solid #667eea;
+        }
+
+        .feature-list li strong {
+            color: #667eea;
+        }
+
+        .checkbox-demo {
+            padding: 0.5rem 0;
+        }
+
+        .checkbox-demo input[type="checkbox"] {
+            margin-right: 0.5rem;
+        }
+
+        .ui-example {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            font-family: monospace;
+            white-space: pre;
+            line-height: 1.8;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-right: 0.5rem;
+        }
+
+        .badge-primary { background: #667eea; color: white; }
+        .badge-secondary { background: #6c757d; color: white; }
+        .badge-success { background: #28a745; color: white; }
+
+        .data-flow {
+            background: linear-gradient(to right, #667eea, #764ba2);
+            color: white;
+            padding: 2rem;
+            border-radius: 8px;
+            margin: 2rem 0;
+            text-align: center;
+        }
+
+        .data-flow-arrow {
+            font-size: 2rem;
+            margin: 1rem 0;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-top: 4px solid #667eea;
+        }
+
+        .card h4 {
+            color: #667eea;
+            margin-top: 0;
+        }
+
+        code {
+            background: #f4f4f4;
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            color: #d63384;
+        }
+
+        ul, ol {
+            margin-left: 2rem;
+            margin-top: 0.5rem;
+        }
+
+        li {
+            margin: 0.5rem 0;
+        }
+
+        blockquote {
+            border-left: 4px solid #667eea;
+            padding-left: 1rem;
+            margin: 1rem 0;
+            font-style: italic;
+            color: #666;
+        }
+
+        .toc {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+        }
+
+        .toc h3 {
+            margin-top: 0;
+            color: #333;
+        }
+
+        .toc ul {
+            list-style: none;
+            margin-left: 0;
+        }
+
+        .toc a {
+            color: #667eea;
+            text-decoration: none;
+            display: block;
+            padding: 0.5rem 0;
+        }
+
+        .toc a:hover {
+            color: #764ba2;
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            .header h1 {
+                font-size: 1.75rem;
+            }
+
+            .section h2 {
+                font-size: 1.5rem;
+            }
+
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .footer {
+            background: #2c3e50;
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 Feature Bundles System</h1>
+            <p>Epic Specification for Dynamic Feature Management</p>
+        </div>
+
+        <div class="content">
+            <!-- Table of Contents -->
+            <div class="toc">
+                <h3>📋 Table of Contents</h3>
+                <ul>
+                    <li><a href="#overview">Overview</a></li>
+                    <li><a href="#concepts">Concepts</a></li>
+                    <li><a href="#data-models">Data Models</a></li>
+                    <li><a href="#backend">Backend API</a></li>
+                    <li><a href="#frontend">Frontend (Superadmin)</a></li>
+                    <li><a href="#naming">Naming Conventions</a></li>
+                </ul>
+            </div>
+
+            <!-- Overview -->
+            <div class="section" id="overview">
+                <h2>📖 Overview</h2>
+                <div class="overview-box">
+                    <p>Introduce a <strong>Feature Bundle</strong> system allowing superadmins to define named groups of features and assign them to clients. A client's resolved feature set is the union of all features across their assigned bundles.</p>
+                </div>
+            </div>
+
+            <!-- Concepts -->
+            <div class="section" id="concepts">
+                <h2>💡 Concepts</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Term</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Feature</strong></td>
+                            <td>A database-managed object with UUID <code>id</code>, human-readable <code>featureId</code> (e.g. <code>TARGETING.IP_ADDRESS</code>), <code>name</code>, and optional <code>description</code>. Represents a capability gate in the app.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Bundle</strong></td>
+                            <td>A superadmin-managed collection with UUID <code>id</code>, <code>name</code>, optional <code>description</code>, and array of full Feature objects.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Resolved Features</strong></td>
+                            <td>The deduplicated union of all features from all bundles assigned to a client. Always returned as full Feature objects across all endpoints.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Data Models -->
+            <div class="section" id="data-models">
+                <h2>🏗️ Data Models</h2>
+
+                <div class="grid">
+                    <div class="card">
+                        <h4>Feature</h4>
+                        <div class="code-block">interface Feature {
+  id: string;           <span class="comment">// UUID</span>
+  featureId: string;    <span class="comment">// "TARGETING.IP_ADDRESS"</span>
+  name: string;         <span class="comment">// "IP Address Targeting"</span>
+  description?: string; <span class="comment">// Optional</span>
+}</div>
+                    </div>
+
+                    <div class="card">
+                        <h4>Bundle</h4>
+                        <div class="code-block">interface Bundle {
+  id: string;           <span class="comment">// UUID</span>
+  name: string;         <span class="comment">// "Enterprise Tier"</span>
+  description?: string; <span class="comment">// Optional</span>
+  features: Feature[];  <span class="comment">// Full objects</span>
+}</div>
+                    </div>
+
+                    <div class="card">
+                        <h4>Client (CRUD)</h4>
+                        <div class="code-block">interface Client {
+  <span class="comment">// ... existing fields</span>
+  bundles: Bundle[];    <span class="comment">// Full Bundle objects</span>
+  features: Feature[];  <span class="comment">// Resolved features</span>
+}</div>
+                    </div>
+
+                    <div class="card">
+                        <h4>Client (/me)</h4>
+                        <div class="code-block">interface ClientMeResponse {
+  <span class="comment">// ... existing fields</span>
+  features: Feature[];  <span class="comment">// Full Feature objects</span>
+}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Backend API -->
+            <div class="section" id="backend">
+                <h2>🔌 Backend API</h2>
+
+                <h3>Features Endpoints</h3>
+
+                <div class="endpoint">
+                    <div>
+                        <span class="endpoint-method method-get">GET</span>
+                        <span class="endpoint-method method-post">POST</span>
+                        <strong>/api/v3/features</strong>
+                    </div>
+                    <p style="margin-top: 1rem;">List all features / create a new feature.</p>
+                    <ul>
+                        <li>Full CRUD support (no longer hardcoded)</li>
+                        <li>GET Response: <code>{ features: Feature[] }</code></li>
+                        <li>POST Body: <code>{ featureId: string, name: string, description?: string }</code></li>
+                    </ul>
+                </div>
+
+                <div class="endpoint">
+                    <div>
+                        <span class="endpoint-method method-get">GET</span>
+                        <span class="endpoint-method method-put">PUT</span>
+                        <span class="endpoint-method method-delete">DELETE</span>
+                        <strong>/api/v3/features/:id</strong>
+                    </div>
+                    <p style="margin-top: 1rem;">Retrieve, update, or delete a feature (UUID).</p>
+                </div>
+
+                <div class="warning-box">
+                    <h4><span class="warning-icon">⚠️</span>WARNING</h4>
+                    <p>Update and delete operations are dangerous as they affect app-wide feature gates. Frontend must show strong confirmation UI before allowing PUT/DELETE operations.</p>
+                </div>
+
+                <h3>Bundles Endpoints</h3>
+
+                <div class="endpoint">
+                    <div>
+                        <span class="endpoint-method method-get">GET</span>
+                        <span class="endpoint-method method-post">POST</span>
+                        <strong>/api/v3/bundles</strong>
+                    </div>
+                    <p style="margin-top: 1rem;">List all bundles / create a new bundle.</p>
+                    <ul>
+                        <li>GET Response: <code>{ bundles: Bundle[] }</code> (with full Feature objects)</li>
+                        <li>POST Body: <code>{ name: string, description?: string, features: Feature[] }</code></li>
+                    </ul>
+                </div>
+
+                <div class="endpoint">
+                    <div>
+                        <span class="endpoint-method method-get">GET</span>
+                        <span class="endpoint-method method-put">PUT</span>
+                        <span class="endpoint-method method-delete">DELETE</span>
+                        <strong>/api/v3/bundles/:id</strong>
+                    </div>
+                    <p style="margin-top: 1rem;">Retrieve, update, or delete a bundle.</p>
+                </div>
+
+                <h3>Client Endpoints</h3>
+
+                <div class="endpoint">
+                    <div>
+                        <span class="endpoint-method method-get">GET</span>
+                        <span class="endpoint-method method-put">PUT</span>
+                        <strong>/api/v3/clients/:id</strong>
+                    </div>
+                    <p style="margin-top: 1rem;">Full Client Response with nested objects.</p>
+                    <ul>
+                        <li><code>bundles</code>: Array of full Bundle objects</li>
+                        <li><code>features</code>: Array of full Feature objects (resolved)</li>
+                    </ul>
+                </div>
+
+                <div class="endpoint">
+                    <div>
+                        <span class="endpoint-method method-get">GET</span>
+                        <strong>/api/v3/me</strong>
+                    </div>
+                    <p style="margin-top: 1rem;">Current authenticated client.</p>
+                    <ul>
+                        <li><code>features</code>: Array of full Feature objects</li>
+                    </ul>
+                </div>
+
+                <div class="code-block"><span class="comment">// Feature gate check example</span>
+<span class="keyword">const</span> { features } = useAuth(); <span class="comment">// from /api/v3/me</span>
+<span class="keyword">if</span> (features.some(f => f.featureId === <span class="string">'TARGETING.IP_ADDRESS'</span>)) {
+  <span class="comment">// show IP targeting UI</span>
+}</div>
+            </div>
+
+            <!-- Frontend -->
+            <div class="section" id="frontend">
+                <h2>🎨 Frontend (Superadmin)</h2>
+
+                <h3>Features List Page — <code>/admin/features</code></h3>
+                <ul class="feature-list">
+                    <li>Table: Feature ID, name, description, bundles using this feature count, actions (edit, delete)</li>
+                    <li>CTA: Create Feature</li>
+                </ul>
+
+                <h3>Feature Create / Edit Page</h3>
+                <div class="grid">
+                    <div class="card">
+                        <h4>Form Fields</h4>
+                        <ul>
+                            <li><strong>Feature ID</strong> (const format, disabled on edit)</li>
+                            <li><strong>Name</strong> (human-readable)</li>
+                            <li><strong>Description</strong> (optional)</li>
+                        </ul>
+                    </div>
+                    <div class="card">
+                        <h4>Routes</h4>
+                        <ul>
+                            <li><code>/admin/features/new</code></li>
+                            <li><code>/admin/features/:id/edit</code></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="warning-box">
+                    <h4><span class="warning-icon">⚠️</span>CRITICAL: Feature Edit/Delete Confirmation</h4>
+                    <p>Before allowing PUT or DELETE on features, show a confirmation modal with:</p>
+
+                    <div class="checkbox-demo">
+                        <div><input type="checkbox" disabled> "I have verified with backend team that this change is safe"</div>
+                        <div><input type="checkbox" disabled> "I have verified with frontend team that this change is safe"</div>
+                    </div>
+
+                    <p style="margin-top: 1rem;"><strong>Both checkboxes must be checked to enable the Save/Delete button.</strong></p>
+
+                    <blockquote style="margin-top: 1rem;">
+                        ⚠️ Warning: Modifying or deleting features affects feature gates across the entire application. Ensure this change has been coordinated with both backend and frontend teams before proceeding.
+                    </blockquote>
+                </div>
+
+                <h3>Bundles List Page — <code>/admin/bundles</code></h3>
+                <ul class="feature-list">
+                    <li>Table: name, feature count, assigned client count, actions (edit, delete)</li>
+                    <li>CTA: Create Bundle</li>
+                </ul>
+
+                <h3>Bundle Create / Edit Page</h3>
+                <div class="card">
+                    <h4>Form Fields</h4>
+                    <ul>
+                        <li><strong>Name</strong> (human-readable)</li>
+                        <li><strong>Description</strong> (optional)</li>
+                        <li><strong>Features</strong> — Grouped toggle UI (not multiselect)</li>
+                    </ul>
+                </div>
+
+                <h4>Feature Selection UI</h4>
+                <div class="ui-example">TARGETING
+  ☑ IP Address Targeting (TARGETING.IP_ADDRESS)
+      Allow targeting by IP address ranges
+  ☐ Geolocation Targeting (TARGETING.GEO)
+
+TIER
+  ☑ Enterprise Tier (TIER.ENTERPRISE)
+  ☐ Plus Tier (TIER.PLUS)
+
+ADDON
+  ☑ Pro Creatives (ADDON.PRO_CREATIVES)
+      Advanced creative management tools</div>
+
+                <h3>Client Form — existing page</h3>
+                <ul class="feature-list">
+                    <li>Add <strong>Bundles</strong> multiselect field</li>
+                    <li>Options sourced from <code>GET /api/v3/bundles</code></li>
+                    <li>Displays bundle name with optional feature count hint</li>
+                    <li>Saves array of bundle UUIDs</li>
+                </ul>
+            </div>
+
+            <!-- Naming Conventions -->
+            <div class="section" id="naming">
+                <h2>🏷️ Naming Conventions</h2>
+
+                <h3>UUIDs vs Human-Readable IDs</h3>
+
+                <div class="grid">
+                    <div class="card">
+                        <h4>Features</h4>
+                        <ul>
+                            <li><code>id</code> — UUID (database)</li>
+                            <li><code>featureId</code> — Const format (e.g., <code>TARGETING.IP_ADDRESS</code>)</li>
+                            <li>Used for feature gate checks in code</li>
+                            <li>Cannot be changed after creation</li>
+                        </ul>
+                    </div>
+
+                    <div class="card">
+                        <h4>Bundles</h4>
+                        <ul>
+                            <li><code>id</code> — UUID (database)</li>
+                            <li><code>name</code> — Human-readable (e.g., "Enterprise Tier")</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <h3>Feature ID Format</h3>
+                <div class="code-block">TARGETING.IP_ADDRESS / GEO / DEVICE / ...
+TIER.LITE / STANDARD / PLUS / SCALE / ADVANCED / ENTERPRISE
+ADDON.PRO_CREATIVES / AUDIENCE_INTEL / EXT_DEMAND / ...
+CLIENT.{SLUG}
+BETA.{FEATURE}
+EXP.{EXPERIMENT_NAME}</div>
+
+                <h3>Namespaces</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Namespace</th>
+                            <th>Purpose</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>TARGETING.*</code></td>
+                            <td>Targeting capabilities</td>
+                        </tr>
+                        <tr>
+                            <td><code>TIER.*</code></td>
+                            <td>Pricing/access tiers</td>
+                        </tr>
+                        <tr>
+                            <td><code>ADDON.*</code></td>
+                            <td>Optional add-on features</td>
+                        </tr>
+                        <tr>
+                            <td><code>CLIENT.*</code></td>
+                            <td>Client-specific custom features</td>
+                        </tr>
+                        <tr>
+                            <td><code>BETA.*</code></td>
+                            <td>Beta/experimental features</td>
+                        </tr>
+                        <tr>
+                            <td><code>EXP.*</code></td>
+                            <td>A/B test experiments</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Naming Examples</h3>
+                <ul class="feature-list">
+                    <li><strong>Feature names:</strong> "IP Address Targeting", "Enterprise Tier", "Pro Creatives"</li>
+                    <li><strong>Bundle names:</strong> "Enterprise Tier", "Plus Tier", "Pro Creatives Add-on", "ACME Corp Custom"</li>
+                </ul>
+            </div>
+
+            <!-- Data Flow -->
+            <div class="data-flow">
+                <h2 style="color: white; margin-bottom: 1rem;">🔄 Data Flow</h2>
+                <div>
+                    <div><strong>Feature</strong></div>
+                    <div>{ id: UUID, featureId: "TARGETING.IP_ADDRESS", ... }</div>
+                    <div class="data-flow-arrow">↓</div>
+                    <div><strong>Bundle</strong></div>
+                    <div>{ id: UUID, name: "Enterprise Tier", features: [Feature, ...] }</div>
+                    <div class="data-flow-arrow">↓</div>
+                    <div><strong>Client</strong></div>
+                    <div>{ bundles: [Bundle, ...], features: [Feature, ...] }</div>
+                </div>
+            </div>
+
+            <!-- Benefits -->
+            <div class="section">
+                <h2>✨ Key Benefits</h2>
+                <div class="grid">
+                    <div class="card">
+                        <h4>🎯 Consistent API</h4>
+                        <p>Full objects everywhere — POST and GET use identical formats</p>
+                    </div>
+                    <div class="card">
+                        <h4>🔒 Type Safety</h4>
+                        <p>Same TypeScript interfaces across all endpoints</p>
+                    </div>
+                    <div class="card">
+                        <h4>📦 Rich Metadata</h4>
+                        <p>Name, description always available without extra queries</p>
+                    </div>
+                    <div class="card">
+                        <h4>⚡ Simple Frontend</h4>
+                        <p>No need to join or lookup data from multiple sources</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Feature Bundles System Specification</p>
+            <p style="margin-top: 0.5rem; opacity: 0.8;">Built with ❤️ for the Emperor Platform</p>
+        </div>
+    </div>
+</body>
+</html>
