@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sendout Arrival vs First Impression — Research</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #0b1020;
+    --bg-soft: #121a33;
+    --fg: #e6ebf5;
+    --muted: #8fa0c4;
+    --accent: #6aa0ff;
+    --accent-2: #ff7b72;
+    --good: #3fb950;
+    --bad: #f85149;
+    --warn: #d29922;
+    --border: #223155;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--fg); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+  body { line-height: 1.55; }
+  .deck { max-width: 1100px; margin: 0 auto; padding: 24px; }
+  .slide {
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 36px 44px;
+    margin: 28px 0;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.25);
+  }
+  .slide h1, .slide h2, .slide h3 { margin-top: 0; }
+  .slide h1 { font-size: 32px; letter-spacing: -0.02em; margin-bottom: 6px; }
+  .slide h2 { font-size: 26px; color: var(--accent); margin-bottom: 16px; letter-spacing: -0.01em; }
+  .slide h3 { font-size: 18px; color: var(--muted); margin: 18px 0 8px; text-transform: uppercase; letter-spacing: 0.08em; }
+  .slide .subtitle { color: var(--muted); margin-bottom: 20px; font-size: 16px; }
+  .kicker { color: var(--accent); font-weight: 600; font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 10px; }
+  .big-stat { font-size: 52px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.05; margin: 10px 0 6px; }
+  .big-stat.bad { color: var(--bad); }
+  .big-stat.good { color: var(--good); }
+  .big-stat.accent { color: var(--accent); }
+  .stat-caption { color: var(--muted); font-size: 14px; margin-bottom: 20px; }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+
+  .stat-card {
+    background: #0e1530;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 18px;
+  }
+  .stat-card .label { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
+  .stat-card .value { font-size: 26px; font-weight: 600; }
+
+  table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 14px; }
+  thead th { text-align: left; background: #0e1530; padding: 10px 12px; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; border-bottom: 1px solid var(--border); }
+  tbody td { padding: 9px 12px; border-bottom: 1px solid #1b2747; }
+  tbody tr:last-child td { border-bottom: none; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  tr.highlight td { background: rgba(248, 81, 73, 0.08); }
+
+  code, pre { font-family: "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace; font-size: 12.5px; }
+  code { background: #0b1330; padding: 1px 5px; border-radius: 3px; color: #c0d3ff; }
+  pre { background: #0b1330; border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; overflow-x: auto; color: #d5e3ff; line-height: 1.5; }
+  pre code { background: transparent; padding: 0; }
+
+  .callout {
+    border-left: 4px solid var(--accent);
+    background: rgba(106,160,255,0.08);
+    padding: 14px 18px;
+    border-radius: 8px;
+    margin: 14px 0;
+  }
+  .callout.bad { border-left-color: var(--bad); background: rgba(248, 81, 73, 0.08); }
+  .callout.good { border-left-color: var(--good); background: rgba(63, 185, 80, 0.08); }
+  .callout.warn { border-left-color: var(--warn); background: rgba(210, 153, 34, 0.08); }
+
+  .chart-wrap { background: #0b1330; border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin: 10px 0; }
+  .chart-wrap .chart-title { color: var(--muted); font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+  .chart-box { position: relative; height: 320px; }
+  .chart-box.tall { height: 420px; }
+  .chart-box.short { height: 260px; }
+
+  ul.clean { padding-left: 18px; }
+  ul.clean li { margin: 6px 0; }
+
+  .footer { color: var(--muted); font-size: 13px; text-align: center; padding: 20px 0 40px; }
+  .nav { position: fixed; top: 12px; right: 16px; background: rgba(11,16,32,0.9); border: 1px solid var(--border); padding: 8px 14px; border-radius: 20px; font-size: 12px; color: var(--muted); }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
+  .badge.omeda { background: #2a3f6b; color: #9fc2ff; }
+  .badge.hubspot { background: #6b3a2a; color: #ffb09f; }
+  .badge.sailthru { background: #2a5c4a; color: #7fe0b9; }
+  .badge.sf { background: #4a2a5c; color: #d09fff; }
+  .badge.multi { background: #5c5c2a; color: #e0e09f; }
+  .badge.general { background: #3d3d3d; color: #bbb; }
+
+  .two-col-body { display: grid; grid-template-columns: 1.1fr 1fr; gap: 28px; align-items: start; }
+  .three-col-body { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+
+  @media (max-width: 900px) {
+    .grid-2, .two-col-body { grid-template-columns: 1fr; }
+    .grid-3, .grid-4, .three-col-body { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="nav">Sendout Arrival Research — 2026-04-23</div>
+<div class="deck">
+
+<!-- ============== SLIDE 1: TITLE ============== -->
+<section class="slide">
+  <div class="kicker">Cross-DB Research · MySQL ↔ ClickHouse</div>
+  <h1>Sendout Arrival vs. First Ad Impression</h1>
+  <p class="subtitle">
+    For every active production client, does the email HTML land in <code>newsletter_sendouts</code> <em>before</em> the ad server serves its first impression? Can we reliably pre-process sendout content in real time?
+  </p>
+  <div class="grid-4" style="margin-top: 28px;">
+    <div class="stat-card">
+      <div class="label">Window</div>
+      <div class="value">7 days</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Active clients</div>
+      <div class="value">9</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Sendouts analyzed</div>
+      <div class="value">386</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Newsletters</div>
+      <div class="value">164</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============== SLIDE 2: TL;DR ============== -->
+<section class="slide">
+  <div class="kicker">TL;DR</div>
+  <h2>Every sendout is served blind</h2>
+  <div class="two-col-body">
+    <div>
+      <div class="big-stat bad">0 / 386</div>
+      <div class="stat-caption">Sendouts where content was in MySQL before the first ad impression fired</div>
+
+      <div class="big-stat accent">−253 s</div>
+      <div class="stat-caption">Median lag (≈ 4 min 13 s of blind serving)</div>
+
+      <div class="big-stat">−362 s → −6 s</div>
+      <div class="stat-caption">Range across 386 sendouts, 9 clients, 7 ESPs</div>
+    </div>
+    <div>
+      <div class="chart-wrap">
+        <div class="chart-title">Share of sendouts by <code>created_lead</code> bucket</div>
+        <div class="chart-box"><canvas id="chartTLDR"></canvas></div>
+      </div>
+      <div class="callout bad">
+        <strong>Implication:</strong> Pre-serve content enrichment using <code>newsletter_sendouts.created_at</code> as the ingest signal is <strong>not viable today</strong>. The MySQL row consistently lands minutes after ad selection has already happened.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============== SLIDE 3: THE QUESTION ============== -->
+<section class="slide">
+  <div class="kicker">The question</div>
+  <h2>Do we have a usable window to read the email HTML before ads serve?</h2>
+  <p>
+    If the answer is yes, we can run topic extraction, brand-safety checks, sentiment scoring, or audience-matching on the email body and feed the result into ad selection — <strong>per-sendout</strong>, in real time.
+  </p>
+  <p>If the answer is no, we need a different ingest mechanism or we accept post-hoc enrichment with caching.</p>
+
+  <h3>Data model at play</h3>
+  <div class="grid-2">
+    <div class="stat-card">
+      <div class="label">MySQL: <code>newsletter_sendouts</code></div>
+      <ul class="clean" style="margin-top: 8px;">
+        <li><code>datetime</code> — ESP-reported send time</li>
+        <li><code>created_at</code> — row insert time (proxy for "Passendo knows this sendout")</li>
+        <li><code>body</code> — the rendered email HTML (50–150 KB)</li>
+        <li><code>identifier</code> — ESP-specific sendout key (maps to CH <code>events.sendout</code>)</li>
+      </ul>
+    </div>
+    <div class="stat-card">
+      <div class="label">ClickHouse: <code>emperor.events</code></div>
+      <ul class="clean" style="margin-top: 8px;">
+        <li><code>datetime</code> — event time (UTC)</li>
+        <li><code>newsletterId</code>, <code>publisherClientId</code> — MySQL UUIDs verbatim</li>
+        <li><code>sendout</code> — matches <code>newsletter_sendouts.identifier</code> for most ESPs</li>
+        <li>2.3 B rows, 132 GB compressed — query carefully</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>Metric of interest</h3>
+  <pre><code>created_lead = first_event_ts − created_at
+send_lead    = first_event_ts − datetime</code></pre>
+  <p><strong>Positive <code>created_lead</code></strong> = content in MySQL before serving started ✅<br>
+     <strong>Negative <code>created_lead</code></strong> = we served blind ❌</p>
+</section>
+
+<!-- ============== SLIDE 4: ACTIVE CLIENTS ============== -->
+<section class="slide">
+  <div class="kicker">Scope</div>
+  <h2>9 active production clients in the last 7 days</h2>
+  <p>Identified via <code>clients.status = 'LIVE'</code> with at least one sendout since <code>NOW() − 7 DAY</code>. Spans 5 ESPs across 4 timezones.</p>
+
+  <div class="two-col-body">
+    <div>
+      <table>
+        <thead>
+          <tr><th>Client</th><th>ESP</th><th>TZ</th><th class="num">Sendouts</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Key Media</td><td><span class="badge hubspot">Hubspot</span></td><td>America/New_York</td><td class="num">229</td></tr>
+          <tr><td>Newcom</td><td><span class="badge omeda">Omeda</span></td><td>America/New_York</td><td class="num">68</td></tr>
+          <tr><td>Are Media</td><td><span class="badge sailthru">Sailthru</span></td><td>Australia/Sydney</td><td class="num">43</td></tr>
+          <tr><td>Sosland</td><td><span class="badge omeda">Omeda</span></td><td>America/Chicago</td><td class="num">30</td></tr>
+          <tr><td>Momentum</td><td><span class="badge multi">General/SF2</span></td><td>Australia/Sydney</td><td class="num">24</td></tr>
+          <tr><td>Adopstar</td><td><span class="badge multi">Multi</span></td><td>Europe/London</td><td class="num">5</td></tr>
+          <tr><td>The Drum</td><td><span class="badge general">General</span></td><td>Europe/London</td><td class="num">4</td></tr>
+          <tr><td>Conexus</td><td><span class="badge sf">Salesforce</span></td><td>Australia/Sydney</td><td class="num">3</td></tr>
+          <tr><td>Gloo</td><td><span class="badge multi">Multi</span></td><td>America/Chicago</td><td class="num">2</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div>
+      <div class="chart-wrap">
+        <div class="chart-title">Sendouts per client (last 7 days)</div>
+        <div class="chart-box"><canvas id="chartClientVolume"></canvas></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============== SLIDE 5: MAIN RESULT ============== -->
+<section class="slide">
+  <div class="kicker">Headline result</div>
+  <h2>Per-client: content is always late</h2>
+  <p>Distribution of <code>created_lead</code> per client. Every client sits fully below zero — their MySQL rows are inserted 1–6 minutes <em>after</em> the first ad call.</p>
+
+  <div class="chart-wrap">
+    <div class="chart-title">created_lead (seconds) — p05 / p25 / p50 / p75 / p95 per client</div>
+    <div class="chart-box tall"><canvas id="chartPerClient"></canvas></div>
+  </div>
+
+  <table style="margin-top: 10px;">
+    <thead>
+      <tr>
+        <th>Client</th><th>ESP</th><th class="num">N</th>
+        <th class="num">min</th><th class="num">p05</th><th class="num">p25</th>
+        <th class="num">p50</th><th class="num">p75</th><th class="num">p95</th>
+        <th class="num">max</th><th class="num">%≥0</th><th class="num">avg KB</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>Key Media</td><td><span class="badge hubspot">Hubspot</span></td><td class="num">210</td><td class="num">−361</td><td class="num">−340</td><td class="num">−269</td><td class="num"><strong>−193</strong></td><td class="num">−130</td><td class="num">−60</td><td class="num">−32</td><td class="num">0%</td><td class="num">54.3</td></tr>
+      <tr><td>Newcom</td><td><span class="badge omeda">Omeda</span></td><td class="num">66</td><td class="num">−353</td><td class="num">−340</td><td class="num">−292</td><td class="num"><strong>−282</strong></td><td class="num">−267</td><td class="num">−206</td><td class="num">−166</td><td class="num">0%</td><td class="num">91.1</td></tr>
+      <tr><td>Are Media</td><td><span class="badge sailthru">Sailthru</span></td><td class="num">43</td><td class="num">−362</td><td class="num">−359</td><td class="num">−317</td><td class="num"><strong>−297</strong></td><td class="num">−288</td><td class="num">−116</td><td class="num">−6</td><td class="num">0%</td><td class="num">55.5</td></tr>
+      <tr><td>Sosland</td><td><span class="badge omeda">Omeda</span></td><td class="num">29</td><td class="num">−326</td><td class="num">−317</td><td class="num">−289</td><td class="num"><strong>−278</strong></td><td class="num">−226</td><td class="num">−46</td><td class="num">−46</td><td class="num">0%</td><td class="num">42.1</td></tr>
+      <tr><td>Momentum</td><td><span class="badge multi">Gen/SF2</span></td><td class="num">24</td><td class="num">−356</td><td class="num">−310</td><td class="num">−287</td><td class="num"><strong>−264</strong></td><td class="num">−164</td><td class="num">−87</td><td class="num">−79</td><td class="num">0%</td><td class="num">93.0</td></tr>
+      <tr><td>Adopstar</td><td><span class="badge multi">Multi</span></td><td class="num">5</td><td class="num">−321</td><td class="num">−321</td><td class="num">−316</td><td class="num"><strong>−287</strong></td><td class="num">−287</td><td class="num">−284</td><td class="num">−284</td><td class="num">0%</td><td class="num">101.6</td></tr>
+      <tr><td>The Drum</td><td><span class="badge general">General</span></td><td class="num">4</td><td class="num">−336</td><td class="num">−336</td><td class="num">−188</td><td class="num"><strong>−169</strong></td><td class="num">−90</td><td class="num">−90</td><td class="num">−90</td><td class="num">0%</td><td class="num">43.1</td></tr>
+      <tr><td>Conexus</td><td><span class="badge sf">Salesforce</span></td><td class="num">3</td><td class="num">−264</td><td class="num">−264</td><td class="num">−264</td><td class="num"><strong>−261</strong></td><td class="num">−260</td><td class="num">−260</td><td class="num">−260</td><td class="num">0%</td><td class="num">48.6</td></tr>
+      <tr><td>Gloo</td><td><span class="badge multi">Multi</span></td><td class="num">2</td><td class="num">−150</td><td class="num">−150</td><td class="num">−150</td><td class="num"><strong>−87</strong></td><td class="num">−24</td><td class="num">−24</td><td class="num">−24</td><td class="num">0%</td><td class="num">70.2</td></tr>
+    </tbody>
+  </table>
+  <p style="color: var(--muted); font-size: 13px;">Positive = content in MySQL before first impression. Negative = served blind. Closest miss: Are Media at −6 s.</p>
+</section>
+
+<!-- ============== SLIDE 6: GLOBAL HISTOGRAM ============== -->
+<section class="slide">
+  <div class="kicker">Global distribution</div>
+  <h2>94% of sendouts are 1–10 minutes late</h2>
+  <div class="two-col-body">
+    <div class="chart-wrap">
+      <div class="chart-title">All sendouts bucketed by created_lead (n = 386)</div>
+      <div class="chart-box tall"><canvas id="chartGlobalHisto"></canvas></div>
+    </div>
+    <div>
+      <table>
+        <thead>
+          <tr><th>Bucket</th><th class="num">Count</th><th class="num">%</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>&lt;−600 s (>10 min late)</td><td class="num">0</td><td class="num">0.0%</td></tr>
+          <tr class="highlight"><td>−600…−300 s</td><td class="num">60</td><td class="num">15.5%</td></tr>
+          <tr class="highlight"><td>−300…−60 s</td><td class="num">304</td><td class="num">78.8%</td></tr>
+          <tr class="highlight"><td>−60…0 s</td><td class="num">22</td><td class="num">5.7%</td></tr>
+          <tr><td>0…30 s</td><td class="num">0</td><td class="num">0.0%</td></tr>
+          <tr><td>30…300 s</td><td class="num">0</td><td class="num">0.0%</td></tr>
+          <tr><td>&gt;300 s</td><td class="num">0</td><td class="num">0.0%</td></tr>
+        </tbody>
+      </table>
+      <div class="callout">
+        <strong>Overall:</strong><br>
+        n = 386 &nbsp;·&nbsp; min = −362 s &nbsp;·&nbsp; p05 = −342 s &nbsp;·&nbsp; p25 = −293 s<br>
+        <strong>p50 = −253 s</strong> &nbsp;·&nbsp; p75 = −162 s &nbsp;·&nbsp; p95 = −60 s &nbsp;·&nbsp; max = −6 s
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============== SLIDE 7: SEND_LEAD SANITY ============== -->
+<section class="slide">
+  <div class="kicker">Sanity check</div>
+  <h2><code>datetime</code> is reliable; <code>created_at</code> is not</h2>
+  <p>
+    The same delta measured against <code>newsletter_sendouts.datetime</code> (ESP-reported send time) instead of <code>created_at</code> sits within ±60 s of the first CH event for every client. That tells us:
+  </p>
+  <ul class="clean">
+    <li><strong><code>datetime</code></strong> <em>is</em> a reliable "send happened at" signal — it matches reality within a minute.</li>
+    <li><strong><code>created_at</code></strong> is pure insert-side lag: the row lands in MySQL 2–6 minutes after the send actually happened.</li>
+    <li>So the question isn't "when did we know about the send?" — it's "when was the <em>body</em> populated?". And the answer is: <em>minutes too late</em>.</li>
+  </ul>
+
+  <div class="two-col-body">
+    <div>
+      <div class="chart-wrap">
+        <div class="chart-title">send_lead = first_event − <code>datetime</code> (per client)</div>
+        <div class="chart-box"><canvas id="chartSendLead"></canvas></div>
+      </div>
+    </div>
+    <div>
+      <table>
+        <thead>
+          <tr><th>Client</th><th class="num">N</th><th class="num">min</th><th class="num">p50</th><th class="num">p95</th><th class="num">max</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Key Media</td><td class="num">210</td><td class="num">−60</td><td class="num">−51</td><td class="num">−18</td><td class="num">23</td></tr>
+          <tr><td>Newcom</td><td class="num">66</td><td class="num">−60</td><td class="num">5</td><td class="num">22</td><td class="num">49</td></tr>
+          <tr><td>Are Media</td><td class="num">43</td><td class="num">−60</td><td class="num">3</td><td class="num">8</td><td class="num">14</td></tr>
+          <tr><td>Sosland</td><td class="num">29</td><td class="num">−37</td><td class="num">4</td><td class="num">10</td><td class="num">14</td></tr>
+          <tr><td>Momentum</td><td class="num">24</td><td class="num">−60</td><td class="num">−60</td><td class="num">−21</td><td class="num">−12</td></tr>
+          <tr><td>Adopstar</td><td class="num">5</td><td class="num">−55</td><td class="num">−19</td><td class="num">−16</td><td class="num">−16</td></tr>
+          <tr><td>The Drum</td><td class="num">4</td><td class="num">−60</td><td class="num">−43</td><td class="num">−21</td><td class="num">−21</td></tr>
+          <tr><td>Conexus</td><td class="num">3</td><td class="num">−27</td><td class="num">−26</td><td class="num">−25</td><td class="num">−25</td></tr>
+          <tr><td>Gloo</td><td class="num">2</td><td class="num">−4</td><td class="num">2</td><td class="num">7</td><td class="num">7</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ============== SLIDE 8: ESP ============== -->
+<section class="slide">
+  <div class="kicker">ESP behavior</div>
+  <h2>Lag is ESP-specific but always positive</h2>
+  <div class="three-col-body">
+    <div class="stat-card">
+      <div class="label"><span class="badge omeda">Omeda</span> (Newcom, Sosland)</div>
+      <p style="color: var(--muted); font-size: 14px; margin: 8px 0;">
+        Consistent 4–5 min lag, very low variance. Looks like a scheduled post-send hook firing on a timer rather than an event-driven insert.
+      </p>
+    </div>
+    <div class="stat-card">
+      <div class="label"><span class="badge hubspot">Hubspot</span> (Key Media)</div>
+      <p style="color: var(--muted); font-size: 14px; margin: 8px 0;">
+        Widest variance (−361 to −32 s). Probably event-driven but queue-depth-sensitive — lag scales with how busy Hubspot's webhook fleet is.
+      </p>
+    </div>
+    <div class="stat-card">
+      <div class="label"><span class="badge sailthru">Sailthru</span> (Are Media)</div>
+      <p style="color: var(--muted); font-size: 14px; margin: 8px 0;">
+        Tight −288 to −297 s body, one outlier at −6 s. Fast post-send hook but still post-send. The −6 s case barely beat the first impression.
+      </p>
+    </div>
+    <div class="stat-card">
+      <div class="label"><span class="badge multi">Multi-ESP</span> (Adopstar, Gloo)</div>
+      <p style="color: var(--muted); font-size: 14px; margin: 8px 0;">
+        Varies by routing. Gloo's −87 s median is the best-performing in the entire dataset, but still negative.
+      </p>
+    </div>
+    <div class="stat-card">
+      <div class="label"><span class="badge sf">Salesforce</span> (Conexus)</div>
+      <p style="color: var(--muted); font-size: 14px; margin: 8px 0;">
+        Small N (3) but exceptionally consistent: −260 to −264 s. Probably a fixed post-send delay.
+      </p>
+    </div>
+    <div class="stat-card">
+      <div class="label"><span class="badge general">General/SF2</span> (Momentum, Drum)</div>
+      <p style="color: var(--muted); font-size: 14px; margin: 8px 0;">
+        Mid-range lag (−87 to −356 s). Bespoke integrations; behavior depends on the specific send path.
+      </p>
+    </div>
+  </div>
+
+  <div class="callout warn" style="margin-top: 18px;">
+    <strong>The pattern is universal.</strong> Across every ESP, every timezone, every newsletter frequency — the row is inserted <em>after</em> the send. The specific latency differs, but the direction doesn't.
+  </div>
+</section>
+
+<!-- ============== SLIDE 9: WHAT IT MEANS ============== -->
+<section class="slide">
+  <div class="kicker">Implication</div>
+  <h2>Content-aware ad selection: three paths forward</h2>
+
+  <div class="grid-3" style="margin-top: 12px;">
+    <div class="stat-card" style="border-color: var(--good);">
+      <div class="label" style="color: var(--good);">Option 3 — Cheapest</div>
+      <h3 style="color: var(--fg); margin: 6px 0 10px; text-transform: none; letter-spacing: 0;">Cache yesterday's enrichment</h3>
+      <p style="color: var(--muted); font-size: 14px;">
+        Recurring newsletters (CU-Daily, Adv-AM etc.) have near-identical templates day-to-day. Enrich yesterday's sendout, store topic/brand-safety flags, reuse for today's first impressions. Wrong only on layout-change days (rare).
+      </p>
+      <p style="color: var(--good); font-weight: 600; margin-top: 10px;">~95% of the value, ~5% of the work</p>
+    </div>
+
+    <div class="stat-card" style="border-color: var(--accent);">
+      <div class="label" style="color: var(--accent);">Option 1 — Right long-term</div>
+      <h3 style="color: var(--fg); margin: 6px 0 10px; text-transform: none; letter-spacing: 0;">Capture HTML at ingest, not post-send</h3>
+      <p style="color: var(--muted); font-size: 14px;">
+        Wherever the adapter receives the ESP's template request, persist the HTML there — into a new pre-send content store (Redis/Postgres) keyed by <code>(newsletter_id, sendout_identifier)</code>. Keep <code>newsletter_sendouts</code> insert as-is for reporting.
+      </p>
+      <p style="color: var(--accent); font-weight: 600; margin-top: 10px;">Requires backend change + ESP-adapter audit</p>
+    </div>
+
+    <div class="stat-card" style="border-color: var(--warn);">
+      <div class="label" style="color: var(--warn);">Option 2 — ESP-dependent</div>
+      <h3 style="color: var(--fg); margin: 6px 0 10px; text-transform: none; letter-spacing: 0;">Pull rendered HTML from ESP pre-send</h3>
+      <p style="color: var(--muted); font-size: 14px;">
+        Some ESPs expose rendered HTML before physical send: Omeda's template preview API, Sailthru's template endpoint. Wire this in per-ESP. High effort, per-ESP integration.
+      </p>
+      <p style="color: var(--warn); font-weight: 600; margin-top: 10px;">Best coverage but expensive to build</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============== SLIDE 10: CAVEATS ============== -->
+<section class="slide">
+  <div class="kicker">Caveats</div>
+  <h2>Data-quality flags worth fixing</h2>
+
+  <h3>1. Per-user sendout tokens (needs template review)</h3>
+  <p>Some clients emit per-recipient tracking tokens in <code>events.sendout</code>, inflating cardinality in CH:</p>
+  <div class="chart-wrap">
+    <div class="chart-title">Distinct sendout values in CH vs actual sendouts in MySQL</div>
+    <div class="chart-box"><canvas id="chartSendoutExplosion"></canvas></div>
+  </div>
+  <p style="color: var(--muted); font-size: 14px;">Are Media: 703k CH values ÷ 43 MySQL sendouts = <strong>16,349× per-user inflation</strong>. Each token binds to one user (<code>uniqExact(userIdentity)=1</code>). Adopstar, Key Media (partial) affected too. Fix: normalize the tracking tag to match <code>newsletter_sendouts.identifier</code>.</p>
+
+  <h3>2. ESP-specific identifier format variance</h3>
+  <table>
+    <thead><tr><th>ESP</th><th>Example</th><th>Matches CH <code>sendout</code>?</th></tr></thead>
+    <tbody>
+      <tr><td><span class="badge omeda">Omeda</span></td><td><code>04212026</code></td><td>✅ exact</td></tr>
+      <tr><td><span class="badge sailthru">Sailthru</span></td><td><code>45335918.1</code></td><td>⚠️ per-user suffix divergence</td></tr>
+      <tr><td><span class="badge hubspot">Hubspot</span></td><td><code>2026-04-22%2011:50:07</code></td><td>⚠️ URL-encoded timestamp; some user-level spread</td></tr>
+      <tr><td><span class="badge sf">Salesforce</span></td><td><code>153778</code></td><td>⚠️ short numeric, collision risk across newsletters</td></tr>
+    </tbody>
+  </table>
+  <p><strong>Never</strong> string-match on <code>sendout</code> across clients. Always join on <code>(newsletterId, time-window)</code>.</p>
+
+  <h3>3. Known template bugs</h3>
+  <ul class="clean">
+    <li>Newcom (CU-Marsh) has events where <code>sendout = '@{mv_date_MMddyyyy}@'</code> — literal Omeda template token, never rendered. 291 impressions + 5 clicks leaked to this bad identifier. Filter with <code>NOT startsWith(sendout, '@')</code> or fix upstream.</li>
+    <li>All timestamps confirmed UTC on both sides (<code>@@session.time_zone = SYSTEM</code>, server in UTC). Delta is TZ-safe.</li>
+  </ul>
+</section>
+
+<!-- ============== SLIDE 11: METHODOLOGY ============== -->
+<section class="slide">
+  <div class="kicker">Methodology</div>
+  <h2>How this was computed</h2>
+
+  <h3>Step 1 — Active clients</h3>
+<pre><code>SELECT c.id, c.name, c.esp, c.timezone,
+       COUNT(DISTINCT ns.id) AS sendouts_last_7d
+FROM clients c
+JOIN brands b ON b.client_id = c.id
+JOIN newsletters n ON n.brand_id = b.id
+JOIN newsletter_sendouts ns ON ns.newsletter_id = n.id
+WHERE c.status = 'LIVE'
+  AND ns.datetime >= (NOW() - INTERVAL 7 DAY)
+GROUP BY c.id HAVING sendouts_last_7d > 0;</code></pre>
+
+  <h3>Step 2 — Per-sendout MySQL summary</h3>
+<pre><code>SELECT b.client_id, ns.newsletter_id, DATE(ns.datetime) AS d,
+       UNIX_TIMESTAMP(MIN(ns.created_at)) AS cts,
+       UNIX_TIMESTAMP(MIN(ns.datetime))   AS sts,
+       AVG(LENGTH(ns.body))               AS avg_bytes
+FROM newsletter_sendouts ns
+JOIN newsletters n ON n.id = ns.newsletter_id
+JOIN brands b      ON b.id = n.brand_id
+WHERE ns.datetime >= NOW() - INTERVAL 7 DAY
+GROUP BY b.client_id, ns.newsletter_id, DATE(ns.datetime);</code></pre>
+
+  <h3>Step 3 — First CH event per (newsletter, send_ts) via <code>arrayJoin</code> boundary injection</h3>
+<pre><code>WITH boundaries AS (
+  SELECT tupleElement(t,1) AS nl, tupleElement(t,2) AS send_dt
+  FROM (SELECT arrayJoin([ (nl, toDateTime(ts)), ... ]) AS t)
+)
+SELECT b.nl, toUnixTimestamp(b.send_dt) AS send_ts,
+       toUnixTimestamp(min(e.datetime)) AS first_event_ts
+FROM boundaries b
+LEFT JOIN (
+  SELECT newsletterId AS nl, datetime
+  FROM emperor.events
+  WHERE publisherClientId IN (&lt;9 UUIDs&gt;)
+    AND datetime &gt;= now() - INTERVAL 8 DAY
+) e ON b.nl = e.nl
+WHERE e.datetime &gt;= b.send_dt - 60          -- tolerate early bot prefetch
+  AND e.datetime &lt;  b.send_dt + 21600       -- within 6h after send
+GROUP BY b.nl, b.send_dt;</code></pre>
+
+  <h3>Step 4 — Python computes deltas, per-client aggregates, global histogram</h3>
+  <pre><code>created_lead = first_event_ts − created_ts
+send_lead    = first_event_ts − send_ts</code></pre>
+
+  <div class="callout warn">
+    <strong>First attempt failed:</strong> originally joined on <code>(newsletterId, toDate(datetime))</code>. For non-UTC clients, UTC-day boundaries don't line up with local sendout days → produced nonsense ~12h deltas. Fixed by switching to a time-window join on <code>(send_ts − 60 s, send_ts + 6 h)</code>.
+  </div>
+</section>
+
+<!-- ============== SLIDE 12: LESSONS ============== -->
+<section class="slide">
+  <div class="kicker">Beyond this question</div>
+  <h2>Playbook lessons for cross-DB analysis</h2>
+  <p style="color: var(--muted);">
+    Captured in <code>docs/overview/CROSS_DB_ANALYSIS_PLAYBOOK.md</code> for future sessions. The highlights:
+  </p>
+
+  <div class="grid-2">
+    <div>
+      <h3>The good</h3>
+      <ul class="clean">
+        <li><code>arrayJoin([...])</code> for boundary injection is the right pattern for "for each MySQL row, find the matching CH event" when MySQL side ≤ 1000 rows.</li>
+        <li>MySQL and CH timestamps are both UTC on this stack → delta is directly unit-safe.</li>
+        <li>UUIDs propagate verbatim MySQL → CH → events. Join keys align.</li>
+        <li>Use <code>quantile(0.5)()</code> and <code>count()</code>-style aggregates server-side so responses stay &lt; 10 rows per client.</li>
+      </ul>
+    </div>
+    <div>
+      <h3>The bad &amp; the ugly</h3>
+      <ul class="clean">
+        <li><strong>Response-size overflow</strong> — hit repeatedly when pulling per-row MySQL + JSON format. Fix: markdown-table output and aggregate-only columns.</li>
+        <li><strong><code>sendout</code> identifier chaos</strong> — 5 ESPs, 4 formats, 2 of them per-user-explosive. Never string-match on it across clients.</li>
+        <li><strong>UTC-date join trap</strong> — clients in non-UTC timezones cross the UTC midnight, making <code>toDate()</code>-based joins wrong by up to 12 hours.</li>
+        <li><strong>The empty MySQL <code>activity_log</code></strong> — Spatie convention places it in MySQL; real activity log is in <code>clickhouse.emperor.activity_log</code> (97k rows).</li>
+        <li><strong>1×1 fallback line item</strong> — <code>ce29048b-...</code> fires on unsold inventory with <code>fraudTypeId ≠ 0</code>. Filter <code>countableStatus = 1</code> when counting "real" serving.</li>
+        <li><strong><code>dictGet('emperor.publisher', ...)</code></strong> — readonly role lacks grant. Use federated <code>emperor.clients</code> instead.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============== SLIDE 13: VERDICT ============== -->
+<section class="slide">
+  <div class="kicker">Bottom line</div>
+  <h2>Ship Option 3 now. Build Option 1 for Q3.</h2>
+  <ul class="clean" style="font-size: 16px;">
+    <li><strong>The premise doesn't hold today.</strong> Across 386 sendouts, 9 clients, and 5 ESPs, the <code>newsletter_sendouts</code> row lands <em>after</em> the first ad impression — 100% of the time, with a 4-minute median lag.</li>
+    <li><strong><code>datetime</code> is trustworthy; <code>created_at</code> is not.</strong> Use the former to anchor "when the send happened". Don't use the latter as a content-ingest signal — it's a post-send artifact.</li>
+    <li><strong>The cheapest viable path is caching.</strong> Recurring newsletters have stable templates day-to-day. Pre-enrich yesterday's sendout, reuse for today.</li>
+    <li><strong>The right long-term fix</strong> is a dedicated pre-send content store populated by the ESP adapter, separate from the reporting-focused <code>newsletter_sendouts</code> insert.</li>
+    <li><strong>Flag for engineering:</strong> Are Media and Adopstar's per-user sendout-token behavior is inflating CH cardinality massively and should be normalized at the tracking-template level.</li>
+  </ul>
+</section>
+
+<div class="footer">
+  Research executed via readonly-db MCP over <code>emperor</code> (MySQL) and <code>analytics</code> (ClickHouse) — 2026-04-23.
+  Companion docs: <code>frontend/tmp/sendout-arrival-analysis-report.md</code> · <code>docs/overview/CROSS_DB_ANALYSIS_PLAYBOOK.md</code>
+</div>
+
+</div>
+
+<script>
+// Chart.js defaults for dark theme
+Chart.defaults.color = '#8fa0c4';
+Chart.defaults.borderColor = '#223155';
+Chart.defaults.font.family = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
+
+// ---- Slide 2: TL;DR donut ----
+new Chart(document.getElementById('chartTLDR'), {
+  type: 'doughnut',
+  data: {
+    labels: ['−600 to −300 s (5–10 min late)', '−300 to −60 s (1–5 min late)', '−60 to 0 s (just barely late)', '≥ 0 s (content ready in time)'],
+    datasets: [{
+      data: [60, 304, 22, 0],
+      backgroundColor: ['#ff7b72', '#f85149', '#d29922', '#3fb950'],
+      borderColor: '#0b1330',
+      borderWidth: 2,
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'bottom', labels: { boxWidth: 12, padding: 10, font: { size: 11 } } },
+      tooltip: { callbacks: { label: (c) => `${c.label}: ${c.parsed} sendouts (${(c.parsed/386*100).toFixed(1)}%)` } }
+    }
+  }
+});
+
+// ---- Slide 4: client volume ----
+new Chart(document.getElementById('chartClientVolume'), {
+  type: 'bar',
+  data: {
+    labels: ['Key Media', 'Newcom', 'Are Media', 'Sosland', 'Momentum', 'Adopstar', 'The Drum', 'Conexus', 'Gloo'],
+    datasets: [{
+      label: 'Sendouts',
+      data: [229, 68, 43, 30, 24, 5, 4, 3, 2],
+      backgroundColor: '#6aa0ff',
+      borderRadius: 4,
+    }]
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { color: '#1b2747' }, ticks: { color: '#8fa0c4' } },
+      y: { grid: { display: false }, ticks: { color: '#e6ebf5' } }
+    }
+  }
+});
+
+// ---- Slide 5: per-client percentile range chart ----
+// We'll use a bar chart where each client has stacked p05→p95 range with p50 marker
+const clients = ['Key Media', 'Newcom', 'Are Media', 'Sosland', 'Momentum', 'Adopstar', 'The Drum', 'Conexus', 'Gloo'];
+const p05 = [-340, -340, -359, -317, -310, -321, -336, -264, -150];
+const p25 = [-269, -292, -317, -289, -287, -316, -188, -264, -150];
+const p50 = [-193, -282, -297, -278, -264, -287, -169, -261, -87];
+const p75 = [-130, -267, -288, -226, -164, -287, -90, -260, -24];
+const p95 = [-60, -206, -116, -46, -87, -284, -90, -260, -24];
+
+new Chart(document.getElementById('chartPerClient'), {
+  type: 'bar',
+  data: {
+    labels: clients,
+    datasets: [
+      { label: 'min → p05',     data: p05.map((v,i) => [v, p05[i]]), backgroundColor: 'rgba(248,81,73,0.25)', borderSkipped: false },
+      { label: 'p05 → p25',     data: p05.map((_,i) => [p05[i], p25[i]]), backgroundColor: 'rgba(248,81,73,0.45)' },
+      { label: 'p25 → p75 (IQR)', data: p05.map((_,i) => [p25[i], p75[i]]), backgroundColor: 'rgba(106,160,255,0.7)' },
+      { label: 'p75 → p95',     data: p05.map((_,i) => [p75[i], p95[i]]), backgroundColor: 'rgba(248,81,73,0.45)' },
+    ]
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'bottom' },
+      tooltip: {
+        callbacks: {
+          label: (c) => {
+            const i = c.dataIndex;
+            return `p50 = ${p50[i]}s (range ${p05[i]} to ${p95[i]})`;
+          }
+        }
+      },
+      annotation: false
+    },
+    scales: {
+      x: {
+        min: -400, max: 50,
+        grid: { color: '#1b2747' },
+        title: { display: true, text: 'created_lead (seconds) — negative = served blind', color: '#8fa0c4' },
+        ticks: { color: '#8fa0c4' }
+      },
+      y: { grid: { display: false }, ticks: { color: '#e6ebf5' } }
+    }
+  },
+  plugins: [{
+    id: 'medianMarkers',
+    afterDatasetsDraw(chart) {
+      const {ctx, scales: {x, y}} = chart;
+      p50.forEach((val, i) => {
+        const xp = x.getPixelForValue(val);
+        const yp = y.getPixelForValue(i);
+        ctx.save();
+        ctx.fillStyle = '#fff';
+        ctx.strokeStyle = '#0b1020';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(xp, yp, 5, 0, 2 * Math.PI);
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
+      });
+      // zero line
+      const zx = x.getPixelForValue(0);
+      const top = y.getPixelForValue(0) - 20;
+      const bot = y.getPixelForValue(p50.length - 1) + 20;
+      ctx.save();
+      ctx.strokeStyle = '#3fb950';
+      ctx.setLineDash([4, 4]);
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(zx, top);
+      ctx.lineTo(zx, bot);
+      ctx.stroke();
+      ctx.restore();
+    }
+  }]
+});
+
+// ---- Slide 6: global histogram ----
+new Chart(document.getElementById('chartGlobalHisto'), {
+  type: 'bar',
+  data: {
+    labels: ['<−600s', '−600…−300s', '−300…−60s', '−60…0s', '0…30s', '30…300s', '>300s'],
+    datasets: [{
+      label: 'sendouts',
+      data: [0, 60, 304, 22, 0, 0, 0],
+      backgroundColor: (ctx) => {
+        const i = ctx.dataIndex;
+        if (i <= 2) return '#f85149';  // heavily negative
+        if (i === 3) return '#d29922'; // just barely negative
+        return '#3fb950';               // would be positive
+      },
+      borderRadius: 4,
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: { callbacks: { label: (c) => `${c.parsed.y} sendouts (${(c.parsed.y/386*100).toFixed(1)}%)` } }
+    },
+    scales: {
+      x: { grid: { display: false }, ticks: { color: '#e6ebf5' }, title: { display: true, text: 'created_lead bucket', color: '#8fa0c4' } },
+      y: { grid: { color: '#1b2747' }, ticks: { color: '#8fa0c4' }, title: { display: true, text: 'sendouts', color: '#8fa0c4' } }
+    }
+  }
+});
+
+// ---- Slide 7: send_lead sanity ----
+const sendP50 = [-51, 5, 3, 4, -60, -19, -43, -26, 2];
+const sendMin = [-60, -60, -60, -37, -60, -55, -60, -27, -4];
+const sendMax = [23, 49, 14, 14, -12, -16, -21, -25, 7];
+
+new Chart(document.getElementById('chartSendLead'), {
+  type: 'bar',
+  data: {
+    labels: clients,
+    datasets: [{
+      label: 'min → max',
+      data: clients.map((_,i) => [sendMin[i], sendMax[i]]),
+      backgroundColor: 'rgba(106,160,255,0.5)',
+      borderColor: '#6aa0ff',
+      borderWidth: 1,
+    }]
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: (c) => {
+            const i = c.dataIndex;
+            return `p50 = ${sendP50[i]}s (range ${sendMin[i]} to ${sendMax[i]})`;
+          }
+        }
+      }
+    },
+    scales: {
+      x: {
+        min: -80, max: 60,
+        grid: { color: '#1b2747' },
+        title: { display: true, text: 'send_lead (seconds from datetime)', color: '#8fa0c4' },
+        ticks: { color: '#8fa0c4' }
+      },
+      y: { grid: { display: false }, ticks: { color: '#e6ebf5' } }
+    }
+  },
+  plugins: [{
+    id: 'sendMedianMarkers',
+    afterDatasetsDraw(chart) {
+      const {ctx, scales: {x, y}} = chart;
+      sendP50.forEach((val, i) => {
+        const xp = x.getPixelForValue(val);
+        const yp = y.getPixelForValue(i);
+        ctx.save();
+        ctx.fillStyle = '#fff';
+        ctx.strokeStyle = '#0b1020';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(xp, yp, 5, 0, 2 * Math.PI);
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
+      });
+      const zx = x.getPixelForValue(0);
+      const top = y.getPixelForValue(0) - 20;
+      const bot = y.getPixelForValue(clients.length - 1) + 20;
+      ctx.save();
+      ctx.strokeStyle = '#3fb950';
+      ctx.setLineDash([4, 4]);
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(zx, top);
+      ctx.lineTo(zx, bot);
+      ctx.stroke();
+      ctx.restore();
+    }
+  }]
+});
+
+// ---- Slide 10: sendout explosion ----
+new Chart(document.getElementById('chartSendoutExplosion'), {
+  type: 'bar',
+  data: {
+    labels: ['Are Media', 'Adopstar', 'Key Media', 'Newcom', 'Sosland', 'Momentum', 'The Drum', 'Conexus', 'Gloo'],
+    datasets: [
+      {
+        label: 'Distinct CH sendout values',
+        data: [703270, 553528, 16710, 1487, 399, 1293, 356, 81, 81],
+        backgroundColor: '#f85149',
+      },
+      {
+        label: 'MySQL sendout rows',
+        data: [43, 5, 229, 68, 30, 24, 4, 3, 2],
+        backgroundColor: '#6aa0ff',
+      }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { position: 'bottom' } },
+    scales: {
+      x: { grid: { display: false }, ticks: { color: '#e6ebf5' } },
+      y: {
+        type: 'logarithmic',
+        grid: { color: '#1b2747' },
+        ticks: { color: '#8fa0c4' },
+        title: { display: true, text: 'count (log scale)', color: '#8fa0c4' }
+      }
+    }
+  }
+});
+</script>
+</body>
+</html>
