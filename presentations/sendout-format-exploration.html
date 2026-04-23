@@ -463,9 +463,22 @@
     trust the identifier for healthy clients, fall back to <code>(newsletter_id, time-bucket)</code> for broken clients or broken-literal rows.
   </p>
 
+  <div class="callout warn">
+    <strong>Why raw ≈ est. cohorts on the MySQL side, and why that's expected:</strong><br>
+    <code>newsletter_sendouts</code> is already <em>mostly</em> one row per blast — the ingest pipeline deduplicates. So the MySQL row count is close to reality already. The real wins of the mitigation are:
+    <ul class="clean" style="margin: 8px 0;">
+      <li><strong>Correctly counting distinct cohorts</strong> — today's <code>COUNT(DISTINCT identifier)</code> gives 46 for Newcom (looks like 46 blasts) when the real answer is 397. A bad metric masquerading as a good one.</li>
+      <li><strong>Collapsing broken-literal rows</strong> — Newcom's 29 sendouts with identifier <code>2222</code> become 29 distinct cohorts again (via time-bucket fallback), not 1.</li>
+      <li><strong>Massive CH-side reduction</strong> — where per-recipient tokens balloon cardinality 95-400×, and where our aggregate MVs actually live.</li>
+    </ul>
+  </div>
+
   <h3>MySQL-side: what the reporting layer actually sees</h3>
+  <p style="color: var(--muted); font-size: 14px;">
+    The key comparison is <strong>naive <code>distinct(identifier)</code></strong> (gray — what dashboards show today) vs <strong>est. blast cohorts</strong> (green — what they should show). For Newcom this is 46 vs 397. For Gloo it's 26 vs 69. Raw sendout rows (blue) are a sanity check — they're close to the est. cohorts for every client, which means MySQL's ingest is working correctly.
+  </p>
   <div class="chart-wrap">
-    <div class="chart-title">Raw <code>newsletter_sendouts</code> rows vs distinct blast cohorts after mitigation (6-month window)</div>
+    <div class="chart-title">Raw <code>newsletter_sendouts</code> rows vs naive <code>distinct(identifier)</code> vs distinct blast cohorts after mitigation (6-month window)</div>
     <div class="chart-box tall"><canvas id="chartMitigationMySQL"></canvas></div>
   </div>
 
@@ -793,7 +806,7 @@ const rows = [
     nlUsing: 110, nlTotal: 110, nlPct: 100.0, sendoutPct: 100.0,
     spi: 1.00, health: 23.9, healthClass: 'warn',
     firstSeen: '2025-10-23', lastSeen: '2026-04-23',
-    note: 'ISO datetime down to second — cohorts at blast level; per-ID uniqueness is fine but granularity is second-level' },
+    note: 'No mitigation uplift needed on MySQL side — raw row already = 1 blast. Top cohorts have 80k users per ID. Mitigation only disambiguates {{local_dt}} bug via time bucket.' },
 
   // Momentum Media — cohort trust; broken-literal fallback for *|CAMPAIGN_UID|*
   { client: 'Momentum Media', esp: 'General, Salesforce 2', status: 'LIVE', fmt: 'numeric-6',
@@ -837,7 +850,7 @@ const rows = [
     nlUsing: 45, nlTotal: 45, nlPct: 100.0, sendoutPct: 100.0,
     spi: 1.04, health: 0.3, healthClass: 'bad',
     firstSeen: '2026-03-10', lastSeen: '2026-04-23',
-    note: 'BROKEN — MySQL-side identifier is ~1-per-cohort so 266 cohorts ≈ 269 sendouts. CH-side is 705k→7.4k cohorts (95× reduction) since per-recipient tokens collapse into hour buckets.' },
+    note: 'MySQL row count is ~accurate (266 cohorts ≈ 269 raw). The real mitigation win is on CH: 705k distinct sendout strings → 7.4k cohorts (95× reduction) since per-recipient tokens collapse into hour buckets.' },
 
   // The Drum — cohort trust
   { client: 'The Drum', esp: 'General', status: 'LIVE', fmt: 'numeric-8 (DDMMYYYY)',
