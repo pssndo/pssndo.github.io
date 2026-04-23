@@ -1,0 +1,1163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sendout Identifier Formats — 6-Month Exploration</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #0b1020;
+    --bg-soft: #121a33;
+    --bg-soft2: #0e1530;
+    --fg: #e6ebf5;
+    --muted: #8fa0c4;
+    --accent: #6aa0ff;
+    --good: #3fb950;
+    --bad: #f85149;
+    --warn: #d29922;
+    --border: #223155;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--fg); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+  body { line-height: 1.55; }
+  .deck { max-width: 1200px; margin: 0 auto; padding: 24px; }
+  .slide {
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 36px 44px;
+    margin: 28px 0;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.25);
+  }
+  .slide h1, .slide h2, .slide h3 { margin-top: 0; }
+  .slide h1 { font-size: 32px; letter-spacing: -0.02em; margin-bottom: 6px; }
+  .slide h2 { font-size: 26px; color: var(--accent); margin-bottom: 16px; letter-spacing: -0.01em; }
+  .slide h3 { font-size: 18px; color: var(--muted); margin: 18px 0 8px; text-transform: uppercase; letter-spacing: 0.08em; }
+  .subtitle { color: var(--muted); margin-bottom: 20px; font-size: 16px; }
+  .kicker { color: var(--accent); font-weight: 600; font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 10px; }
+  .big-stat { font-size: 48px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.05; margin: 10px 0 6px; }
+  .big-stat.bad { color: var(--bad); }
+  .big-stat.good { color: var(--good); }
+  .big-stat.warn { color: var(--warn); }
+  .big-stat.accent { color: var(--accent); }
+  .stat-caption { color: var(--muted); font-size: 14px; margin-bottom: 20px; }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .two-col-body { display: grid; grid-template-columns: 1.1fr 1fr; gap: 28px; align-items: start; }
+
+  .stat-card {
+    background: var(--bg-soft2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 18px;
+  }
+  .stat-card .label { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
+  .stat-card .value { font-size: 24px; font-weight: 600; }
+
+  table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 13px; }
+  thead th {
+    text-align: left; background: var(--bg-soft2); padding: 10px 10px;
+    color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em;
+    border-bottom: 1px solid var(--border); position: sticky; top: 0; cursor: pointer; user-select: none;
+  }
+  thead th:hover { color: var(--fg); }
+  thead th.sorted-asc::after { content: ' ▲'; color: var(--accent); }
+  thead th.sorted-desc::after { content: ' ▼'; color: var(--accent); }
+  tbody td { padding: 8px 10px; border-bottom: 1px solid #1b2747; vertical-align: top; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: rgba(106,160,255,0.05); }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  td.mono, th.mono { font-family: "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace; font-size: 12px; }
+  tr.bad td.badge-cell { color: var(--bad); font-weight: 600; }
+  tr.warn td.badge-cell { color: var(--warn); font-weight: 600; }
+  tr.good td.badge-cell { color: var(--good); font-weight: 600; }
+
+  code, pre { font-family: "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace; font-size: 12.5px; }
+  code { background: #0b1330; padding: 1px 5px; border-radius: 3px; color: #c0d3ff; }
+  pre { background: #0b1330; border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; overflow-x: auto; color: #d5e3ff; line-height: 1.5; }
+  pre code { background: transparent; padding: 0; }
+
+  .callout {
+    border-left: 4px solid var(--accent);
+    background: rgba(106,160,255,0.08);
+    padding: 14px 18px;
+    border-radius: 8px;
+    margin: 14px 0;
+  }
+  .callout.bad { border-left-color: var(--bad); background: rgba(248, 81, 73, 0.08); }
+  .callout.good { border-left-color: var(--good); background: rgba(63, 185, 80, 0.08); }
+  .callout.warn { border-left-color: var(--warn); background: rgba(210, 153, 34, 0.08); }
+
+  .chart-wrap { background: #0b1330; border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin: 10px 0; }
+  .chart-wrap .chart-title { color: var(--muted); font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+  .chart-box { position: relative; height: 320px; }
+  .chart-box.tall { height: 480px; }
+  .chart-box.huge { height: 560px; }
+  .chart-box.short { height: 220px; }
+
+  ul.clean { padding-left: 18px; }
+  ul.clean li { margin: 6px 0; }
+
+  .footer { color: var(--muted); font-size: 13px; text-align: center; padding: 20px 0 40px; }
+  .nav { position: fixed; top: 12px; right: 16px; background: rgba(11,16,32,0.9); border: 1px solid var(--border); padding: 8px 14px; border-radius: 20px; font-size: 12px; color: var(--muted); z-index: 100; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
+  .badge.good { background: rgba(63,185,80,0.2); color: var(--good); }
+  .badge.warn { background: rgba(210,153,34,0.2); color: var(--warn); }
+  .badge.bad { background: rgba(248,81,73,0.2); color: var(--bad); }
+  .badge.info { background: rgba(106,160,255,0.2); color: var(--accent); }
+  .badge.muted { background: rgba(143,160,196,0.15); color: var(--muted); }
+
+  .toolbar { display: flex; gap: 10px; margin: 14px 0 6px; flex-wrap: wrap; align-items: center; }
+  .toolbar input, .toolbar select {
+    background: var(--bg-soft2); color: var(--fg); border: 1px solid var(--border);
+    padding: 7px 11px; border-radius: 7px; font-size: 13px; font-family: inherit;
+  }
+  .toolbar input:focus, .toolbar select:focus { outline: 2px solid var(--accent); }
+  .toolbar label { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; }
+  .toolbar button { background: var(--accent); color: white; border: 0; padding: 7px 14px; border-radius: 7px; font-weight: 600; cursor: pointer; font-size: 13px; }
+  .toolbar button.ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+  .toolbar .count { margin-left: auto; color: var(--muted); font-size: 12px; }
+
+  .table-wrap { max-height: 700px; overflow-y: auto; border: 1px solid var(--border); border-radius: 10px; }
+  .table-wrap table { margin: 0; }
+
+  .legend { display: flex; gap: 18px; flex-wrap: wrap; font-size: 12px; color: var(--muted); }
+  .legend .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
+
+  @media (max-width: 900px) {
+    .grid-2, .two-col-body { grid-template-columns: 1fr; }
+    .grid-3, .grid-4 { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="nav">Sendout Format Exploration · 2026-04-23</div>
+<div class="deck">
+
+<!-- ============== SLIDE 1: TITLE ============== -->
+<section class="slide">
+  <div class="kicker">Exploration · 6 months · All clients with any sendout</div>
+  <h1>Sendout identifier formats across clients</h1>
+  <p class="subtitle">
+    What format does each client's ESP emit as the <code>newsletter_sendouts.identifier</code>?
+    Is it <strong>one ID per blast cohort</strong> (intended) or <strong>one ID per recipient</strong> (token leakage)?
+    Has any client changed format mid-stream? Which clients have template-rendering bugs?
+  </p>
+  <div class="grid-4" style="margin-top: 28px;">
+    <div class="stat-card">
+      <div class="label">Window</div>
+      <div class="value">6 months</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Clients</div>
+      <div class="value">12</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Newsletters</div>
+      <div class="value">253</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Sendouts analyzed</div>
+      <div class="value">7,430</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============== SLIDE 2: MENTAL MODEL ============== -->
+<section class="slide">
+  <div class="kicker">Framework</div>
+  <h2>The right shape of a sendout identifier</h2>
+
+  <div class="callout">
+    <strong>What it should be:</strong> the same ID for every email in one blast cohort. If a daily newsletter goes to 50,000 subscribers on 2026-04-22, all 50,000 should share one identifier. <em>Uniqueness per blast, not per recipient.</em>
+  </div>
+
+  <h3>Diagnostic: events per sendout ID</h3>
+  <p>
+    Given a 7-day ClickHouse sample, we measure <code>users ÷ distinct sendout IDs</code>. A healthy cohort ID shows hundreds of users per ID. A per-recipient token shows ≈ 1.
+  </p>
+
+  <div class="chart-wrap">
+    <div class="chart-title">Avg users per sendout ID — last 7 days (CH events)</div>
+    <div class="chart-box tall"><canvas id="chartHealth"></canvas></div>
+  </div>
+
+  <div class="legend">
+    <span><span class="dot" style="background: var(--good);"></span>≥100: cohort ID — healthy</span>
+    <span><span class="dot" style="background: var(--warn);"></span>10–100: partial leakage</span>
+    <span><span class="dot" style="background: var(--bad);"></span>&lt; 10: per-recipient token — broken</span>
+  </div>
+</section>
+
+<!-- ============== SLIDE 3: SORTABLE TABLE ============== -->
+<section class="slide">
+  <div class="kicker">Primary table</div>
+  <h2>All formats × clients — sortable, filterable</h2>
+  <p>Each row is a <strong>(client, format)</strong> pair. A client with 2 formats appears twice. Columns sortable (click headers). "Newsletter %" = what share of the client's newsletters use this format. "Cohort health" is the per-ID user count: high = per-blast (good), low = per-recipient token (bad).</p>
+
+  <div class="toolbar">
+    <label>Filter</label>
+    <input id="searchBox" type="text" placeholder="client, format, ESP…" style="flex: 1; min-width: 200px;">
+    <label>Health</label>
+    <select id="healthFilter">
+      <option value="all">all</option>
+      <option value="good">good only</option>
+      <option value="warn">partial leakage</option>
+      <option value="bad">per-recipient / broken</option>
+    </select>
+    <button class="ghost" id="resetBtn">Reset</button>
+    <span class="count" id="rowCount"></span>
+  </div>
+
+  <div class="table-wrap">
+    <table id="mainTable">
+      <thead>
+        <tr>
+          <th data-col="client" data-type="str">Client</th>
+          <th data-col="esp" data-type="str">ESP</th>
+          <th data-col="status" data-type="str">Status</th>
+          <th data-col="fmt" data-type="str">Format</th>
+          <th data-col="sample" data-type="str">Example</th>
+          <th data-col="sendouts" data-type="num" class="num">Sendouts</th>
+          <th data-col="nlPct" data-type="num" class="num">Newsletter %</th>
+          <th data-col="sendoutPct" data-type="num" class="num">Sendout %</th>
+          <th data-col="spi" data-type="num" class="num">Sendouts / ID</th>
+          <th data-col="health" data-type="num" class="num">Cohort health</th>
+          <th data-col="firstSeen" data-type="str">First seen</th>
+          <th data-col="lastSeen" data-type="str">Last seen</th>
+          <th data-col="note" data-type="str">Note</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============== SLIDE 4: WHAT "100% UNIQUE" REALLY MEANS ============== -->
+<section class="slide">
+  <div class="kicker">What sendouts/ID tells us</div>
+  <h2>Uniqueness ≠ correctness</h2>
+
+  <p>A daily newsletter that's been running 6 months has roughly 130 sendout rows in MySQL. If the identifier cohorts correctly, there should be <strong>many sendouts sharing one ID</strong> (same blast wave seen via multiple delivery pulses, multiple templates, etc. → same cohort). Instead:</p>
+
+  <div class="chart-wrap">
+    <div class="chart-title">Sendouts per distinct ID (MySQL) — high is healthy cohorting, 1.0 is per-sendout unique</div>
+    <div class="chart-box tall"><canvas id="chartSPI"></canvas></div>
+  </div>
+
+  <div class="grid-2" style="margin-top: 18px;">
+    <div class="callout bad">
+      <strong>1.0 (pure unique)</strong> — identifier is unique for every <code>newsletter_sendouts</code> row. Sometimes the blast really does have 1 row per cohort (Adopstar: 1 newsletter, 1 row per day), but when combined with low CH-users/ID, it's per-recipient token leakage.
+    </div>
+    <div class="callout good">
+      <strong>&gt; 2.0 (cohorting)</strong> — multiple sendout rows share an ID because the blast was logged multiple times (e.g. test + live, or same date across newsletters). Newcom (8.9), Sosland (4.2), The Drum (1.8).
+    </div>
+  </div>
+</section>
+
+<!-- ============== SLIDE 5: HEAT MAP — CLIENT × HEALTH ============== -->
+<section class="slide">
+  <div class="kicker">Who's broken, who's fine</div>
+  <h2>Two-signal breakdown: MySQL identifier uniqueness × CH events-per-ID</h2>
+  <p>A client is healthy only if BOTH axes look right. Adopstar is the worst — 100% unique IDs in MySQL AND 0.2 users per ID in CH → every ID sent to exactly one recipient with no blast-level cohort info recoverable.</p>
+
+  <div class="chart-wrap">
+    <div class="chart-title">Scatter: MySQL sendouts-per-id (X, log scale) × CH users-per-id (Y, log scale)</div>
+    <div class="chart-box tall"><canvas id="chartScatter"></canvas></div>
+  </div>
+
+  <div class="grid-4" style="margin-top: 18px;">
+    <div class="stat-card" style="border-color: var(--bad);">
+      <div class="label" style="color: var(--bad);">Top-right = broken</div>
+      <div class="value" style="font-size: 16px;">Adopstar, Are Media, Realestate.co.nz, 1440</div>
+      <p style="color: var(--muted); font-size: 13px; margin: 8px 0 0;">Per-recipient tokens; identifier is unusable as a cohort key.</p>
+    </div>
+    <div class="stat-card" style="border-color: var(--warn);">
+      <div class="label" style="color: var(--warn);">Middle band = mixed</div>
+      <div class="value" style="font-size: 16px;">Key Media, Momentum</div>
+      <p style="color: var(--muted); font-size: 13px; margin: 8px 0 0;">Many unique IDs but still 20–50 users per ID — partial cohort, but ID granularity is finer than expected.</p>
+    </div>
+    <div class="stat-card" style="border-color: var(--good);">
+      <div class="label" style="color: var(--good);">Bottom-left = healthy</div>
+      <div class="value" style="font-size: 16px;">Sosland, Newcom, The Drum, Conexus, Gloo</div>
+      <p style="color: var(--muted); font-size: 13px; margin: 8px 0 0;">Few distinct IDs, many users per ID → true per-blast cohort.</p>
+    </div>
+    <div class="stat-card" style="border-color: var(--muted);">
+      <div class="label">Too little data</div>
+      <div class="value" style="font-size: 16px;">AndaM</div>
+      <p style="color: var(--muted); font-size: 13px; margin: 8px 0 0;">Only 2 sendouts ever recorded.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============== SLIDE 6: TIMELINE OF FORMAT USE ============== -->
+<section class="slide">
+  <div class="kicker">Timeline</div>
+  <h2>Format adoption &amp; abandonment per client (monthly bands)</h2>
+  <p>No client has <em>switched</em> their primary format mid-stream. What we see is either consistency, the introduction of a secondary-format bug, or (Realestate.co.nz) an abrupt stop.</p>
+
+  <div class="chart-wrap">
+    <div class="chart-title">Sendouts per client per month (stacked by format). Months 2025-10 → 2026-04.</div>
+    <div class="chart-box huge"><canvas id="chartTimeline"></canvas></div>
+  </div>
+</section>
+
+<!-- ============== SLIDE 7: ADOPSTAR DEEP DIVE ============== -->
+<section class="slide">
+  <div class="kicker">Why Adopstar is different</div>
+  <h2>Adopstar — the only "no-client" ambiguity — explained</h2>
+
+  <p>On first pass we saw only 1 newsletter per client but 117 sendouts all uniquely identified in MySQL. Cross-checked in CH events:</p>
+
+  <div class="grid-2">
+    <div class="stat-card">
+      <div class="label">Client row in MySQL</div>
+      <div class="value">Adopstar</div>
+      <p style="color: var(--muted); font-size: 13px; margin: 8px 0 0;">Status: LIVE · ESP: General, Sailthru, Hubspot, Mailchimp — all four</p>
+    </div>
+    <div class="stat-card">
+      <div class="label">Newsletter count</div>
+      <div class="value">1</div>
+      <p style="color: var(--muted); font-size: 13px; margin: 8px 0 0;">One catch-all newsletter receiving sendouts from 4 different ESP configs simultaneously</p>
+    </div>
+    <div class="stat-card" style="border-color: var(--bad);">
+      <div class="label" style="color: var(--bad);">MySQL unique IDs</div>
+      <div class="value">100%</div>
+      <p style="color: var(--muted); font-size: 13px; margin: 8px 0 0;">117 sendouts, 117 distinct identifiers — perfect uniqueness, looks great on first glance</p>
+    </div>
+    <div class="stat-card" style="border-color: var(--bad);">
+      <div class="label" style="color: var(--bad);">CH users per ID</div>
+      <div class="value">0.2</div>
+      <p style="color: var(--muted); font-size: 13px; margin: 8px 0 0;">552,887 distinct identifiers for 126k users → 4 IDs per user on average. Per-recipient token + retry duplication.</p>
+    </div>
+  </div>
+
+  <h3>Unrendered tokens in CH events (last 14 days)</h3>
+  <p>Adopstar has <strong>five</strong> different unrendered template tokens simultaneously in their events — one per ESP they've tested:</p>
+  <table>
+    <thead><tr><th>Token</th><th class="num">Events</th><th class="num">Users</th><th>Likely ESP</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">{{ time_now | time_unix }}</td><td class="num">7,966</td><td class="num">1</td><td>General / custom templating</td></tr>
+      <tr><td class="mono">{message_id()}</td><td class="num">2,597</td><td class="num">1</td><td>Sailthru</td></tr>
+      <tr><td class="mono">{‌{ content.publish_date}‌}</td><td class="num">211</td><td class="num">1</td><td>Hubspot / zero-width-space in braces</td></tr>
+      <tr><td class="mono">{{system.dateTime}}</td><td class="num">193</td><td class="num">1</td><td>Hubspot</td></tr>
+      <tr><td class="mono">*|CAMPAIGN_UID|*</td><td class="num">4</td><td class="num">1</td><td>Mailchimp</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout bad">
+    <strong>Verdict:</strong> Adopstar is an ongoing ESP-integration testbed. No single config works end-to-end. Every ESP they've tried has at least one merge-tag unrendered. Recommend treating Adopstar as a test client and not as a data source.
+  </div>
+</section>
+
+<!-- ============== SLIDE 8: BUG INVENTORY ============== -->
+<section class="slide">
+  <div class="kicker">Bug inventory</div>
+  <h2>Unrendered template tokens — the full list</h2>
+  <p>
+    These are cases where the ESP's merge-tag variable was NOT rendered — the literal placeholder made it into the tracking URL as-is.
+    They show up in ClickHouse <code>events.sendout</code> even when MySQL's <code>newsletter_sendouts.identifier</code> looks clean (Passendo's ingest may repair or drop some).
+  </p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Client</th>
+        <th>Unrendered token</th>
+        <th class="num">Events (14d)</th>
+        <th class="num">Users</th>
+        <th>Probable cause</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="bad">
+        <td>Newcom</td><td class="mono">2222</td><td class="num">234,878</td><td class="num">1</td>
+        <td>Hardcoded placeholder in 3 TR (Transport Routier) newsletters — never had a real format</td>
+      </tr>
+      <tr class="bad">
+        <td>Key Media</td><td class="mono">{{local_dt}}</td><td class="num">111,358</td><td class="num">1</td>
+        <td>Hubspot variable not expanded — major bug, >100k events/fortnight</td>
+      </tr>
+      <tr class="bad">
+        <td>Adopstar</td><td class="mono">{{ time_now | time_unix }}</td><td class="num">7,966</td><td class="num">1</td>
+        <td>Handlebars template filter expression, not rendered</td>
+      </tr>
+      <tr class="bad">
+        <td>Newcom</td><td class="mono">@{mv_date_MMddyyyy}@</td><td class="num">5,325</td><td class="num">2</td>
+        <td>Omeda merge tag for CU-Marsh (documented in prior research)</td>
+      </tr>
+      <tr class="bad">
+        <td>The Drum</td><td class="mono">{{Current_Day}}{{Current_Month}}{{Current_Year}}</td><td class="num">4,901</td><td class="num">1</td>
+        <td>Three unexpanded Handlebars variables — template bug</td>
+      </tr>
+      <tr class="bad">
+        <td>Sosland</td><td class="mono">@{mv_date_MMddyyyy}@</td><td class="num">4,511</td><td class="num">3</td>
+        <td>Same Omeda tag, unrendered across 3 newsletters</td>
+      </tr>
+      <tr class="bad">
+        <td>Adopstar</td><td class="mono">{message_id()}</td><td class="num">2,597</td><td class="num">1</td>
+        <td>Sailthru function call not evaluated</td>
+      </tr>
+      <tr class="warn">
+        <td>Gloo</td><td class="mono">1970-01-01 00:00:00</td><td class="num">2,340</td><td class="num">648</td>
+        <td>Unix epoch zero — date variable default when unset; 648 users share this ID (cohort still works, identifier is useless for keying)</td>
+      </tr>
+      <tr class="bad">
+        <td>Are Media</td><td class="mono">{message_id()}</td><td class="num">390</td><td class="num">1</td>
+        <td>Sailthru function not evaluated</td>
+      </tr>
+      <tr class="bad">
+        <td>1440</td><td class="mono">{message_id()}</td><td class="num">330</td><td class="num">1</td>
+        <td>Same Sailthru pattern — newly onboarded, repeating known bug</td>
+      </tr>
+      <tr class="bad">
+        <td>Adopstar</td><td class="mono">{‌{ content.publish_date}‌}</td><td class="num">211</td><td class="num">1</td>
+        <td>Zero-width space characters injected into Handlebars braces — breaks rendering</td>
+      </tr>
+      <tr class="warn">
+        <td>Adopstar</td><td class="mono">{{system.dateTime}}</td><td class="num">193</td><td class="num">1</td>
+        <td>Hubspot global variable, wrong namespace</td>
+      </tr>
+      <tr class="warn">
+        <td>Newcom</td><td class="mono">@{mv_date_mmddyyyy}@</td><td class="num">6</td><td class="num">1</td>
+        <td>Same as above, lowercase variant — probably a typo in one config</td>
+      </tr>
+      <tr class="bad">
+        <td>Adopstar</td><td class="mono">*|CAMPAIGN_UID|*</td><td class="num">4</td><td class="num">1</td>
+        <td>Mailchimp merge tag — Adopstar's 5th broken ESP config</td>
+      </tr>
+      <tr class="warn">
+        <td>Key Media</td><td class="mono">{{ local_dt }}</td><td class="num">2</td><td class="num">1</td>
+        <td>Extra spacing variant of the 111k-events bug — probably same template with minor edit</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout warn" style="margin-top: 10px;">
+    <strong>Total:</strong> 15 distinct template-token bugs across 6 clients. Newcom's <code>2222</code> and Key Media's <code>{{local_dt}}</code> combined account for ~350k broken-identifier events in the last 14 days alone.
+  </div>
+</section>
+
+<!-- ============== SLIDE 9: CHANGES OVER TIME ============== -->
+<section class="slide">
+  <div class="kicker">Format changes</div>
+  <h2>No one has switched formats. But several drift.</h2>
+
+  <table>
+    <thead>
+      <tr><th>Client</th><th>Change</th><th>When</th><th>Detail</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Newcom</td>
+        <td>New format coexistence</td>
+        <td>2026-03-11</td>
+        <td>Started emitting <code>2222</code> on 3 French-Canadian TR newsletters from the very first send — never had a correct format for these.</td>
+      </tr>
+      <tr>
+        <td>Momentum</td>
+        <td>Secondary-format bug started</td>
+        <td>2026-02-02</td>
+        <td>"Test native" newsletter stopped rendering <code>*|CAMPAIGN_UID|*</code>. Biweekly since — 6 occurrences.</td>
+      </tr>
+      <tr>
+        <td>Gloo</td>
+        <td>Epoch-zero bug since launch</td>
+        <td>2025-10-28</td>
+        <td>From the 2nd-ever sendout, most emit <code>1970-01-01</code>. Primary format (as intended) only on 14.5% of sendouts.</td>
+      </tr>
+      <tr>
+        <td>Gloo</td>
+        <td>Third format added</td>
+        <td>2025-12-09</td>
+        <td>A third newsletter started using sequential numeric IDs (<code>123</code>, <code>124</code>…). Coexists with the other two.</td>
+      </tr>
+      <tr class="warn">
+        <td>Realestate.co.nz</td>
+        <td>Stopped emitting sendouts</td>
+        <td>2026-02-04</td>
+        <td>21 sendouts over 3 weeks (Jan 14 → Feb 4), then silence for 2.5 months. Need to investigate: churned, paused, or integration broken?</td>
+      </tr>
+      <tr>
+        <td>Are Media</td>
+        <td><code>.0</code> legacy suffix still active</td>
+        <td>ongoing</td>
+        <td>16 sendouts with <code>.0</code> suffix recycle only 4 IDs — appears to be a legacy Sailthru template ID. Coexists with primary <code>.1</code> pattern since day one.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout good">
+    <strong>Good news:</strong> No client has ever switched their primary format. This means historical data joins are reliable per-client. Changes are additive (new bugs appearing) not destructive.
+  </div>
+</section>
+
+<!-- ============== SLIDE 10: CLIENT NOTES ============== -->
+<section class="slide">
+  <div class="kicker">Client-level notes</div>
+  <h2>What each client's data tells us</h2>
+
+  <div class="grid-2">
+    <div class="stat-card">
+      <div class="label">Key Media · <span class="badge info">Hubspot</span></div>
+      <h3 style="color: var(--fg); margin: 6px 0 8px; text-transform: none; letter-spacing: 0;">5,299 sendouts · 110 newsletters · 23.9 users/ID</h3>
+      <p style="color: var(--muted); font-size: 13px;">
+        Identifier is an ISO-8601 datetime URL-encoded (<code>2026-04-22%2011:50:07</code>). Looks like a per-blast timestamp, and CH confirms thousands of users share each. But MySQL sendouts-per-ID = 1.0 (every row unique) means the timestamp goes down to the second — so two identical cohort pulses even 1s apart would get different IDs. <strong>Works as a cohort key in practice</strong>, but it's time-of-blast, not a stable "this is sendout #X of newsletter Y".
+      </p>
+    </div>
+
+    <div class="stat-card">
+      <div class="label">Newcom · <span class="badge info">Omeda</span></div>
+      <h3 style="color: var(--fg); margin: 6px 0 8px; text-transform: none; letter-spacing: 0;">431 sendouts · 41 newsletters · 329.6 users/ID</h3>
+      <p style="color: var(--muted); font-size: 13px;">
+        MMDDYYYY date format, 8.9 sendouts per ID — the SAME identifier shared across all newsletters on the same day (e.g. <code>04212026</code> is used by 38 newsletters). Cohort works perfectly at date-level. <strong>Real issue: the 3 TR newsletters emit <code>2222</code> literal — 7.3% of Newcom's newsletter set is broken.</strong>
+      </p>
+    </div>
+
+    <div class="stat-card">
+      <div class="label">Sosland Publishing · <span class="badge info">Omeda</span></div>
+      <h3 style="color: var(--fg); margin: 6px 0 8px; text-transform: none; letter-spacing: 0;">331 sendouts · 30 newsletters · 555.3 users/ID</h3>
+      <p style="color: var(--muted); font-size: 13px;">
+        Same MMDDYYYY pattern as Newcom. 4.2 sendouts per ID (30 newsletters spread less densely). Highest CH users-per-ID (555) — cohorts extremely well. Clean.
+      </p>
+    </div>
+
+    <div class="stat-card">
+      <div class="label">The Drum · <span class="badge info">General</span></div>
+      <h3 style="color: var(--fg); margin: 6px 0 8px; text-transform: none; letter-spacing: 0;">204 sendouts · 6 newsletters · 173.1 users/ID</h3>
+      <p style="color: var(--muted); font-size: 13px;">
+        DDMMYYYY (UK publisher). 1.8 sendouts per ID — cohorts well when multiple newsletters share a day. Stable since July 2025. No bugs.
+      </p>
+    </div>
+
+    <div class="stat-card" style="border-color: var(--bad);">
+      <div class="label" style="color: var(--bad);">Are Media · <span class="badge info">Sailthru</span></div>
+      <h3 style="color: var(--fg); margin: 6px 0 8px; text-transform: none; letter-spacing: 0;">269 sendouts · 45 newsletters · 0.3 users/ID 🚨</h3>
+      <p style="color: var(--muted); font-size: 13px;">
+        MySQL looks clean (96% unique IDs). But CH shows 705k distinct IDs in 7 days for 203k users → per-recipient tokens. MySQL only sees Passendo's parsed view; CH sees the raw ESP tracking string. <strong>Tracking template leaks Sailthru's <code>{message_id()}</code> into the sendout slot per-email.</strong>
+      </p>
+    </div>
+
+    <div class="stat-card" style="border-color: var(--bad);">
+      <div class="label" style="color: var(--bad);">Adopstar · <span class="badge muted">Multi</span></div>
+      <h3 style="color: var(--fg); margin: 6px 0 8px; text-transform: none; letter-spacing: 0;">117 sendouts · 1 newsletter · 0.2 users/ID 🚨</h3>
+      <p style="color: var(--muted); font-size: 13px;">
+        Integration testbed — 4 ESPs listed, 5 unrendered merge-tag variants observed in CH. Not a production signal. <strong>Recommend excluding from reporting dashboards.</strong>
+      </p>
+    </div>
+
+    <div class="stat-card">
+      <div class="label">Conexus Financial · <span class="badge info">Salesforce</span></div>
+      <h3 style="color: var(--fg); margin: 6px 0 8px; text-transform: none; letter-spacing: 0;">68 sendouts · 1 newsletter · 80.4 users/ID</h3>
+      <p style="color: var(--muted); font-size: 13px;">
+        Monotonic 6-digit numeric (SFDC campaign ID). 1.0 sendouts per ID but 80 users per ID = one campaign per blast, each blast uniquely ID'd. Healthy pattern.
+      </p>
+    </div>
+
+    <div class="stat-card">
+      <div class="label">Momentum Media · <span class="badge muted">General / SF2</span></div>
+      <h3 style="color: var(--fg); margin: 6px 0 8px; text-transform: none; letter-spacing: 0;">617 sendouts · 7 newsletters · 54.3 users/ID</h3>
+      <p style="color: var(--muted); font-size: 13px;">
+        Numeric-6 monotonic IDs (campaign IDs). Clean primary format. One newsletter ("Test native") emits unrendered <code>*|CAMPAIGN_UID|*</code> biweekly — minor test leakage.
+      </p>
+    </div>
+
+    <div class="stat-card" style="border-color: var(--warn);">
+      <div class="label" style="color: var(--warn);">Gloo · <span class="badge muted">Multi</span></div>
+      <h3 style="color: var(--fg); margin: 6px 0 8px; text-transform: none; letter-spacing: 0;">69 sendouts · 3 newsletters · 135.4 users/ID</h3>
+      <p style="color: var(--muted); font-size: 13px;">
+        Majority (60%) of sendouts emit <code>1970-01-01</code> epoch-zero — ESP date variable default. Cohort still works (same ID per blast), but identifier is useless for keying. Two other newsletters use proper formats.
+      </p>
+    </div>
+
+    <div class="stat-card" style="border-color: var(--bad);">
+      <div class="label" style="color: var(--bad);">Realestate.co.nz · <span class="badge info">Braze</span></div>
+      <h3 style="color: var(--fg); margin: 6px 0 8px; text-transform: none; letter-spacing: 0;">21 sendouts · 8 newsletters · 0.3 users/ID 🚨</h3>
+      <p style="color: var(--muted); font-size: 13px;">
+        Braze format <code>{type}_{date}_{time}</code>. Looks clean in MySQL but CH shows per-recipient leakage. <strong>Bigger concern: stopped sending 2026-02-04, silent for 2.5 months.</strong> Needs follow-up.
+      </p>
+    </div>
+
+    <div class="stat-card" style="border-color: var(--bad);">
+      <div class="label" style="color: var(--bad);">1440 · <span class="badge info">Sailthru</span> (PENDING)</div>
+      <h3 style="color: var(--fg); margin: 6px 0 8px; text-transform: none; letter-spacing: 0;">2 sendouts · 1 newsletter · 1.0 users/ID 🚨</h3>
+      <p style="color: var(--muted); font-size: 13px;">
+        Just onboarded April 2026. Already showing the same Sailthru per-recipient pattern as Are Media. <strong>Fix at onboarding, before this becomes another broken integration.</strong>
+      </p>
+    </div>
+
+    <div class="stat-card" style="border-color: var(--muted);">
+      <div class="label">AndaM · <span class="badge muted">Mailchimp/Braze</span> (PENDING)</div>
+      <h3 style="color: var(--fg); margin: 6px 0 8px; text-transform: none; letter-spacing: 0;">2 sendouts · 1 newsletter</h3>
+      <p style="color: var(--muted); font-size: 13px;">
+        2 sendouts 9 minutes apart in January 2026, same <code>hex10</code> identifier. Pending test data — not enough signal to classify.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ============== SLIDE 11: ACTION ITEMS ============== -->
+<section class="slide">
+  <div class="kicker">What to do about this</div>
+  <h2>Prioritized action items</h2>
+
+  <h3 style="color: var(--bad);">Critical — per-recipient token leakage (breaks identifier semantics)</h3>
+  <table>
+    <thead><tr><th>Client</th><th>Issue</th><th>Fix</th></tr></thead>
+    <tbody>
+      <tr class="bad"><td>Are Media (Sailthru)</td><td><code>{message_id()}</code> emitted per email</td><td>Replace with Sailthru's blast-level ID (<code>{blast_id}</code> or <code>{profile.vars.campaign_id}</code>)</td></tr>
+      <tr class="bad"><td>1440 (Sailthru)</td><td>Same as Are Media — just onboarded</td><td>Fix tracking template before live launch; same Sailthru pattern</td></tr>
+      <tr class="bad"><td>Adopstar (Multi)</td><td>5 different broken merge tags across ESPs</td><td>Treat as test client OR commit to 1 ESP and fix its template</td></tr>
+      <tr class="bad"><td>Realestate.co.nz (Braze)</td><td>Per-recipient leakage + stopped sending</td><td>Investigate integration status; fix Braze template if resuming</td></tr>
+    </tbody>
+  </table>
+
+  <h3 style="color: var(--warn);">High — unrendered template tokens (visible bugs)</h3>
+  <table>
+    <thead><tr><th>Client</th><th>Issue</th><th>Fix</th></tr></thead>
+    <tbody>
+      <tr class="warn"><td>Key Media</td><td><code>{{local_dt}}</code> leaking — 111k events in 14d</td><td>Find and fix the Hubspot template not expanding <code>{{local_dt}}</code></td></tr>
+      <tr class="warn"><td>Newcom</td><td>TR newsletters emit <code>2222</code> literal</td><td>Fix Omeda config for the 3 French-Canadian newsletters</td></tr>
+      <tr class="warn"><td>Newcom + Sosland</td><td><code>@{mv_date_MMddyyyy}@</code> on some blasts</td><td>Omeda template bug — previously documented, confirm fix rollout</td></tr>
+      <tr class="warn"><td>The Drum</td><td><code>{{Current_Day}}{{Current_Month}}{{Current_Year}}</code> unrendered</td><td>Template not wired to date substitution</td></tr>
+      <tr class="warn"><td>Gloo</td><td><code>1970-01-01</code> epoch-zero on 60% of sendouts</td><td>ESP date variable unset — needs default or required-field validation</td></tr>
+    </tbody>
+  </table>
+
+  <h3 style="color: var(--accent);">Medium — data model / query hygiene</h3>
+  <ul class="clean">
+    <li>For Newcom, Sosland, The Drum: join keys must always be <code>(newsletter_id, identifier)</code>, never <code>identifier</code> alone. Same date = same ID across different newsletters is intentional.</li>
+    <li>For Adopstar: exclude from reporting dashboards OR flag as test in client metadata.</li>
+    <li>For Realestate.co.nz: alerting rule — "client was active but stopped sending for &gt; 14 days" should fire.</li>
+  </ul>
+</section>
+
+<!-- ============== SLIDE 12: METHODOLOGY ============== -->
+<section class="slide">
+  <div class="kicker">How this was computed</div>
+  <h2>Methodology</h2>
+
+  <h3>Data sources</h3>
+  <ul class="clean">
+    <li><strong>MySQL <code>newsletter_sendouts</code></strong> — what Passendo stores. <code>identifier</code> is the parsed sendout key + <code>datetime</code>, <code>created_at</code>.</li>
+    <li><strong>ClickHouse <code>emperor.events</code></strong> — what the ad server receives. <code>sendout</code> column is the raw string from tracking URLs, unparsed.</li>
+  </ul>
+
+  <h3>Classification</h3>
+  <p>Regex-based format classifier ran against all sendouts (7,430 rows) from the last 6 months:</p>
+<pre><code>CASE
+  WHEN identifier = '2222' THEN 'recycled-placeholder-2222'
+  WHEN identifier LIKE '1970-01-01%' THEN 'epoch-zero-bug'
+  WHEN identifier LIKE '*|CAMPAIGN_UID|*' THEN 'unrendered-campaign-uid'
+  WHEN identifier REGEXP '^[0-9]{4}-[0-9]{2}-[0-9]{2}%20' THEN 'urlencoded-datetime'
+  WHEN identifier REGEXP '^[0-9]{4}-[0-9]{2}-[0-9]{2} '   THEN 'plain-iso-datetime'
+  WHEN identifier REGEXP '^[a-z_]+_[0-9]{4}-[0-9]{2}-[0-9]{2}_' THEN 'braze-name-date-time'
+  WHEN identifier REGEXP '^[0-9]{8}$' THEN 'numeric-8'       -- MMDDYYYY or DDMMYYYY (disambiguated manually)
+  WHEN identifier REGEXP '^[0-9]{6}$' THEN 'numeric-6'
+  WHEN identifier REGEXP '^[0-9]+\\.[0-9]+$' THEN 'numeric.numeric'
+  WHEN identifier REGEXP '^[a-f0-9]{10}$' THEN 'hex10-token'
+  WHEN identifier REGEXP '^[0-9]+$' THEN 'numeric-var'
+  ELSE 'other'
+END</code></pre>
+
+  <h3>Health metric — the key diagnostic</h3>
+  <p>
+    From ClickHouse events (7-day window): <code>avg_users_per_id = uniqExact(userIdentity) / uniqExact(sendout)</code>.
+    Classified:
+  </p>
+  <ul class="clean">
+    <li><span class="badge good">good</span> ≥ 100 users/ID — one ID per blast cohort</li>
+    <li><span class="badge warn">warn</span> 10–100 users/ID — partial leakage or very fine time granularity</li>
+    <li><span class="badge bad">bad</span> &lt; 10 users/ID — per-recipient token or broken identifier</li>
+  </ul>
+
+  <h3>DDMMYYYY vs MMDDYYYY disambiguation</h3>
+  <p>For <code>numeric-8</code> formats, a regex can't distinguish DDMMYYYY from MMDDYYYY when day ≤ 12 (e.g. <code>01082025</code> = Aug 1 or Jan 8?). Disambiguated by checking sendouts where the first two chars > 12 — if ANY exist, it's DDMMYYYY. The Drum has many (UK format); Newcom/Sosland have none (US MMDDYYYY).</p>
+</section>
+
+<!-- ============== SLIDE 13: SUMMARY ============== -->
+<section class="slide">
+  <div class="kicker">Bottom line</div>
+  <h2>Summary of what we learned</h2>
+  <ul class="clean" style="font-size: 16px;">
+    <li><strong>Format diversity is real:</strong> 10 distinct identifier formats across 12 clients. Date-in-identifier (6 clients), opaque campaign ID (4), short hash (1), and free-text/broken tokens (many).</li>
+    <li><strong>No client has ever switched formats.</strong> Changes are additive — new formats appear alongside old ones, typically because a new newsletter launches with a different ESP config. Historical data joins are safe per-client-per-newsletter.</li>
+    <li><strong>100% identifier uniqueness in MySQL is a red flag, not a feature.</strong> The healthy pattern is "one ID per blast cohort" → many sendout rows share one ID. Newcom (8.9 sendouts/ID) and Sosland (4.2) exemplify this. Clients at 1.0 sendouts/ID need a second check against CH users-per-ID.</li>
+    <li><strong>4 clients are currently emitting per-recipient tokens:</strong> Are Media, Adopstar, Realestate.co.nz, 1440 — all with &lt; 1 CH user per ID. Their sendout identifiers cannot be used as cohort keys.</li>
+    <li><strong>15 distinct unrendered template tokens</strong> across 6 clients in the last 14 days alone. Most severe: Newcom <code>2222</code> (234k events) and Key Media <code>{{local_dt}}</code> (111k events).</li>
+    <li><strong>Realestate.co.nz stopped sending 2026-02-04</strong> and has been silent for 2.5 months. Needs investigation.</li>
+    <li><strong>Adopstar is an integration testbed</strong>, not a production data source. Exclude or flag.</li>
+  </ul>
+</section>
+
+<div class="footer">
+  Generated 2026-04-23. Data: emperor MySQL + analytics ClickHouse, 6-month window.
+  Companion docs:
+  <code>frontend/tmp/sendout-arrival-analysis-report.md</code> ·
+  <code>docs/overview/CROSS_DB_ANALYSIS_PLAYBOOK.md</code>
+</div>
+
+</div>
+
+<script>
+// ============== DATA ==============
+
+// Per (client, format) rows — the full tabular breakdown
+const rows = [
+  // Key Media
+  { client: 'Key Media', esp: 'Hubspot', status: 'LIVE', fmt: 'urlencoded-datetime',
+    sample: '2026-04-22%2011:50:07', sendouts: 5299, nlUsing: 110, nlTotal: 110, nlPct: 100.0, sendoutPct: 100.0,
+    spi: 1.00, health: 23.9, healthClass: 'warn',
+    firstSeen: '2025-10-23', lastSeen: '2026-04-23',
+    note: 'ISO datetime down to second — cohorts at blast level; per-ID uniqueness is fine but granularity is second-level' },
+
+  // Momentum Media
+  { client: 'Momentum Media', esp: 'General, Salesforce 2', status: 'LIVE', fmt: 'numeric-6',
+    sample: '579499', sendouts: 611, nlUsing: 7, nlTotal: 7, nlPct: 100.0, sendoutPct: 99.0,
+    spi: 1.00, health: 54.3, healthClass: 'warn',
+    firstSeen: '2025-10-23', lastSeen: '2026-04-22',
+    note: 'SFDC campaign IDs, monotonic. Primary format — clean.' },
+  { client: 'Momentum Media', esp: 'General, Salesforce 2', status: 'LIVE', fmt: 'unrendered-campaign-uid',
+    sample: '*|CAMPAIGN_UID|*', sendouts: 6, nlUsing: 1, nlTotal: 7, nlPct: 14.3, sendoutPct: 1.0,
+    spi: 6.00, health: null, healthClass: 'bad',
+    firstSeen: '2026-02-02', lastSeen: '2026-04-13',
+    note: 'BUG — Mailchimp tag unrendered on "Test native" newsletter biweekly' },
+
+  // Newcom
+  { client: 'Newcom', esp: 'Omeda', status: 'LIVE', fmt: 'numeric-8 (MMDDYYYY)',
+    sample: '04212026', sendouts: 402, nlUsing: 38, nlTotal: 41, nlPct: 92.7, sendoutPct: 93.3,
+    spi: 8.93, health: 329.6, healthClass: 'good',
+    firstSeen: '2026-03-10', lastSeen: '2026-04-23',
+    note: 'US MMDDYYYY. Same ID across all newsletters on same day = correct blast cohort' },
+  { client: 'Newcom', esp: 'Omeda', status: 'LIVE', fmt: 'recycled-placeholder-2222',
+    sample: '2222', sendouts: 29, nlUsing: 3, nlTotal: 41, nlPct: 7.3, sendoutPct: 6.7,
+    spi: 29.00, health: null, healthClass: 'bad',
+    firstSeen: '2026-03-11', lastSeen: '2026-04-22',
+    note: 'BUG — 3 French-Canadian TR newsletters always emit "2222" literal' },
+
+  // Sosland
+  { client: 'Sosland Publishing', esp: 'Omeda', status: 'LIVE', fmt: 'numeric-8 (MMDDYYYY)',
+    sample: '02032026', sendouts: 331, nlUsing: 30, nlTotal: 30, nlPct: 100.0, sendoutPct: 100.0,
+    spi: 4.19, health: 555.3, healthClass: 'good',
+    firstSeen: '2026-02-03', lastSeen: '2026-04-22',
+    note: 'Same pattern as Newcom — date-per-blast, collides across newsletters intentionally' },
+
+  // Are Media
+  { client: 'Are Media', esp: 'Sailthru', status: 'LIVE', fmt: 'numeric.numeric (Sailthru)',
+    sample: '45335918.1', sendouts: 269, nlUsing: 45, nlTotal: 45, nlPct: 100.0, sendoutPct: 100.0,
+    spi: 1.04, health: 0.3, healthClass: 'bad',
+    firstSeen: '2026-03-10', lastSeen: '2026-04-23',
+    note: 'BROKEN — MySQL looks clean but CH shows {message_id()} leaks per-recipient. 705k distinct IDs in 7 days.' },
+
+  // The Drum
+  { client: 'The Drum', esp: 'General', status: 'LIVE', fmt: 'numeric-8 (DDMMYYYY)',
+    sample: '22042026', sendouts: 204, nlUsing: 6, nlTotal: 6, nlPct: 100.0, sendoutPct: 100.0,
+    spi: 1.76, health: 173.1, healthClass: 'good',
+    firstSeen: '2025-10-23', lastSeen: '2026-04-22',
+    note: 'UK date format — consistent since 2025-07. Clean cohort behavior.' },
+
+  // Adopstar
+  { client: 'Adopstar', esp: 'General, Sailthru, Hubspot, Mailchimp', status: 'LIVE', fmt: 'plain-iso-datetime',
+    sample: '2025-12-01 14:00:19', sendouts: 117, nlUsing: 1, nlTotal: 1, nlPct: 100.0, sendoutPct: 100.0,
+    spi: 1.00, health: 0.2, healthClass: 'bad',
+    firstSeen: '2025-12-01', lastSeen: '2026-04-22',
+    note: 'BROKEN — integration testbed; 5 unrendered merge tags in CH across 4 ESPs. Treat as test client.' },
+
+  // Gloo
+  { client: 'Gloo', esp: 'Hubspot, General, Beehiiv, Sailthru', status: 'LIVE', fmt: 'epoch-zero-bug',
+    sample: '1970-01-01%2000:00:00', sendouts: 41, nlUsing: 2, nlTotal: 3, nlPct: 66.7, sendoutPct: 59.4,
+    spi: 41.00, health: 135.4, healthClass: 'warn',
+    firstSeen: '2025-10-28', lastSeen: '2026-03-31',
+    note: 'BUG — date variable default to Unix epoch zero. Cohort still works, but identifier has no meaning.' },
+  { client: 'Gloo', esp: 'Hubspot, General, Beehiiv, Sailthru', status: 'LIVE', fmt: 'numeric-var',
+    sample: '123', sendouts: 18, nlUsing: 1, nlTotal: 3, nlPct: 33.3, sendoutPct: 26.1,
+    spi: 1.00, health: 135.4, healthClass: 'warn',
+    firstSeen: '2025-12-09', lastSeen: '2026-04-14',
+    note: 'Third newsletter — sequential numeric IDs (123, 124, ...). Added after launch.' },
+  { client: 'Gloo', esp: 'Hubspot, General, Beehiiv, Sailthru', status: 'LIVE', fmt: 'urlencoded-datetime',
+    sample: '2025-10-27%2015:50:15', sendouts: 10, nlUsing: 2, nlTotal: 3, nlPct: 66.7, sendoutPct: 14.5,
+    spi: 1.43, health: 135.4, healthClass: 'warn',
+    firstSeen: '2025-10-27', lastSeen: '2026-04-21',
+    note: 'Intended Hubspot format when date variable works. Only 14.5% of sendouts use it.' },
+
+  // Conexus
+  { client: 'Conexus Financial', esp: 'Salesforce', status: 'LIVE', fmt: 'numeric-6',
+    sample: '128412', sendouts: 68, nlUsing: 1, nlTotal: 1, nlPct: 100.0, sendoutPct: 100.0,
+    spi: 1.00, health: 80.4, healthClass: 'warn',
+    firstSeen: '2025-11-13', lastSeen: '2026-04-23',
+    note: 'Monotonic SFDC campaign IDs. 1 newsletter, clean pattern.' },
+
+  // Realestate.co.nz
+  { client: 'Realestate.co.nz', esp: 'Braze', status: 'LIVE', fmt: 'braze-name-date-time',
+    sample: 'instant_2026-01-20_21:43:17', sendouts: 21, nlUsing: 8, nlTotal: 8, nlPct: 100.0, sendoutPct: 100.0,
+    spi: 1.05, health: 0.3, healthClass: 'bad',
+    firstSeen: '2026-01-14', lastSeen: '2026-02-04',
+    note: 'STOPPED — no sendouts since 2026-02-04. Also per-recipient token leakage in CH.' },
+
+  // AndaM
+  { client: 'AndaM', esp: 'Mailchimp, Braze', status: 'PENDING', fmt: 'hex10-token',
+    sample: '8161a046d8', sendouts: 2, nlUsing: 1, nlTotal: 1, nlPct: 100.0, sendoutPct: 100.0,
+    spi: 2.00, health: null, healthClass: 'muted',
+    firstSeen: '2026-01-21', lastSeen: '2026-01-21',
+    note: 'Only 2 sendouts, 9 minutes apart. Test data — not enough signal.' },
+
+  // 1440
+  { client: '1440', esp: 'Sailthru', status: 'PENDING', fmt: 'numeric.numeric (Sailthru)',
+    sample: '45310893.10', sendouts: 2, nlUsing: 1, nlTotal: 1, nlPct: 100.0, sendoutPct: 100.0,
+    spi: 1.00, health: 1.0, healthClass: 'bad',
+    firstSeen: '2026-04-21', lastSeen: '2026-04-22',
+    note: 'Just onboarded. Already showing Sailthru per-recipient leakage like Are Media. Fix at onboarding.' },
+];
+
+// ============== TABLE RENDERING ==============
+
+const healthClassToLabel = { good: '✅ good', warn: '⚠️ partial', bad: '🚨 broken', muted: '—' };
+
+function rowHtml(r) {
+  return `<tr class="${r.healthClass}">
+    <td><strong>${r.client}</strong></td>
+    <td><span class="badge info">${r.esp}</span></td>
+    <td><span class="badge ${r.status === 'LIVE' ? 'good' : 'muted'}">${r.status}</span></td>
+    <td class="mono">${r.fmt}</td>
+    <td class="mono">${r.sample}</td>
+    <td class="num">${r.sendouts.toLocaleString()}</td>
+    <td class="num">${r.nlPct.toFixed(1)}% <span style="color: var(--muted); font-size: 11px;">(${r.nlUsing}/${r.nlTotal})</span></td>
+    <td class="num">${r.sendoutPct.toFixed(1)}%</td>
+    <td class="num">${r.spi.toFixed(2)}</td>
+    <td class="num badge-cell">${r.health === null ? '—' : r.health.toFixed(1)} ${healthClassToLabel[r.healthClass]}</td>
+    <td class="mono">${r.firstSeen}</td>
+    <td class="mono">${r.lastSeen}</td>
+    <td style="color: var(--muted); font-size: 12px; min-width: 260px;">${r.note}</td>
+  </tr>`;
+}
+
+let currentRows = [...rows];
+let sortState = { col: 'sendouts', dir: 'desc' };
+
+function renderTable() {
+  const search = document.getElementById('searchBox').value.trim().toLowerCase();
+  const healthF = document.getElementById('healthFilter').value;
+  let filtered = rows.filter(r => {
+    if (healthF !== 'all' && r.healthClass !== healthF) return false;
+    if (!search) return true;
+    return (r.client + ' ' + r.esp + ' ' + r.fmt + ' ' + r.sample + ' ' + r.note).toLowerCase().includes(search);
+  });
+  // sort
+  filtered.sort((a, b) => {
+    let av = a[sortState.col], bv = b[sortState.col];
+    if (typeof av === 'string') { av = av.toLowerCase(); bv = bv.toLowerCase(); }
+    if (av == null) av = -Infinity;
+    if (bv == null) bv = -Infinity;
+    if (av < bv) return sortState.dir === 'asc' ? -1 : 1;
+    if (av > bv) return sortState.dir === 'asc' ? 1 : -1;
+    return 0;
+  });
+  document.getElementById('tableBody').innerHTML = filtered.map(rowHtml).join('');
+  document.getElementById('rowCount').textContent = `${filtered.length} of ${rows.length} rows`;
+  // update header arrows
+  document.querySelectorAll('#mainTable thead th').forEach(th => {
+    th.classList.remove('sorted-asc', 'sorted-desc');
+    if (th.dataset.col === sortState.col) th.classList.add(sortState.dir === 'asc' ? 'sorted-asc' : 'sorted-desc');
+  });
+}
+
+document.querySelectorAll('#mainTable thead th').forEach(th => {
+  th.addEventListener('click', () => {
+    const col = th.dataset.col;
+    if (sortState.col === col) {
+      sortState.dir = sortState.dir === 'asc' ? 'desc' : 'asc';
+    } else {
+      sortState.col = col;
+      sortState.dir = th.dataset.type === 'num' ? 'desc' : 'asc';
+    }
+    renderTable();
+  });
+});
+
+document.getElementById('searchBox').addEventListener('input', renderTable);
+document.getElementById('healthFilter').addEventListener('change', renderTable);
+document.getElementById('resetBtn').addEventListener('click', () => {
+  document.getElementById('searchBox').value = '';
+  document.getElementById('healthFilter').value = 'all';
+  sortState = { col: 'sendouts', dir: 'desc' };
+  renderTable();
+});
+
+renderTable();
+
+// ============== CHART: HEALTH (users per ID from CH) ==============
+
+Chart.defaults.color = '#8fa0c4';
+Chart.defaults.borderColor = '#223155';
+Chart.defaults.font.family = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
+
+const healthData = [
+  { client: 'Sosland', val: 555.3 },
+  { client: 'Newcom', val: 329.6 },
+  { client: 'The Drum', val: 173.1 },
+  { client: 'Gloo', val: 135.4 },
+  { client: 'Conexus', val: 80.4 },
+  { client: 'Momentum Media', val: 54.3 },
+  { client: 'Key Media', val: 23.9 },
+  { client: '1440', val: 1.0 },
+  { client: 'Are Media', val: 0.3 },
+  { client: 'Realestate.co.nz', val: 0.3 },
+  { client: 'Adopstar', val: 0.2 },
+];
+const healthColor = v => v >= 100 ? '#3fb950' : v >= 10 ? '#d29922' : '#f85149';
+
+new Chart(document.getElementById('chartHealth'), {
+  type: 'bar',
+  data: {
+    labels: healthData.map(d => d.client),
+    datasets: [{
+      label: 'avg users per sendout ID (CH, 7d)',
+      data: healthData.map(d => d.val),
+      backgroundColor: healthData.map(d => healthColor(d.val)),
+      borderRadius: 4,
+    }]
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: c => `${c.parsed.x.toFixed(1)} users per ID`
+        }
+      }
+    },
+    scales: {
+      x: {
+        type: 'logarithmic',
+        grid: { color: '#1b2747' },
+        title: { display: true, text: 'avg users per sendout ID (log scale)', color: '#8fa0c4' }
+      },
+      y: { grid: { display: false } }
+    }
+  },
+  plugins: [{
+    id: 'threshHighlights',
+    afterDatasetsDraw(chart) {
+      const { ctx, scales: { x, y } } = chart;
+      const top = y.getPixelForValue(0) - 12;
+      const bottom = y.getPixelForValue(healthData.length - 1) + 12;
+      // draw line at 10 and 100
+      [10, 100].forEach(v => {
+        const xp = x.getPixelForValue(v);
+        ctx.save();
+        ctx.strokeStyle = v === 100 ? '#3fb950' : '#d29922';
+        ctx.setLineDash([4, 4]);
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(xp, top);
+        ctx.lineTo(xp, bottom);
+        ctx.stroke();
+        ctx.fillStyle = v === 100 ? '#3fb950' : '#d29922';
+        ctx.font = '10px sans-serif';
+        ctx.fillText(v === 100 ? 'healthy' : 'warn', xp + 3, top + 10);
+        ctx.restore();
+      });
+    }
+  }]
+});
+
+// ============== CHART: sendouts-per-id ==============
+
+const spiData = [
+  { client: 'Newcom', val: 8.93, note: '(MMDDYYYY)' },
+  { client: 'Momentum (test)', val: 6.00, note: '(broken)' },
+  { client: 'Sosland', val: 4.19, note: '(MMDDYYYY)' },
+  { client: 'The Drum', val: 1.76, note: '(DDMMYYYY)' },
+  { client: 'Gloo (url-dt)', val: 1.43, note: '' },
+  { client: 'Are Media', val: 1.04, note: '(Sailthru)' },
+  { client: 'Adopstar', val: 1.00, note: '' },
+  { client: 'Key Media', val: 1.00, note: '(Hubspot)' },
+  { client: 'Conexus', val: 1.00, note: '(SFDC)' },
+  { client: '1440', val: 1.00, note: '' },
+  { client: 'Realestate.co.nz', val: 1.05, note: '' },
+  { client: 'Momentum (prod)', val: 1.00, note: '(SFDC)' },
+  { client: 'Gloo (epoch)', val: 41.00, note: '(broken — same ID)' },
+  { client: 'Newcom (2222)', val: 29.00, note: '(broken — same ID)' },
+  { client: 'AndaM', val: 2.00, note: '' },
+];
+
+new Chart(document.getElementById('chartSPI'), {
+  type: 'bar',
+  data: {
+    labels: spiData.map(d => `${d.client} ${d.note}`),
+    datasets: [{
+      label: 'MySQL sendouts per distinct ID',
+      data: spiData.map(d => d.val),
+      backgroundColor: spiData.map(d =>
+        d.note.includes('broken') ? '#f85149' :
+        d.val > 2 ? '#3fb950' :
+        d.val > 1.2 ? '#d29922' : '#6aa0ff'
+      ),
+      borderRadius: 4,
+    }]
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: { callbacks: { label: c => `${c.parsed.x.toFixed(2)} sendouts per distinct id` } }
+    },
+    scales: {
+      x: {
+        type: 'logarithmic',
+        grid: { color: '#1b2747' },
+        title: { display: true, text: 'MySQL sendouts per distinct ID (log scale)', color: '#8fa0c4' }
+      },
+      y: { grid: { display: false }, ticks: { font: { size: 11 } } }
+    }
+  }
+});
+
+// ============== CHART: SCATTER (sendouts-per-id × users-per-id) ==============
+
+const scatterData = [
+  { client: 'Key Media', x: 1.00, y: 23.9 },
+  { client: 'Momentum', x: 1.00, y: 54.3 },
+  { client: 'Newcom', x: 8.93, y: 329.6 },
+  { client: 'Sosland', x: 4.19, y: 555.3 },
+  { client: 'Are Media', x: 1.04, y: 0.3 },
+  { client: 'The Drum', x: 1.76, y: 173.1 },
+  { client: 'Adopstar', x: 1.00, y: 0.2 },
+  { client: 'Gloo', x: 1.43, y: 135.4 },
+  { client: 'Conexus', x: 1.00, y: 80.4 },
+  { client: 'Realestate.co.nz', x: 1.05, y: 0.3 },
+  { client: '1440', x: 1.00, y: 1.0 },
+];
+const scatterColor = d => d.y >= 100 ? '#3fb950' : d.y >= 10 ? '#d29922' : '#f85149';
+
+new Chart(document.getElementById('chartScatter'), {
+  type: 'scatter',
+  data: {
+    datasets: [{
+      label: 'clients',
+      data: scatterData.map(d => ({ x: d.x, y: d.y, client: d.client })),
+      backgroundColor: scatterData.map(scatterColor),
+      borderColor: scatterData.map(scatterColor),
+      pointRadius: 8,
+      pointHoverRadius: 12,
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: c => `${c.raw.client}: ${c.raw.x.toFixed(2)} sendouts/id × ${c.raw.y.toFixed(1)} users/id`
+        }
+      }
+    },
+    scales: {
+      x: {
+        type: 'logarithmic',
+        title: { display: true, text: 'MySQL sendouts per distinct ID (→ cohort)', color: '#8fa0c4' },
+        grid: { color: '#1b2747' }
+      },
+      y: {
+        type: 'logarithmic',
+        title: { display: true, text: 'CH users per distinct ID (→ cohort)', color: '#8fa0c4' },
+        grid: { color: '#1b2747' }
+      }
+    }
+  },
+  plugins: [{
+    id: 'scatterLabels',
+    afterDatasetsDraw(chart) {
+      const { ctx, scales: { x, y } } = chart;
+      scatterData.forEach(d => {
+        const xp = x.getPixelForValue(d.x);
+        const yp = y.getPixelForValue(d.y);
+        ctx.save();
+        ctx.fillStyle = '#e6ebf5';
+        ctx.font = '12px -apple-system, sans-serif';
+        ctx.fillText(d.client, xp + 12, yp + 4);
+        ctx.restore();
+      });
+      // danger zone shading (y < 10)
+      const y10 = y.getPixelForValue(10);
+      const chartBottom = y.getPixelForValue(y.min);
+      ctx.save();
+      ctx.fillStyle = 'rgba(248,81,73,0.06)';
+      ctx.fillRect(x.left, y10, x.right - x.left, chartBottom - y10);
+      ctx.fillStyle = 'rgba(63,185,80,0.06)';
+      const y100 = y.getPixelForValue(100);
+      const chartTop = y.getPixelForValue(y.max);
+      ctx.fillRect(x.left, chartTop, x.right - x.left, y100 - chartTop);
+      ctx.restore();
+    }
+  }]
+});
+
+// ============== CHART: TIMELINE ==============
+
+const months = ['2025-10', '2025-11', '2025-12', '2026-01', '2026-02', '2026-03', '2026-04'];
+// Matrix: [client][format] -> monthly counts
+// Using key as "client | format"
+const timelineData = {
+  'Key Media | urlencoded-datetime':     [280, 892, 737, 868, 842, 1015, 665],
+  'Momentum Media | numeric-6':          [133, 104, 94, 100, 96, 108, 68],
+  'Momentum Media | unrendered':         [0, 0, 0, 0, 2, 3, 1],
+  'Newcom | numeric-8':                  [0, 0, 0, 0, 0, 197, 205],
+  'Newcom | 2222-placeholder':           [0, 0, 0, 0, 0, 14, 15],
+  'Sosland | numeric-8':                 [0, 0, 0, 0, 108, 130, 93],
+  'Are Media | numeric.numeric':         [0, 0, 0, 0, 0, 132, 137],
+  'The Drum | numeric-8':                [39, 36, 35, 37, 37, 40, 8],
+  'Adopstar | plain-iso':                [0, 0, 23, 28, 24, 26, 16],
+  'Gloo | epoch-zero-bug':               [2, 8, 10, 9, 7, 5, 0],
+  'Gloo | urlencoded-datetime':          [1, 0, 0, 0, 1, 2, 6],
+  'Gloo | numeric-var':                  [0, 0, 4, 3, 4, 5, 2],
+  'Conexus | numeric-6':                 [0, 7, 11, 12, 14, 15, 9],
+  'Realestate.co.nz | braze-name-date':  [0, 0, 0, 7, 14, 0, 0],
+  'AndaM | hex10-token':                 [0, 0, 0, 2, 0, 0, 0],
+  '1440 | numeric.numeric':              [0, 0, 0, 0, 0, 0, 2],
+};
+
+const colorPalette = [
+  '#6aa0ff', '#ff7b72', '#3fb950', '#d29922', '#a371f7', '#f778ba',
+  '#79c0ff', '#ffa657', '#56d364', '#ff9492', '#bc8cff', '#ff66bc',
+  '#58a6ff', '#dbac00', '#da3633', '#8b949e'
+];
+
+new Chart(document.getElementById('chartTimeline'), {
+  type: 'bar',
+  data: {
+    labels: months,
+    datasets: Object.entries(timelineData).map(([name, data], i) => ({
+      label: name,
+      data,
+      backgroundColor: name.includes('unrendered') || name.includes('2222') || name.includes('epoch') ? '#f85149' : colorPalette[i % colorPalette.length],
+      stack: name.split(' | ')[0],
+    }))
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'right', labels: { boxWidth: 10, font: { size: 10 } } },
+      tooltip: { mode: 'index', intersect: false }
+    },
+    scales: {
+      x: { stacked: true, grid: { display: false } },
+      y: {
+        stacked: true,
+        grid: { color: '#1b2747' },
+        type: 'logarithmic',
+        title: { display: true, text: 'sendouts per month (log scale, stacked per client)', color: '#8fa0c4' }
+      }
+    }
+  }
+});
+
+</script>
+</body>
+</html>
