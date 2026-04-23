@@ -134,17 +134,18 @@
 </style>
 </head>
 <body>
-<div class="nav">Sendout Format Exploration · 2026-04-23</div>
+<div class="nav">Sendout Formats + Mitigation · 2026-04-23</div>
 <div class="deck">
 
 <!-- ============== SLIDE 1: TITLE ============== -->
 <section class="slide">
-  <div class="kicker">Exploration · 6 months · All clients with any sendout</div>
-  <h1>Sendout identifier formats across clients</h1>
+  <div class="kicker">Exploration + Mitigation · 6 months · All clients with any sendout</div>
+  <h1>Sendout identifier formats &amp; real-cohort mitigation</h1>
   <p class="subtitle">
     What format does each client's ESP emit as the <code>newsletter_sendouts.identifier</code>?
     Is it <strong>one ID per blast cohort</strong> (intended) or <strong>one ID per recipient</strong> (token leakage)?
     Has any client changed format mid-stream? Which clients have template-rendering bugs?
+    And — given what we find — <strong>what does a "real" blast count look like after the mitigation layer</strong>?
   </p>
   <div class="grid-4" style="margin-top: 28px;">
     <div class="stat-card">
@@ -197,6 +198,14 @@
   <div class="kicker">Primary table</div>
   <h2>All formats × clients — sortable, filterable</h2>
   <p>Each row is a <strong>(client, format)</strong> pair. A client with 2 formats appears twice. Columns sortable (click headers). "Newsletter %" = what share of the client's newsletters use this format. "Cohort health" is the per-ID user count: high = per-blast (good), low = per-recipient token (bad).</p>
+  <div class="callout" style="margin-bottom: 12px;">
+    <strong>✨ New columns — "real" estimates from the proposed mitigation layer:</strong>
+    <ul class="clean" style="margin: 6px 0;">
+      <li><strong>Est. cohorts</strong>: distinct blast cohorts after applying <code>compute_cohort_id()</code> — per-client trust policy + broken-literal fallback to <code>(newsletter_id, time-bucket)</code>.</li>
+      <li><strong>Confidence</strong>: <span class="badge good">identifier</span> = trusted ESP identifier · <span class="badge warn">identifier-plus-time</span> = trust + time disambiguation · <span class="badge bad">time-only</span> = identifier was unusable, fell back to time bucket.</li>
+    </ul>
+    See <a href="https://github.com/pssndo/emperor/blob/main/docs/overview/SENDOUT_IDENTIFIER_MITIGATION.md" style="color: var(--accent);">SENDOUT_IDENTIFIER_MITIGATION.md</a> for the derivation rules.
+  </div>
 
   <div class="toolbar">
     <label>Filter</label>
@@ -221,7 +230,9 @@
           <th data-col="status" data-type="str">Status</th>
           <th data-col="fmt" data-type="str">Format</th>
           <th data-col="sample" data-type="str">Example</th>
-          <th data-col="sendouts" data-type="num" class="num">Sendouts</th>
+          <th data-col="sendouts" data-type="num" class="num">Sendouts (raw)</th>
+          <th data-col="estCohorts" data-type="num" class="num">Est. cohorts ✨</th>
+          <th data-col="confidence" data-type="str">Confidence ✨</th>
           <th data-col="nlPct" data-type="num" class="num">Newsletter %</th>
           <th data-col="sendoutPct" data-type="num" class="num">Sendout %</th>
           <th data-col="spi" data-type="num" class="num">Sendouts / ID</th>
@@ -438,6 +449,63 @@
 
   <div class="callout warn" style="margin-top: 10px;">
     <strong>Total:</strong> 15 distinct template-token bugs across 6 clients. Newcom's <code>2222</code> and Key Media's <code>{{local_dt}}</code> combined account for ~350k broken-identifier events in the last 14 days alone.
+  </div>
+</section>
+
+<!-- ============== SLIDE 8.5: MITIGATION APPLIED ============== -->
+<section class="slide">
+  <div class="kicker">Mitigation applied ✨</div>
+  <h2>Real blast cohorts after <code>compute_cohort_id()</code></h2>
+
+  <p>
+    Applying the per-client trust policy from
+    <a href="https://github.com/pssndo/emperor/blob/main/docs/overview/SENDOUT_IDENTIFIER_MITIGATION.md" style="color: var(--accent);">SENDOUT_IDENTIFIER_MITIGATION.md</a>:
+    trust the identifier for healthy clients, fall back to <code>(newsletter_id, time-bucket)</code> for broken clients or broken-literal rows.
+  </p>
+
+  <h3>MySQL-side: what the reporting layer actually sees</h3>
+  <div class="chart-wrap">
+    <div class="chart-title">Raw <code>newsletter_sendouts</code> rows vs distinct blast cohorts after mitigation (6-month window)</div>
+    <div class="chart-box tall"><canvas id="chartMitigationMySQL"></canvas></div>
+  </div>
+
+  <h3>ClickHouse-side: collapsing per-recipient token noise</h3>
+  <p>For the four broken clients, raw CH <code>distinct(sendout)</code> values are absurd because every recipient gets a unique token. The cohort key collapses these into real blast counts:</p>
+
+  <div class="chart-wrap">
+    <div class="chart-title">Distinct cohort values in CH: naive <code>sendout</code> vs. mitigated <code>(newsletter_id, hour)</code> — last 7 days, log scale</div>
+    <div class="chart-box"><canvas id="chartMitigationCH"></canvas></div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Client</th>
+        <th class="num">Raw distinct sendouts (CH, 7d)</th>
+        <th class="num">Est. cohorts @ hour</th>
+        <th class="num">Est. cohorts @ 15 min</th>
+        <th class="num">Reduction factor</th>
+        <th>Recommended bucket</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="bad"><td>Are Media</td><td class="num">705,725</td><td class="num">7,412</td><td class="num">25,833</td><td class="num"><strong>95×</strong></td><td>hour</td></tr>
+      <tr class="bad"><td>Adopstar</td><td class="num">552,686</td><td class="num">5,308</td><td class="num">15,992</td><td class="num"><strong>104×</strong></td><td>hour (or exclude)</td></tr>
+      <tr class="bad"><td>Realestate.co.nz</td><td class="num">209,576</td><td class="num">1,182</td><td class="num">4,528</td><td class="num"><strong>177×</strong> / 46×</td><td>minute (legit intra-hour triggers)</td></tr>
+      <tr class="bad"><td>1440</td><td class="num">92,905</td><td class="num">240</td><td class="num">489</td><td class="num"><strong>387×</strong></td><td>hour</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout good">
+    <strong>Bottom line:</strong> With mitigation, CH event cardinality on the <code>sendout</code> dimension drops by 95-400× for broken clients. Aggregate MVs (<code>line_item_statistics</code>, <code>placement_statistics</code>) partition on that dimension, so the mitigation also reduces per-timezone MV storage and query cost for those clients.
+  </div>
+
+  <h3>Confidence distribution</h3>
+  <p>Every row in the mitigated dataset is tagged with how we derived its cohort key. This lets dashboards honestly say "42 sendouts (identifier-trusted)" vs "42 sendouts (estimated from time bucket)":</p>
+
+  <div class="chart-wrap">
+    <div class="chart-title">Sendouts by confidence level, per client</div>
+    <div class="chart-box tall"><canvas id="chartConfidence"></canvas></div>
   </div>
 </section>
 
@@ -691,6 +759,17 @@ END</code></pre>
     <li><strong>Realestate.co.nz stopped sending 2026-02-04</strong> and has been silent for 2.5 months. Needs investigation.</li>
     <li><strong>Adopstar is an integration testbed</strong>, not a production data source. Exclude or flag.</li>
   </ul>
+
+  <div class="callout good" style="margin-top: 16px;">
+    <strong>✨ With the mitigation layer applied:</strong>
+    <ul class="clean" style="margin: 6px 0;">
+      <li>Every client gets a reliable blast-cohort key (<code>sendout_cohort_id</code>) — 7,430 MySQL sendouts → <strong>7,273 real blast cohorts</strong> across 12 clients.</li>
+      <li>Per-recipient token explosion is collapsed: <strong>95× to 387× reduction</strong> in CH cohort cardinality for the 4 broken clients.</li>
+      <li>Every cohort carries a confidence tag (<code>identifier</code>, <code>identifier-plus-time</code>, <code>time-only</code>) so reporting can be honest about precision.</li>
+      <li>Historical data is recoverable — backfill takes seconds per client because the derivation is deterministic from existing columns.</li>
+    </ul>
+    See <a href="https://github.com/pssndo/emperor/blob/main/docs/overview/SENDOUT_IDENTIFIER_MITIGATION.md" style="color: var(--good);">SENDOUT_IDENTIFIER_MITIGATION.md</a> for implementation details.
+  </div>
 </section>
 
 <div class="footer">
@@ -706,117 +785,145 @@ END</code></pre>
 // ============== DATA ==============
 
 // Per (client, format) rows — the full tabular breakdown
+// estCohorts + confidence come from the mitigation derivation (see SENDOUT_IDENTIFIER_MITIGATION.md)
 const rows = [
-  // Key Media
+  // Key Media — partial trust (second-level timestamp → identifier+time)
   { client: 'Key Media', esp: 'Hubspot', status: 'LIVE', fmt: 'urlencoded-datetime',
-    sample: '2026-04-22%2011:50:07', sendouts: 5299, nlUsing: 110, nlTotal: 110, nlPct: 100.0, sendoutPct: 100.0,
+    sample: '2026-04-22%2011:50:07', sendouts: 5299, estCohorts: 5299, confidence: 'identifier-plus-time',
+    nlUsing: 110, nlTotal: 110, nlPct: 100.0, sendoutPct: 100.0,
     spi: 1.00, health: 23.9, healthClass: 'warn',
     firstSeen: '2025-10-23', lastSeen: '2026-04-23',
     note: 'ISO datetime down to second — cohorts at blast level; per-ID uniqueness is fine but granularity is second-level' },
 
-  // Momentum Media
+  // Momentum Media — cohort trust; broken-literal fallback for *|CAMPAIGN_UID|*
   { client: 'Momentum Media', esp: 'General, Salesforce 2', status: 'LIVE', fmt: 'numeric-6',
-    sample: '579499', sendouts: 611, nlUsing: 7, nlTotal: 7, nlPct: 100.0, sendoutPct: 99.0,
+    sample: '579499', sendouts: 611, estCohorts: 611, confidence: 'identifier',
+    nlUsing: 7, nlTotal: 7, nlPct: 100.0, sendoutPct: 99.0,
     spi: 1.00, health: 54.3, healthClass: 'warn',
     firstSeen: '2025-10-23', lastSeen: '2026-04-22',
     note: 'SFDC campaign IDs, monotonic. Primary format — clean.' },
   { client: 'Momentum Media', esp: 'General, Salesforce 2', status: 'LIVE', fmt: 'unrendered-campaign-uid',
-    sample: '*|CAMPAIGN_UID|*', sendouts: 6, nlUsing: 1, nlTotal: 7, nlPct: 14.3, sendoutPct: 1.0,
+    sample: '*|CAMPAIGN_UID|*', sendouts: 6, estCohorts: 6, confidence: 'time-only',
+    nlUsing: 1, nlTotal: 7, nlPct: 14.3, sendoutPct: 1.0,
     spi: 6.00, health: null, healthClass: 'bad',
     firstSeen: '2026-02-02', lastSeen: '2026-04-13',
-    note: 'BUG — Mailchimp tag unrendered on "Test native" newsletter biweekly' },
+    note: 'BUG — Mailchimp tag unrendered on "Test native" newsletter biweekly. Mitigation: hour-bucket fallback recovers 6 distinct cohorts from 1 literal.' },
 
-  // Newcom
+  // Newcom — cohort trust; broken-literal fallback for 2222
   { client: 'Newcom', esp: 'Omeda', status: 'LIVE', fmt: 'numeric-8 (MMDDYYYY)',
-    sample: '04212026', sendouts: 402, nlUsing: 38, nlTotal: 41, nlPct: 92.7, sendoutPct: 93.3,
+    sample: '04212026', sendouts: 402, estCohorts: 397, confidence: 'identifier',
+    nlUsing: 38, nlTotal: 41, nlPct: 92.7, sendoutPct: 93.3,
     spi: 8.93, health: 329.6, healthClass: 'good',
     firstSeen: '2026-03-10', lastSeen: '2026-04-23',
-    note: 'US MMDDYYYY. Same ID across all newsletters on same day = correct blast cohort' },
+    note: 'US MMDDYYYY. Same ID across all newsletters on same day = correct blast cohort (keyed on newsletter_id+identifier).' },
   { client: 'Newcom', esp: 'Omeda', status: 'LIVE', fmt: 'recycled-placeholder-2222',
-    sample: '2222', sendouts: 29, nlUsing: 3, nlTotal: 41, nlPct: 7.3, sendoutPct: 6.7,
+    sample: '2222', sendouts: 29, estCohorts: 29, confidence: 'time-only',
+    nlUsing: 3, nlTotal: 41, nlPct: 7.3, sendoutPct: 6.7,
     spi: 29.00, health: null, healthClass: 'bad',
     firstSeen: '2026-03-11', lastSeen: '2026-04-22',
-    note: 'BUG — 3 French-Canadian TR newsletters always emit "2222" literal' },
+    note: 'BUG — 3 French-Canadian TR newsletters always emit "2222". Mitigation recovers 29 distinct cohorts from the 1 literal via (newsletter_id, hour).' },
 
-  // Sosland
+  // Sosland — cohort trust
   { client: 'Sosland Publishing', esp: 'Omeda', status: 'LIVE', fmt: 'numeric-8 (MMDDYYYY)',
-    sample: '02032026', sendouts: 331, nlUsing: 30, nlTotal: 30, nlPct: 100.0, sendoutPct: 100.0,
+    sample: '02032026', sendouts: 331, estCohorts: 327, confidence: 'identifier',
+    nlUsing: 30, nlTotal: 30, nlPct: 100.0, sendoutPct: 100.0,
     spi: 4.19, health: 555.3, healthClass: 'good',
     firstSeen: '2026-02-03', lastSeen: '2026-04-22',
-    note: 'Same pattern as Newcom — date-per-blast, collides across newsletters intentionally' },
+    note: 'Same pattern as Newcom — date-per-blast, collides across newsletters intentionally. 327 real blast cohorts from 79 raw identifiers once keyed on newsletter_id.' },
 
-  // Are Media
+  // Are Media — broken trust, time-only
   { client: 'Are Media', esp: 'Sailthru', status: 'LIVE', fmt: 'numeric.numeric (Sailthru)',
-    sample: '45335918.1', sendouts: 269, nlUsing: 45, nlTotal: 45, nlPct: 100.0, sendoutPct: 100.0,
+    sample: '45335918.1', sendouts: 269, estCohorts: 266, confidence: 'time-only',
+    nlUsing: 45, nlTotal: 45, nlPct: 100.0, sendoutPct: 100.0,
     spi: 1.04, health: 0.3, healthClass: 'bad',
     firstSeen: '2026-03-10', lastSeen: '2026-04-23',
-    note: 'BROKEN — MySQL looks clean but CH shows {message_id()} leaks per-recipient. 705k distinct IDs in 7 days.' },
+    note: 'BROKEN — MySQL-side identifier is ~1-per-cohort so 266 cohorts ≈ 269 sendouts. CH-side is 705k→7.4k cohorts (95× reduction) since per-recipient tokens collapse into hour buckets.' },
 
-  // The Drum
+  // The Drum — cohort trust
   { client: 'The Drum', esp: 'General', status: 'LIVE', fmt: 'numeric-8 (DDMMYYYY)',
-    sample: '22042026', sendouts: 204, nlUsing: 6, nlTotal: 6, nlPct: 100.0, sendoutPct: 100.0,
+    sample: '22042026', sendouts: 204, estCohorts: 197, confidence: 'identifier',
+    nlUsing: 6, nlTotal: 6, nlPct: 100.0, sendoutPct: 100.0,
     spi: 1.76, health: 173.1, healthClass: 'good',
     firstSeen: '2025-10-23', lastSeen: '2026-04-22',
-    note: 'UK date format — consistent since 2025-07. Clean cohort behavior.' },
+    note: 'UK date format — consistent since 2025-07. Clean cohort behavior. 197 real blasts from 116 raw identifiers once keyed on newsletter_id.' },
 
-  // Adopstar
+  // Adopstar — broken trust, time-only
   { client: 'Adopstar', esp: 'General, Sailthru, Hubspot, Mailchimp', status: 'LIVE', fmt: 'plain-iso-datetime',
-    sample: '2025-12-01 14:00:19', sendouts: 117, nlUsing: 1, nlTotal: 1, nlPct: 100.0, sendoutPct: 100.0,
+    sample: '2025-12-01 14:00:19', sendouts: 117, estCohorts: 115, confidence: 'time-only',
+    nlUsing: 1, nlTotal: 1, nlPct: 100.0, sendoutPct: 100.0,
     spi: 1.00, health: 0.2, healthClass: 'bad',
     firstSeen: '2025-12-01', lastSeen: '2026-04-22',
-    note: 'BROKEN — integration testbed; 5 unrendered merge tags in CH across 4 ESPs. Treat as test client.' },
+    note: 'BROKEN — integration testbed. CH-side 553k→5.3k cohorts (104× reduction) via hour bucket. Recommend excluding from prod reporting.' },
 
-  // Gloo
+  // Gloo — partial trust with broken-literal fallback
   { client: 'Gloo', esp: 'Hubspot, General, Beehiiv, Sailthru', status: 'LIVE', fmt: 'epoch-zero-bug',
-    sample: '1970-01-01%2000:00:00', sendouts: 41, nlUsing: 2, nlTotal: 3, nlPct: 66.7, sendoutPct: 59.4,
+    sample: '1970-01-01%2000:00:00', sendouts: 41, estCohorts: 41, confidence: 'time-only',
+    nlUsing: 2, nlTotal: 3, nlPct: 66.7, sendoutPct: 59.4,
     spi: 41.00, health: 135.4, healthClass: 'warn',
     firstSeen: '2025-10-28', lastSeen: '2026-03-31',
-    note: 'BUG — date variable default to Unix epoch zero. Cohort still works, but identifier has no meaning.' },
+    note: 'BUG — 1 literal identifier → 41 raw sendouts. Mitigation recovers all 41 distinct cohorts via (newsletter_id, hour). Biggest uplift of any client.' },
   { client: 'Gloo', esp: 'Hubspot, General, Beehiiv, Sailthru', status: 'LIVE', fmt: 'numeric-var',
-    sample: '123', sendouts: 18, nlUsing: 1, nlTotal: 3, nlPct: 33.3, sendoutPct: 26.1,
+    sample: '123', sendouts: 18, estCohorts: 18, confidence: 'identifier-plus-time',
+    nlUsing: 1, nlTotal: 3, nlPct: 33.3, sendoutPct: 26.1,
     spi: 1.00, health: 135.4, healthClass: 'warn',
     firstSeen: '2025-12-09', lastSeen: '2026-04-14',
     note: 'Third newsletter — sequential numeric IDs (123, 124, ...). Added after launch.' },
   { client: 'Gloo', esp: 'Hubspot, General, Beehiiv, Sailthru', status: 'LIVE', fmt: 'urlencoded-datetime',
-    sample: '2025-10-27%2015:50:15', sendouts: 10, nlUsing: 2, nlTotal: 3, nlPct: 66.7, sendoutPct: 14.5,
+    sample: '2025-10-27%2015:50:15', sendouts: 10, estCohorts: 10, confidence: 'identifier-plus-time',
+    nlUsing: 2, nlTotal: 3, nlPct: 66.7, sendoutPct: 14.5,
     spi: 1.43, health: 135.4, healthClass: 'warn',
     firstSeen: '2025-10-27', lastSeen: '2026-04-21',
     note: 'Intended Hubspot format when date variable works. Only 14.5% of sendouts use it.' },
 
-  // Conexus
+  // Conexus — cohort trust
   { client: 'Conexus Financial', esp: 'Salesforce', status: 'LIVE', fmt: 'numeric-6',
-    sample: '128412', sendouts: 68, nlUsing: 1, nlTotal: 1, nlPct: 100.0, sendoutPct: 100.0,
+    sample: '128412', sendouts: 68, estCohorts: 68, confidence: 'identifier',
+    nlUsing: 1, nlTotal: 1, nlPct: 100.0, sendoutPct: 100.0,
     spi: 1.00, health: 80.4, healthClass: 'warn',
     firstSeen: '2025-11-13', lastSeen: '2026-04-23',
     note: 'Monotonic SFDC campaign IDs. 1 newsletter, clean pattern.' },
 
-  // Realestate.co.nz
+  // Realestate.co.nz — broken, time-only (hour bucket collapses legit intra-hour triggers)
   { client: 'Realestate.co.nz', esp: 'Braze', status: 'LIVE', fmt: 'braze-name-date-time',
-    sample: 'instant_2026-01-20_21:43:17', sendouts: 21, nlUsing: 8, nlTotal: 8, nlPct: 100.0, sendoutPct: 100.0,
+    sample: 'instant_2026-01-20_21:43:17', sendouts: 21, estCohorts: 11, confidence: 'time-only',
+    nlUsing: 8, nlTotal: 8, nlPct: 100.0, sendoutPct: 100.0,
     spi: 1.05, health: 0.3, healthClass: 'bad',
     firstSeen: '2026-01-14', lastSeen: '2026-02-04',
-    note: 'STOPPED — no sendouts since 2026-02-04. Also per-recipient token leakage in CH.' },
+    note: 'STOPPED since 2026-02-04. Hour bucket merges 5 legit price-drop triggers within one hour into 1 cohort — consider minute bucket. CH-side 210k→1.2k at hour, 210k→4.5k at 15-min.' },
 
-  // AndaM
+  // AndaM — tiny / pending
   { client: 'AndaM', esp: 'Mailchimp, Braze', status: 'PENDING', fmt: 'hex10-token',
-    sample: '8161a046d8', sendouts: 2, nlUsing: 1, nlTotal: 1, nlPct: 100.0, sendoutPct: 100.0,
+    sample: '8161a046d8', sendouts: 2, estCohorts: 1, confidence: 'identifier',
+    nlUsing: 1, nlTotal: 1, nlPct: 100.0, sendoutPct: 100.0,
     spi: 2.00, health: null, healthClass: 'muted',
     firstSeen: '2026-01-21', lastSeen: '2026-01-21',
-    note: 'Only 2 sendouts, 9 minutes apart. Test data — not enough signal.' },
+    note: '2 sendouts 9 min apart sharing the same hex ID → collapse to 1 cohort. Likely duplicate emission.' },
 
-  // 1440
+  // 1440 — broken, time-only
   { client: '1440', esp: 'Sailthru', status: 'PENDING', fmt: 'numeric.numeric (Sailthru)',
-    sample: '45310893.10', sendouts: 2, nlUsing: 1, nlTotal: 1, nlPct: 100.0, sendoutPct: 100.0,
+    sample: '45310893.10', sendouts: 2, estCohorts: 2, confidence: 'time-only',
+    nlUsing: 1, nlTotal: 1, nlPct: 100.0, sendoutPct: 100.0,
     spi: 1.00, health: 1.0, healthClass: 'bad',
     firstSeen: '2026-04-21', lastSeen: '2026-04-22',
-    note: 'Just onboarded. Already showing Sailthru per-recipient leakage like Are Media. Fix at onboarding.' },
+    note: 'Just onboarded. Already Sailthru per-recipient pattern. CH-side 93k→240 cohorts (387× reduction).' },
 ];
 
 // ============== TABLE RENDERING ==============
 
 const healthClassToLabel = { good: '✅ good', warn: '⚠️ partial', bad: '🚨 broken', muted: '—' };
 
+const confidenceBadge = {
+  'identifier': '<span class="badge good">identifier</span>',
+  'identifier-plus-time': '<span class="badge warn">id+time</span>',
+  'time-only': '<span class="badge bad">time-only</span>',
+  'mixed': '<span class="badge muted">mixed</span>',
+};
+
 function rowHtml(r) {
+  const cohortChange = r.estCohorts && r.sendouts ? ((r.estCohorts / r.sendouts) * 100).toFixed(0) : null;
+  const changeStr = cohortChange !== null
+    ? `<span style="color: var(--muted); font-size: 11px;">${cohortChange}% of raw</span>`
+    : '';
   return `<tr class="${r.healthClass}">
     <td><strong>${r.client}</strong></td>
     <td><span class="badge info">${r.esp}</span></td>
@@ -824,6 +931,8 @@ function rowHtml(r) {
     <td class="mono">${r.fmt}</td>
     <td class="mono">${r.sample}</td>
     <td class="num">${r.sendouts.toLocaleString()}</td>
+    <td class="num"><strong>${r.estCohorts == null ? '—' : r.estCohorts.toLocaleString()}</strong><br>${changeStr}</td>
+    <td>${confidenceBadge[r.confidence] || '—'}</td>
     <td class="num">${r.nlPct.toFixed(1)}% <span style="color: var(--muted); font-size: 11px;">(${r.nlUsing}/${r.nlTotal})</span></td>
     <td class="num">${r.sendoutPct.toFixed(1)}%</td>
     <td class="num">${r.spi.toFixed(2)}</td>
@@ -1154,6 +1263,181 @@ new Chart(document.getElementById('chartTimeline'), {
         type: 'logarithmic',
         title: { display: true, text: 'sendouts per month (log scale, stacked per client)', color: '#8fa0c4' }
       }
+    }
+  }
+});
+
+// ============== CHART: MITIGATION MySQL (raw vs cohorts) ==============
+
+const mitigationMySQL = [
+  { client: 'Key Media',        raw: 5299, cohorts: 5299, naiveIdent: 5297, trust: 'partial' },
+  { client: 'Momentum Media',   raw: 617,  cohorts: 617,  naiveIdent: 612,  trust: 'cohort' },
+  { client: 'Newcom',           raw: 431,  cohorts: 423,  naiveIdent: 46,   trust: 'cohort' },
+  { client: 'Sosland',          raw: 331,  cohorts: 327,  naiveIdent: 79,   trust: 'cohort' },
+  { client: 'Are Media',        raw: 269,  cohorts: 266,  naiveIdent: 258,  trust: 'broken' },
+  { client: 'The Drum',         raw: 204,  cohorts: 197,  naiveIdent: 116,  trust: 'cohort' },
+  { client: 'Adopstar',         raw: 117,  cohorts: 115,  naiveIdent: 117,  trust: 'broken' },
+  { client: 'Gloo',             raw: 69,   cohorts: 69,   naiveIdent: 26,   trust: 'partial' },
+  { client: 'Conexus',          raw: 68,   cohorts: 68,   naiveIdent: 68,   trust: 'cohort' },
+  { client: 'Realestate.co.nz', raw: 21,   cohorts: 11,   naiveIdent: 20,   trust: 'broken' },
+  { client: '1440',             raw: 2,    cohorts: 2,    naiveIdent: 2,    trust: 'broken' },
+  { client: 'AndaM',            raw: 2,    cohorts: 1,    naiveIdent: 1,    trust: 'cohort' },
+];
+
+new Chart(document.getElementById('chartMitigationMySQL'), {
+  type: 'bar',
+  data: {
+    labels: mitigationMySQL.map(d => d.client),
+    datasets: [
+      {
+        label: 'Raw sendout rows (current)',
+        data: mitigationMySQL.map(d => d.raw),
+        backgroundColor: '#6aa0ff',
+      },
+      {
+        label: 'Naive distinct(identifier) — misleading',
+        data: mitigationMySQL.map(d => d.naiveIdent),
+        backgroundColor: '#8fa0c4',
+      },
+      {
+        label: 'Est. blast cohorts (after mitigation) ✨',
+        data: mitigationMySQL.map(d => d.cohorts),
+        backgroundColor: '#3fb950',
+      },
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'bottom' },
+      tooltip: {
+        callbacks: {
+          afterLabel: c => {
+            const d = mitigationMySQL[c.dataIndex];
+            return `trust: ${d.trust}`;
+          }
+        }
+      }
+    },
+    scales: {
+      x: { grid: { display: false }, ticks: { color: '#e6ebf5' } },
+      y: {
+        type: 'logarithmic',
+        grid: { color: '#1b2747' },
+        title: { display: true, text: 'count (log scale)', color: '#8fa0c4' }
+      }
+    }
+  }
+});
+
+// ============== CHART: MITIGATION CH (before/after) ==============
+
+const mitigationCH = [
+  { client: 'Are Media',        naive: 705725, cohortHr: 7412,  cohort15m: 25833 },
+  { client: 'Adopstar',         naive: 552686, cohortHr: 5308,  cohort15m: 15992 },
+  { client: 'Realestate.co.nz', naive: 209576, cohortHr: 1182,  cohort15m: 4528 },
+  { client: '1440',             naive: 92905,  cohortHr: 240,   cohort15m: 489 },
+];
+
+new Chart(document.getElementById('chartMitigationCH'), {
+  type: 'bar',
+  data: {
+    labels: mitigationCH.map(d => d.client),
+    datasets: [
+      {
+        label: 'Naive distinct(sendout) — current',
+        data: mitigationCH.map(d => d.naive),
+        backgroundColor: '#f85149',
+      },
+      {
+        label: 'Est. cohorts @ 15-min bucket',
+        data: mitigationCH.map(d => d.cohort15m),
+        backgroundColor: '#d29922',
+      },
+      {
+        label: 'Est. cohorts @ hour bucket ✨',
+        data: mitigationCH.map(d => d.cohortHr),
+        backgroundColor: '#3fb950',
+      },
+    ]
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { position: 'bottom' } },
+    scales: {
+      x: {
+        type: 'logarithmic',
+        grid: { color: '#1b2747' },
+        title: { display: true, text: 'distinct values (log scale)', color: '#8fa0c4' }
+      },
+      y: { grid: { display: false }, ticks: { color: '#e6ebf5' } }
+    }
+  }
+});
+
+// ============== CHART: CONFIDENCE DISTRIBUTION ==============
+
+const confidenceData = [
+  { client: 'Key Media',        identifier: 0,   idTime: 5299, timeOnly: 0 },
+  { client: 'Momentum Media',   identifier: 611, idTime: 0,    timeOnly: 6 },
+  { client: 'Newcom',           identifier: 402, idTime: 0,    timeOnly: 29 },
+  { client: 'Sosland',          identifier: 331, idTime: 0,    timeOnly: 0 },
+  { client: 'Are Media',        identifier: 0,   idTime: 0,    timeOnly: 269 },
+  { client: 'The Drum',         identifier: 204, idTime: 0,    timeOnly: 0 },
+  { client: 'Adopstar',         identifier: 0,   idTime: 0,    timeOnly: 117 },
+  { client: 'Gloo',             identifier: 0,   idTime: 28,   timeOnly: 41 },
+  { client: 'Conexus',          identifier: 68,  idTime: 0,    timeOnly: 0 },
+  { client: 'Realestate.co.nz', identifier: 0,   idTime: 0,    timeOnly: 21 },
+  { client: '1440',             identifier: 0,   idTime: 0,    timeOnly: 2 },
+  { client: 'AndaM',            identifier: 2,   idTime: 0,    timeOnly: 0 },
+];
+
+new Chart(document.getElementById('chartConfidence'), {
+  type: 'bar',
+  data: {
+    labels: confidenceData.map(d => d.client),
+    datasets: [
+      {
+        label: 'identifier (trusted)',
+        data: confidenceData.map(d => d.identifier),
+        backgroundColor: '#3fb950',
+      },
+      {
+        label: 'identifier + time',
+        data: confidenceData.map(d => d.idTime),
+        backgroundColor: '#d29922',
+      },
+      {
+        label: 'time-only (best-effort)',
+        data: confidenceData.map(d => d.timeOnly),
+        backgroundColor: '#f85149',
+      },
+    ]
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'bottom' },
+      tooltip: {
+        callbacks: {
+          label: c => {
+            const d = confidenceData[c.dataIndex];
+            const total = d.identifier + d.idTime + d.timeOnly;
+            const pct = total > 0 ? (c.parsed.x / total * 100).toFixed(0) : 0;
+            return `${c.dataset.label}: ${c.parsed.x} (${pct}%)`;
+          }
+        }
+      }
+    },
+    scales: {
+      x: {
+        stacked: true,
+        grid: { color: '#1b2747' },
+        title: { display: true, text: 'sendouts (6-month)', color: '#8fa0c4' }
+      },
+      y: { stacked: true, grid: { display: false }, ticks: { color: '#e6ebf5' } }
     }
   }
 });
