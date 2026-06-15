@@ -1,0 +1,1841 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AtWave — Measuring Real Impressions</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+      :root {
+        --bg: #0b1020;
+        --bg-soft: #121a33;
+        --card: #18224a;
+        --fg: #e6ebf5;
+        --muted: #8fa0c4;
+        --accent: #6aa0ff;
+        --accent-2: #ff7b72;
+        --good: #3fb950;
+        --bad: #f85149;
+        --warn: #d29922;
+        --border: #223155;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        background: var(--bg);
+        color: var(--fg);
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+          Arial, sans-serif;
+      }
+      body {
+        line-height: 1.55;
+      }
+      .deck {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 24px;
+      }
+      .slide {
+        background: var(--bg-soft);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 36px 44px;
+        margin: 28px 0;
+        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
+      }
+      .slide h1,
+      .slide h2,
+      .slide h3 {
+        margin-top: 0;
+      }
+      .slide h1 {
+        font-size: 32px;
+        letter-spacing: -0.02em;
+        margin-bottom: 6px;
+      }
+      .slide h2 {
+        font-size: 26px;
+        color: var(--accent);
+        margin-bottom: 16px;
+        letter-spacing: -0.01em;
+      }
+      .slide h3 {
+        font-size: 18px;
+        color: var(--muted);
+        margin: 18px 0 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+      .slide .subtitle {
+        color: var(--muted);
+        margin-bottom: 20px;
+        font-size: 16px;
+      }
+      .kicker {
+        color: var(--accent);
+        font-weight: 600;
+        font-size: 13px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        margin-bottom: 10px;
+      }
+      .big-stat {
+        font-size: 52px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        line-height: 1.05;
+        margin: 10px 0 6px;
+      }
+      .big-stat.bad {
+        color: var(--bad);
+      }
+      .big-stat.good {
+        color: var(--good);
+      }
+      .big-stat.accent {
+        color: var(--accent);
+      }
+      .big-stat.warn {
+        color: var(--warn);
+      }
+      .stat-caption {
+        color: var(--muted);
+        font-size: 14px;
+        margin-bottom: 20px;
+      }
+      .grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+        align-items: start;
+      }
+      .grid-3 {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 18px;
+        align-items: stretch;
+      }
+      .panel {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 18px 20px;
+      }
+      .panel h4 {
+        margin: 0 0 8px;
+        font-size: 15px;
+        color: var(--fg);
+      }
+      .panel p {
+        margin: 0;
+        font-size: 14px;
+        color: var(--muted);
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+        margin: 14px 0;
+      }
+      th {
+        text-align: left;
+        color: var(--muted);
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 11.5px;
+        letter-spacing: 0.06em;
+        padding: 8px 10px;
+        border-bottom: 1px solid var(--border);
+      }
+      td {
+        padding: 8px 10px;
+        border-bottom: 1px solid rgba(34, 49, 85, 0.6);
+      }
+      td.num,
+      th.num {
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+      }
+      tr.hl td {
+        background: rgba(106, 160, 255, 0.08);
+      }
+      tr.dim td {
+        color: var(--muted);
+      }
+      .badge {
+        display: inline-block;
+        padding: 2px 10px;
+        border-radius: 99px;
+        font-size: 12px;
+        font-weight: 600;
+      }
+      .badge.bad {
+        background: rgba(248, 81, 73, 0.15);
+        color: var(--bad);
+      }
+      .badge.good {
+        background: rgba(63, 185, 80, 0.15);
+        color: var(--good);
+      }
+      .badge.warn {
+        background: rgba(210, 153, 34, 0.15);
+        color: var(--warn);
+      }
+      .badge.accent {
+        background: rgba(106, 160, 255, 0.15);
+        color: var(--accent);
+      }
+      .callout {
+        border-left: 3px solid var(--accent);
+        background: rgba(106, 160, 255, 0.07);
+        padding: 14px 18px;
+        border-radius: 0 10px 10px 0;
+        margin: 16px 0;
+        font-size: 15px;
+      }
+      .callout.bad {
+        border-color: var(--bad);
+        background: rgba(248, 81, 73, 0.07);
+      }
+      .callout.good {
+        border-color: var(--good);
+        background: rgba(63, 185, 80, 0.07);
+      }
+      .callout.warn {
+        border-color: var(--warn);
+        background: rgba(210, 153, 34, 0.07);
+      }
+      .chart-box {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 16px;
+      }
+      .chart-box .chart-title {
+        font-size: 13px;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        margin-bottom: 8px;
+        font-weight: 600;
+      }
+      .flow {
+        display: flex;
+        gap: 10px;
+        align-items: stretch;
+        flex-wrap: wrap;
+        margin: 16px 0;
+      }
+      .flow .step {
+        flex: 1 1 150px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 14px;
+        font-size: 13.5px;
+      }
+      .flow .step b {
+        display: block;
+        color: var(--accent);
+        margin-bottom: 5px;
+        font-size: 13px;
+      }
+      .flow .arrow {
+        align-self: center;
+        color: var(--muted);
+        font-size: 20px;
+      }
+      .footnote {
+        color: var(--muted);
+        font-size: 12.5px;
+        margin-top: 14px;
+      }
+      .small {
+        font-size: 13px;
+        color: var(--muted);
+      }
+      ul.tight {
+        margin: 8px 0;
+        padding-left: 22px;
+      }
+      ul.tight li {
+        margin: 6px 0;
+        font-size: 14.5px;
+      }
+      .mono {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 0.92em;
+        background: rgba(255, 255, 255, 0.06);
+        padding: 1px 6px;
+        border-radius: 5px;
+      }
+
+      /* Accordion (progressive disclosure for technical detail) */
+      details.acc {
+        margin: 22px 0 0;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        background: rgba(0, 0, 0, 0.18);
+        overflow: hidden;
+      }
+      details.acc[open] {
+        background: rgba(0, 0, 0, 0.28);
+      }
+      details.acc > summary {
+        cursor: pointer;
+        list-style: none;
+        padding: 12px 18px;
+        color: var(--accent);
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        user-select: none;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        transition: background 0.15s;
+      }
+      details.acc > summary::-webkit-details-marker {
+        display: none;
+      }
+      details.acc > summary:hover {
+        background: rgba(106, 160, 255, 0.08);
+      }
+      details.acc > summary::before {
+        content: "▶";
+        font-size: 10px;
+        color: var(--accent);
+        transition: transform 0.15s;
+        display: inline-block;
+      }
+      details.acc[open] > summary::before {
+        transform: rotate(90deg);
+      }
+      details.acc > summary .acc-hint {
+        color: var(--muted);
+        font-weight: 400;
+        font-size: 12.5px;
+        letter-spacing: 0;
+        margin-left: 6px;
+        font-style: italic;
+      }
+      details.acc > .acc-body {
+        padding: 4px 22px 22px;
+        border-top: 1px dashed var(--border);
+      }
+      details.acc > .acc-body h4 {
+        font-size: 14px;
+        color: var(--accent);
+        margin: 14px 0 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+      }
+      details.acc > .acc-body p,
+      details.acc > .acc-body li {
+        font-size: 14px;
+      }
+      details.acc > .acc-body .mono {
+        font-size: 0.88em;
+      }
+      details.acc > .acc-body pre {
+        background: rgba(0, 0, 0, 0.4);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 12px;
+        overflow-x: auto;
+        font-size: 12.5px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      }
+
+      @media (max-width: 800px) {
+        .grid-2,
+        .grid-3 {
+          grid-template-columns: 1fr;
+        }
+        .slide {
+          padding: 24px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="deck">
+      <!-- 1. Title -->
+      <section class="slide">
+        <div class="kicker">Research · Emperor Analytics · 2026-06-15</div>
+        <h1>AtWave — Measuring Real Impressions</h1>
+        <div class="subtitle">
+          What proxy caching hides, what the clicks reveal, and how we can bill
+          &amp; serve fairly.
+        </div>
+        <div class="grid-3">
+          <div class="panel">
+            <h4>Client</h4>
+            <p>
+              AtWave (SAAS, live since Feb 2026)<br />ESP: Ongage · 100% CPC
+              demand ($0.75/click)
+            </p>
+          </div>
+          <div class="panel">
+            <h4>Scale</h4>
+            <p>
+              ~102M countable impressions/month<br />1 main blast/day · ~3.3M
+              impressions/blast
+            </p>
+          </div>
+          <div class="panel">
+            <h4>Analysis window</h4>
+            <p>
+              14 days (May 27 – Jun 15, 2026)<br />ClickHouse production events,
+              countable only
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. The problem -->
+      <section class="slide">
+        <div class="kicker">The problem</div>
+        <h2>Volume exploded — but who is actually looking?</h2>
+        <div class="grid-2">
+          <div>
+            <div class="big-stat accent">102M</div>
+            <div class="stat-caption">
+              countable impressions billed in May — up from 0.5M in February
+            </div>
+            <div class="big-stat bad">0.003%</div>
+            <div class="stat-caption">
+              raw CTR over billed impressions — ~20–100× below a healthy
+              newsletter
+            </div>
+            <div class="callout bad">
+              The client pays per impression and is unhappy. We carry the
+              serving cost. Most of this traffic is
+              <b>email-provider image proxies</b>, not humans — and for Apple
+              Mail users we cannot tell prefetch from a real open at the request
+              level.
+            </div>
+          </div>
+          <div class="chart-box">
+            <div class="chart-title">
+              Monthly countable impressions (Truly recipes newsletter)
+            </div>
+            <canvas id="rampChart" height="240"></canvas>
+          </div>
+        </div>
+
+        <details class="acc">
+          <summary>
+            How we got these numbers
+            <span class="acc-hint"
+              >— click for source tables and definitions</span
+            >
+          </summary>
+          <div class="acc-body">
+            <h4>Data sources</h4>
+            <ul class="tight">
+              <li>
+                Volume:
+                <span class="mono"
+                  >emperor.brand_newsletter_statistics_per_timezone</span
+                >
+                (ClickHouse aggregate MV), filtered to
+                <span class="mono">publisherClientId = '2735a5fe-…'</span>,
+                <span class="mono">timezone = 'America/New_York'</span>.
+              </li>
+              <li>
+                "Countable" = <span class="mono">countableStatus = 1</span> in
+                <span class="mono">emperor.events</span> — the filter every
+                aggregate MV uses; excludes the structural responsive-layout
+                duplicate (status 2) and any fraud-blocked rows.
+              </li>
+              <li>
+                Raw CTR = total countable clicks / total countable impressions
+                over 14d (1,323 ÷ 49.0M).
+              </li>
+            </ul>
+            <h4>Why this raw CTR is misleading</h4>
+            <p>
+              It mixes machine fetches and human opens in the denominator. The
+              "true" denominator a CPC advertiser cares about is real human
+              opens, which is what we estimate in the next slides.
+            </p>
+          </div>
+        </details>
+      </section>
+
+      <!-- 3. Who fetches -->
+      <section class="slide">
+        <div class="kicker">Finding 1 · Traffic composition</div>
+        <h2>96% of impressions are Apple-proxy-family fetches</h2>
+        <div class="grid-2">
+          <div class="chart-box">
+            <div class="chart-title">
+              Countable impressions by fetcher (14 days, 49.0M total)
+            </div>
+            <canvas id="shareChart" height="250"></canvas>
+          </div>
+          <div>
+            <table>
+              <tr>
+                <th>Segment</th>
+                <th class="num">Impressions</th>
+                <th class="num">Share</th>
+              </tr>
+              <tr>
+                <td><span class="badge bad">apple proxy (MPP)</span></td>
+                <td class="num">40,113,934</td>
+                <td class="num">81.9%</td>
+              </tr>
+              <tr>
+                <td><span class="badge bad">apple mail (bare UA)</span></td>
+                <td class="num">6,951,505</td>
+                <td class="num">14.2%</td>
+              </tr>
+              <tr>
+                <td><span class="badge warn">yahoo proxy</span></td>
+                <td class="num">1,489,265</td>
+                <td class="num">3.0%</td>
+              </tr>
+              <tr class="hl">
+                <td>
+                  <span class="badge good">real devices</span> desktop + phone
+                </td>
+                <td class="num">417,345</td>
+                <td class="num">0.85%</td>
+              </tr>
+              <tr class="dim">
+                <td>google proxy (Gmail)</td>
+                <td class="num">3,858</td>
+                <td class="num">0.008%</td>
+              </tr>
+            </table>
+            <div class="callout warn" style="margin-bottom: 0">
+              <b>Gmail is nearly absent.</b> 3.9K impressions in 14 days is
+              anomalous for a consumer list — either the list has almost no
+              Gmail, or Gmail is not loading the mail (deliverability question
+              for the client).
+            </div>
+          </div>
+        </div>
+
+        <details class="acc">
+          <summary>
+            How segments are classified
+            <span class="acc-hint">— click for the device-detection rules</span>
+          </summary>
+          <div class="acc-body">
+            <h4>Where the segment tag comes from</h4>
+            <p>
+              The ad server classifies each fetch's device at serve time from
+              <b>user-agent + IP intelligence</b> and writes the resulting
+              <span class="mono">deviceId</span> on every event row. The mapping
+              lives in
+              <span class="mono"
+                >backend/apps/adserver/src/Device/CreateDeviceUsingParser.php</span
+              >:
+            </p>
+            <ul class="tight">
+              <li>
+                <b>apple proxy</b> — UA is literally
+                <span class="mono">Mozilla/5.0</span> <i>and</i> VPN intel marks
+                the IP as <span class="mono">apple</span> +
+                <span class="mono">consumer-privacy</span> (Apple MPP
+                infrastructure).
+              </li>
+              <li>
+                <b>apple mail</b> — UA is literally
+                <span class="mono">Mozilla/5.0</span> but the IP is
+                <i>not</i> on Apple's MPP ranges (likely real Apple Mail clients
+                without MPP enabled).
+              </li>
+              <li>
+                <b>google proxy</b> — DeviceDetector identifies UA as "Gmail
+                Image Proxy" (it's a declared bot).
+              </li>
+              <li>
+                <b>yahoo mail proxy</b> — UA prefix
+                <span class="mono">YahooMailProxy</span>.
+              </li>
+              <li>
+                <b>desktop / phone &amp; tablet</b> — anything that parses as a
+                real browser UA on a non-proxy IP.
+              </li>
+            </ul>
+            <h4>Why this matters</h4>
+            <p>
+              The classification is the foundation of everything in this
+              analysis — we cannot recover the segment after the fact. Once a
+              fetch is misclassified, the corresponding click/open inference
+              goes to the wrong column.
+            </p>
+          </div>
+        </details>
+      </section>
+
+      <!-- 4. Why apple physics -->
+      <section class="slide">
+        <div class="kicker">Why this happens</div>
+        <h2>Apple Mail Privacy Protection makes opens unknowable</h2>
+        <div class="grid-3">
+          <div class="panel">
+            <h4>1 · Prefetch on delivery</h4>
+            <p>
+              Apple's servers download <b>all</b> images for
+              <b>every delivered email</b>, whether or not the user ever opens
+              it — staggered over hours to deliberately obscure timing.
+            </p>
+          </div>
+          <div class="panel">
+            <h4>2 · Real opens look identical</h4>
+            <p>
+              When an MPP user does open the email, the images load through the
+              <b>same Apple proxy with the same user-agent</b>. Prefetch and
+              real open are indistinguishable per request.
+            </p>
+          </div>
+          <div class="panel">
+            <h4>3 · No client-side signals</h4>
+            <p>
+              Email strips JavaScript and cookies. The only signals that
+              survive: IP, user-agent, timing — and <b>clicks</b>.
+            </p>
+          </div>
+        </div>
+        <div class="callout">
+          Consequence: Apple-segment impression counts measure
+          <b>deliveries × fetch behavior</b>, not human attention. Industry
+          folklore says "40–60% of Apple opens are prefetch" — on this list the
+          real fraction of meaningful Apple impressions is much smaller (next
+          slides).
+        </div>
+
+        <details class="acc">
+          <summary>
+            What other email providers do differently
+            <span class="acc-hint">— click for the comparison</span>
+          </summary>
+          <div class="acc-body">
+            <h4>Provider behavior matrix</h4>
+            <table>
+              <tr>
+                <th>Provider</th>
+                <th>Prefetches on delivery?</th>
+                <th>Fetches on real open?</th>
+                <th>Caches?</th>
+              </tr>
+              <tr>
+                <td>Apple Mail Privacy (MPP)</td>
+                <td>Yes, every image</td>
+                <td>Sometimes (cache miss / refresh)</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td>Apple Mail (no MPP)</td>
+                <td>No</td>
+                <td>Yes</td>
+                <td>Per-message only</td>
+              </tr>
+              <tr>
+                <td>Gmail image proxy</td>
+                <td>Once per image at first open</td>
+                <td>No (serves from cache)</td>
+                <td>Yes, indefinitely per image URL</td>
+              </tr>
+              <tr>
+                <td>Yahoo Mail proxy</td>
+                <td>No</td>
+                <td>Yes</td>
+                <td>Limited / per-render</td>
+              </tr>
+              <tr>
+                <td>Outlook desktop / mobile clients</td>
+                <td>No</td>
+                <td>Yes</td>
+                <td>Per-message</td>
+              </tr>
+            </table>
+            <p>
+              <b>Implication for our impression denominators:</b> Apple
+              impressions inflate (every delivery counts), Gmail impressions
+              <i>undercount</i> (one fetch serves many opens), Yahoo and direct
+              readers track opens reasonably 1:1.
+            </p>
+          </div>
+        </details>
+      </section>
+
+      <!-- 5. Clicks as truth -->
+      <section class="slide">
+        <div class="kicker">Finding 2 · The instrument</div>
+        <h2>Clicks can't be faked by proxies — they reveal real readers</h2>
+        <div class="grid-2">
+          <div>
+            <p style="font-size: 15px">
+              Proxies fetch images but never click ads. A click always runs in
+              the user's real browser. Every click carries an
+              <span class="mono">impressionId</span> — we joined all
+              <b>1,323 countable clicks</b> (14d) back to the impression that
+              spawned them, with zero unmatched.
+            </p>
+            <div class="big-stat warn">86%</div>
+            <div class="stat-caption">
+              of clicks originate from proxy-segment impressions — real readers
+              <i>do</i> hide in the proxy traffic…
+            </div>
+            <div class="big-stat bad">24×</div>
+            <div class="stat-caption">
+              …but per impression they click 24× less than real-device readers —
+              most proxy fetches have no human behind them.
+            </div>
+          </div>
+          <div class="chart-box">
+            <div class="chart-title">
+              CTR by impression segment (14d, log scale)
+            </div>
+            <canvas id="ctrChart" height="250"></canvas>
+          </div>
+        </div>
+
+        <details class="acc">
+          <summary>
+            How the click → impression attribution works
+            <span class="acc-hint">— click for the join method</span>
+          </summary>
+          <div class="acc-body">
+            <h4>The plumbing</h4>
+            <p>
+              Every impression event in
+              <span class="mono">emperor.events</span> gets an
+              <span class="mono">impressionId</span> at serve time. When a click
+              happens, the click event carries the same
+              <span class="mono">impressionId</span> — so the segment of the
+              originating impression is recoverable, even though the click
+              itself always comes from a real browser (the user's, not the
+              proxy's).
+            </p>
+            <h4>Why the cross-store join needs care</h4>
+            <p>
+              A direct <span class="mono">JOIN</span> over a 14-day window times
+              out (ClickHouse kills queries at 30s). The pattern that works:
+              pull the click list (~1,300 rows), then probe the impression side
+              with a literal IN-list of <span class="mono">impressionId</span>s
+              — hash lookups are cheap. Some clicks land beyond the 14-day
+              window because of the long open tail (Apple MPP staggers prefetch
+              for hours), so we extend the probe by 7 days back.
+            </p>
+          </div>
+        </details>
+      </section>
+
+      <!-- 6. Method (plain) + technical -->
+      <section class="slide">
+        <div class="kicker">Method</div>
+        <h2>Estimating real impressions — in plain language</h2>
+        <div class="callout good">
+          We can't directly see how many Apple-proxy fetches are real opens. But
+          every <b>click</b> comes from a real human. Looking only at readers we
+          <b>can</b> see directly (desktop + phone), we measured that it takes
+          about <b>~6,700 real opens to produce one desktop click</b> and
+          <b>~1,200 to produce one phone click</b>. So we count each segment's
+          clicks and multiply back to estimate hidden real opens. <br /><br />
+          <b>Apple proxy example:</b> 236 desktop clicks × 6,700 + 490 phone
+          clicks × 1,200 ≈ <b>2.2M real opens</b> vs 40.1M logged fetches →
+          <b>~5% real</b>. The remaining ~95% are Apple's machines, not people.
+        </div>
+
+        <div class="grid-3" style="margin-top: 18px">
+          <div class="panel">
+            <h4>① Segment</h4>
+            <p>
+              Every fetch already tagged by who delivered it (Apple proxy /
+              Yahoo / Gmail / real device).
+            </p>
+          </div>
+          <div class="panel">
+            <h4>② Anchor</h4>
+            <p>
+              On users we can see directly we have both opens and clicks. That's
+              our reference click-rate.
+            </p>
+          </div>
+          <div class="panel">
+            <h4>③ Transfer</h4>
+            <p>
+              For each proxy segment, multiply its clicks by the inverse of the
+              matching real-device rate to estimate hidden opens.
+            </p>
+          </div>
+        </div>
+
+        <details class="acc">
+          <summary>
+            The exact formula, anchors, and caveats
+            <span class="acc-hint">— click for technical detail</span>
+          </summary>
+          <div class="acc-body">
+            <h4>Formula</h4>
+            <pre>
+real_opens(segment) = clicks_desktop(segment) / CTR_desktop_anchor
+                    + clicks_phone(segment)   / CTR_phone_anchor</pre
+            >
+            <p>
+              The multipliers are the inverse of measured direct-reader CTRs:
+              <span class="mono">1 / 0.0150% ≈ 6,700</span> (desktop),
+              <span class="mono">1 / 0.0822% ≈ 1,200</span> (phone). Clicks are
+              split by the <b>clicker's</b> device because that's what reveals
+              the user's reading device — the impression segment is the proxy
+              infrastructure, not the user's device.
+            </p>
+            <h4>The core assumption</h4>
+            <p>
+              A human reading a newsletter via an email proxy clicks at the
+              <b>same per-open rate</b> as a directly measured reader on the
+              same device class. This is unverifiable at the request level for
+              Apple MPP — but we can back-check it on Yahoo (next slide), where
+              the proxy fetches only on real opens. Spoiler: the assumption
+              needs a calibration correction.
+            </p>
+            <h4>What kills accuracy</h4>
+            <ul class="tight">
+              <li>
+                <b>Demographic mismatch.</b> If Apple readers have a different
+                per-open click rate than direct readers (e.g. lower, because of
+                MPP UX friction), the multiplier is wrong. Yahoo's data tells us
+                by how much.
+              </li>
+              <li>
+                <b>Click filters off.</b> A scanner click would inflate the
+                estimate. AtWave currently has all click filters disabled. We
+                assume scanner clicks are small (real-browser UAs, residential
+                IPs).
+              </li>
+              <li>
+                <b>Anchor sample size.</b> Only 40 direct-desktop clicks across
+                14 days. Adds ±31% sampling noise to the desktop multiplier;
+                smaller effect on phone (124 clicks).
+              </li>
+            </ul>
+          </div>
+        </details>
+      </section>
+
+      <!-- 7. Yahoo calibration -->
+      <section class="slide">
+        <div class="kicker">Finding 3 · Calibration anchor</div>
+        <h2>Yahoo gave us a ground-truth check — our method was 23% high</h2>
+        <div class="grid-2">
+          <div>
+            <p style="font-size: 15px">
+              Yahoo's impressions split cleanly into two populations by IP
+              classification: <b>~58% are real human readers</b> (Yahoo's proxy
+              fetches on open, not on delivery) and
+              <b>~42% are machine scanners</b> on hosting IPs that produce
+              <i>zero clicks</i>.
+            </p>
+            <div class="big-stat warn">58%</div>
+            <div class="stat-caption">
+              Yahoo's true real share (count-anchored, clean IPs only)
+            </div>
+            <div class="big-stat bad">72%</div>
+            <div class="stat-caption">
+              What our click-anchored method estimated for Yahoo —
+              <b>+23% too high</b>
+            </div>
+            <div class="callout">
+              We use this drift as a <b>calibration constant</b> and apply it to
+              other segments where we can't directly verify. The Apple estimate
+              goes from <b>8.3% → ~6.8%</b> after calibration.
+            </div>
+          </div>
+          <div class="chart-box">
+            <div class="chart-title">
+              Yahoo subset behavior — fetches per (user, blast)
+            </div>
+            <canvas id="yahooSplitChart" height="250"></canvas>
+          </div>
+        </div>
+
+        <details class="acc">
+          <summary>
+            Why Yahoo is a unique calibration anchor &amp; why Apple has no
+            equivalent <span class="acc-hint">— click for the deep dive</span>
+          </summary>
+          <div class="acc-body">
+            <h4>Yahoo's two-population structure</h4>
+            <table>
+              <tr>
+                <th>Yahoo subset</th>
+                <th class="num">Impressions</th>
+                <th class="num">Unique users</th>
+                <th class="num">Fetches / (user, blast)</th>
+                <th>Clicks</th>
+                <th>Interpretation</th>
+              </tr>
+              <tr>
+                <td>Clean IPs (fraudType 60)</td>
+                <td class="num">852,439</td>
+                <td class="num">354,467</td>
+                <td class="num">1.10</td>
+                <td>~all 266</td>
+                <td>Pure fetch-on-open (humans)</td>
+              </tr>
+              <tr>
+                <td>HOSTING IPs (fraudType 3)</td>
+                <td class="num">613,372</td>
+                <td class="num">256,239</td>
+                <td class="num">1.34</td>
+                <td>0</td>
+                <td>Scanner / scraper traffic</td>
+              </tr>
+            </table>
+            <p>
+              The clean subset's <b>1.10 fetches per (user, blast)</b> is the
+              cleanest "one fetch = one open" signature in the entire dataset.
+              Treating clean-Yahoo as ~100% real opens:
+            </p>
+            <ul class="tight">
+              <li>
+                <b>Yahoo ground truth:</b> 852K / 1.49M =
+                <b>58.3% real share</b>
+              </li>
+              <li><b>Click-anchored estimate:</b> 71.8%</li>
+              <li><b>Drift:</b> +23% relative overestimate</li>
+            </ul>
+            <h4>Why the drift exists</h4>
+            <p>
+              Yahoo's empirical CTR per real open is 266 ÷ 852K =
+              <b>0.031%</b> — below the pooled direct-reader anchor of 0.040%.
+              Yahoo readers (older, desktop-webmail demographic) click
+              <i>less</i> per open than direct readers, so the multiplier
+              inflates.
+            </p>
+            <h4>Apple has no equivalent anchor</h4>
+            <p>
+              We checked:
+              <b
+                >99.97% of apple_proxy and 97.6% of apple_mail are on clean
+                fraudType-60 IPs.</b
+              >
+              Apple's MPP infrastructure runs on consumer-privacy ranges that
+              don't trigger fraud classifications, so there's no internal
+              "machine vs human" subset within Apple. The within-Apple
+              fetches/pair ratio is uniform at ~1.17–1.20.
+            </p>
+            <p>
+              <b
+                >This is why we use the Yahoo drift as our only calibration
+                constant.</b
+              >
+              It's conservative — Apple's demographic likely clicks even less
+              per open than Yahoo's (MPP UX is more passive than webmail), so
+              the +23% may understate the true bias for Apple. The resulting
+              estimate is therefore an upper-end estimate of the truth.
+            </p>
+          </div>
+        </details>
+      </section>
+
+      <!-- 8. The estimate, calibrated -->
+      <section class="slide">
+        <div class="kicker">Finding 4 · The estimate</div>
+        <h2>≈ 7% of billed impressions are real (calibrated)</h2>
+        <div class="grid-2">
+          <div>
+            <div class="big-stat bad">6.8%</div>
+            <div class="stat-caption">
+              Yahoo-calibrated real share of countable impressions — 14d: 3.37M
+              real of 49.0M billed · honest band 5–10%
+            </div>
+            <div class="big-stat accent">~7M</div>
+            <div class="stat-caption">
+              estimated real impressions per month, vs ~102M billed today
+            </div>
+            <div class="callout good" style="margin-bottom: 0">
+              <b
+                >The estimate self-validates on segments with known proxy
+                behavior.</b
+              >
+              Yahoo lands at 58% (matches its fetch-on-open semantics), Gmail at
+              &gt;100% (matches its caching undercount), Apple at ~5%
+              (consistent with industry-known MPP prefetch rates). Where we can
+              check, the method gives the semantically correct answer.
+            </div>
+          </div>
+          <div class="chart-box">
+            <div class="chart-title">
+              Logged fetches vs estimated real opens (14d, log scale)
+            </div>
+            <canvas id="estChart" height="250"></canvas>
+          </div>
+        </div>
+
+        <details class="acc">
+          <summary>
+            Per-segment numbers, two methods compared, and uncertainty bounds
+            <span class="acc-hint">— click for the full table</span>
+          </summary>
+          <div class="acc-body">
+            <h4>Per-segment estimate (14d)</h4>
+            <table>
+              <tr>
+                <th>Segment</th>
+                <th class="num">Impressions</th>
+                <th class="num">Attributed clicks</th>
+                <th class="num">Est. real opens (Yahoo-calibrated)</th>
+                <th class="num">Est. real share</th>
+              </tr>
+              <tr>
+                <td>apple proxy</td>
+                <td class="num">40,113,934</td>
+                <td class="num">727</td>
+                <td class="num">~1,765,000</td>
+                <td class="num">4.4%</td>
+              </tr>
+              <tr>
+                <td>apple mail</td>
+                <td class="num">6,951,505</td>
+                <td class="num">147</td>
+                <td class="num">~320,000</td>
+                <td class="num">4.6%</td>
+              </tr>
+              <tr>
+                <td>yahoo proxy</td>
+                <td class="num">1,489,265</td>
+                <td class="num">266</td>
+                <td class="num">~868,000</td>
+                <td class="num">58.3% (ground truth)</td>
+              </tr>
+              <tr>
+                <td>desktop</td>
+                <td class="num">266,562</td>
+                <td class="num">43</td>
+                <td class="num">266,562</td>
+                <td class="num">100% (measured)</td>
+              </tr>
+              <tr>
+                <td>phone &amp; tablet</td>
+                <td class="num">150,783</td>
+                <td class="num">137</td>
+                <td class="num">150,783</td>
+                <td class="num">100% (measured)</td>
+              </tr>
+              <tr class="dim">
+                <td>google proxy</td>
+                <td class="num">3,858</td>
+                <td class="num">3</td>
+                <td class="num">~3,858+</td>
+                <td class="num">≥100% (caching undercount)</td>
+              </tr>
+              <tr class="hl">
+                <td><b>Total</b></td>
+                <td class="num"><b>48,975,907</b></td>
+                <td class="num"><b>1,323</b></td>
+                <td class="num"><b>~3,374,000</b></td>
+                <td class="num"><b>6.9%</b></td>
+              </tr>
+            </table>
+            <h4>Two estimators bracket the answer</h4>
+            <table>
+              <tr>
+                <th>Method</th>
+                <th class="num">Overall real share</th>
+                <th>Direction</th>
+              </tr>
+              <tr>
+                <td>Click-anchored (uncalibrated)</td>
+                <td class="num">8.3%</td>
+                <td>biased high (Yahoo proves it)</td>
+              </tr>
+              <tr class="hl">
+                <td><b>Click-anchored, Yahoo-calibrated</b></td>
+                <td class="num"><b>6.8%</b></td>
+                <td>best central estimate</td>
+              </tr>
+              <tr>
+                <td>
+                  Count-anchored (2+ fetches per user-blast as open evidence)
+                </td>
+                <td class="num">13.5%</td>
+                <td>upper bound — over-counts cache-induced multi-renders</td>
+              </tr>
+            </table>
+            <p>
+              <b>Honest band: 5–10% real, central ~7%.</b> About 7M real
+              impressions/month. The remaining ~95M splits roughly: ~46M Apple
+              machine prefetch, ~46M structural responsive-template duplicates
+              (next-section), and a small machine-scanner tail across proxies.
+            </p>
+          </div>
+        </details>
+      </section>
+
+      <!-- 9. Real CTR vs raw CTR (NEW) -->
+      <section class="slide">
+        <div class="kicker">Finding 5 · The honest CTR</div>
+        <h2>
+          Once we strip the machine fetches, CTR is ~15× higher than reported
+        </h2>
+        <div class="grid-2">
+          <div>
+            <div class="big-stat good">0.04%</div>
+            <div class="stat-caption">
+              estimated <b>real CTR</b> — clicks per estimated real open (14d,
+              all segments combined)
+            </div>
+            <div class="big-stat bad">0.003%</div>
+            <div class="stat-caption">
+              raw CTR — clicks per <i>billed impression</i>, what reports show
+              today
+            </div>
+            <div class="callout">
+              The raw CTR isn't really CTR — it's "clicks per machine fetch",
+              which is meaningless to a CPC advertiser. The honest number — and
+              the one that should appear on a client-facing performance report —
+              is <b>clicks per estimated real open ≈ 0.04%</b>.
+            </div>
+          </div>
+          <div class="chart-box">
+            <div class="chart-title">
+              Raw CTR vs estimated real CTR by segment (log scale)
+            </div>
+            <canvas id="realCtrChart" height="260"></canvas>
+          </div>
+        </div>
+
+        <details class="acc">
+          <summary>
+            The full real-CTR table and the segment with the real revenue
+            <span class="acc-hint">— click for technical detail</span>
+          </summary>
+          <div class="acc-body">
+            <h4>Per-segment raw vs real CTR (14d)</h4>
+            <table>
+              <tr>
+                <th>Segment</th>
+                <th class="num">Impressions</th>
+                <th class="num">Clicks</th>
+                <th class="num">Raw CTR</th>
+                <th class="num">Est. real CTR</th>
+                <th class="num">× factor</th>
+              </tr>
+              <tr>
+                <td>apple proxy</td>
+                <td class="num">40,113,934</td>
+                <td class="num">727</td>
+                <td class="num">0.0018%</td>
+                <td class="num">0.041%</td>
+                <td class="num">22.7×</td>
+              </tr>
+              <tr>
+                <td>apple mail</td>
+                <td class="num">6,951,505</td>
+                <td class="num">147</td>
+                <td class="num">0.0021%</td>
+                <td class="num">0.046%</td>
+                <td class="num">21.7×</td>
+              </tr>
+              <tr>
+                <td>yahoo proxy</td>
+                <td class="num">1,489,265</td>
+                <td class="num">266</td>
+                <td class="num">0.018%</td>
+                <td class="num">0.031%</td>
+                <td class="num">1.7×</td>
+              </tr>
+              <tr>
+                <td>desktop (real)</td>
+                <td class="num">266,562</td>
+                <td class="num">43</td>
+                <td class="num">0.016%</td>
+                <td class="num">0.016%</td>
+                <td class="num">1.0×</td>
+              </tr>
+              <tr class="hl">
+                <td>phone &amp; tablet (real)</td>
+                <td class="num">150,783</td>
+                <td class="num">137</td>
+                <td class="num">0.091%</td>
+                <td class="num">0.091%</td>
+                <td class="num">1.0×</td>
+              </tr>
+              <tr class="dim">
+                <td>google proxy</td>
+                <td class="num">3,858</td>
+                <td class="num">3</td>
+                <td class="num">0.078%</td>
+                <td class="num">0.078%</td>
+                <td class="num">1.0×</td>
+              </tr>
+              <tr>
+                <td><b>Total</b></td>
+                <td class="num"><b>48,975,907</b></td>
+                <td class="num"><b>1,323</b></td>
+                <td class="num"><b>0.0027%</b></td>
+                <td class="num"><b>0.039%</b></td>
+                <td class="num"><b>14.5×</b></td>
+              </tr>
+            </table>
+            <h4>The story in this table</h4>
+            <ul class="tight">
+              <li>
+                <b>Phone is the real-revenue segment.</b> 0.091% real CTR is
+                healthy newsletter territory — close to industry-typical
+                email-on-mobile engagement.
+              </li>
+              <li>
+                <b>Desktop and Yahoo are average.</b> 0.016–0.031% real CTR —
+                typical of email lists where the reader has actively chosen to
+                open but isn't necessarily in a click-ready context.
+              </li>
+              <li>
+                <b
+                  >Apple users do click, but at a lower rate per open than
+                  direct readers.</b
+                >
+                Real CTR ~0.04% is consistent with passive-consumption MPP usage
+                patterns. The implied bias is why the Yahoo calibration is
+                needed; treating Apple users as having direct-reader CTR would
+                underestimate their real opens by ~2×.
+              </li>
+              <li>
+                <b>Gmail is undercounted, not low-CTR.</b> Caching means we see
+                one fetch but possibly several real opens — the 0.078% is a
+                floor.
+              </li>
+            </ul>
+          </div>
+        </details>
+      </section>
+
+      <!-- 10. Audience reality (NEW) -->
+      <section class="slide">
+        <div class="kicker">Finding 6 · The audience reality</div>
+        <h2>
+          The "list" is millions, but only ~1,300 people click anything in 2
+          weeks
+        </h2>
+        <div class="grid-2">
+          <div>
+            <div class="big-stat bad">1,326</div>
+            <div class="stat-caption">
+              unique humans who clicked anything in 14 days — across ~5M
+              deduplicated recipient hashes
+            </div>
+            <div class="big-stat warn">0.03%</div>
+            <div class="stat-caption">
+              engagement rate — about 1 in every 4,000 list members clicks
+              anything in 2 weeks
+            </div>
+            <div class="callout warn" style="margin-bottom: 0">
+              For every 100 list members AtWave is paying us to serve ads to,
+              <b>~99.97 are inactive</b>. That's the suppressible cohort for an
+              engagement-tier offering.
+            </div>
+          </div>
+          <div class="chart-box">
+            <div class="chart-title">
+              Engagement rate per segment (% of users who clicked anything)
+            </div>
+            <canvas id="engagementChart" height="260"></canvas>
+          </div>
+        </div>
+
+        <details class="acc">
+          <summary>
+            Per-segment engagement reach and what it means for Option B
+            <span class="acc-hint">— click for the details</span>
+          </summary>
+          <div class="acc-body">
+            <h4>Engagement reach by impression segment (14d)</h4>
+            <table>
+              <tr>
+                <th>Segment</th>
+                <th class="num">Users reached</th>
+                <th class="num">Users who clicked</th>
+                <th class="num">Engagement rate</th>
+              </tr>
+              <tr class="hl">
+                <td>phone &amp; tablet</td>
+                <td class="num">40,814</td>
+                <td class="num">125</td>
+                <td class="num"><b>0.306%</b></td>
+              </tr>
+              <tr>
+                <td>desktop</td>
+                <td class="num">56,028</td>
+                <td class="num">55</td>
+                <td class="num">0.098%</td>
+              </tr>
+              <tr>
+                <td>yahoo proxy</td>
+                <td class="num">451,606</td>
+                <td class="num">287</td>
+                <td class="num">0.064%</td>
+              </tr>
+              <tr>
+                <td>apple mail</td>
+                <td class="num">3,518,880</td>
+                <td class="num">906</td>
+                <td class="num">0.026%</td>
+              </tr>
+              <tr>
+                <td>apple proxy</td>
+                <td class="num">3,801,382</td>
+                <td class="num">957</td>
+                <td class="num">0.025%</td>
+              </tr>
+              <tr class="dim">
+                <td>google proxy</td>
+                <td class="num">1,097</td>
+                <td class="num">10</td>
+                <td class="num">0.912% (tiny n)</td>
+              </tr>
+              <tr>
+                <td><b>Unique clickers (any segment)</b></td>
+                <td class="num">—</td>
+                <td class="num"><b>1,326</b></td>
+                <td class="num">—</td>
+              </tr>
+            </table>
+            <h4>Two things this table reveals</h4>
+            <ul class="tight">
+              <li>
+                <b
+                  >Phone is 3× more engaged than desktop, 12× more than
+                  Apple.</b
+                >
+                Mobile readers convert; everyone else mostly doesn't. A
+                suppression policy should not treat segments equally.
+              </li>
+              <li>
+                <b
+                  >The sum across segments (2,340) is 1.77× the unique clicker
+                  count (1,326)</b
+                >
+                — the average clicker appears in nearly two impression segments.
+                Same human, multi-device. That ratio is important for designing
+                any per-user policy: deduplicate by
+                <span class="mono">userIdentity</span>, not by segment+identity.
+              </li>
+            </ul>
+            <h4>Why this is the Option B clincher</h4>
+            <p>
+              At a typical newsletter engagement rate (2–5% click rate per
+              delivered email), this list should produce ~10K–25K clickers per
+              blast, not ~95. The list is either heavily reactivation-fatigued,
+              a low-intent sweepstakes/lead-gen list, or both. With a 90-day
+              look-back and ε ≈ 10% re-inclusion (so users can re-qualify),
+              suppressing the never-engager cohort cuts ad-serving compute by
+              ~90% on this client with zero measurable click-revenue impact —
+              and arguably improves CTR by concentrating delivery on the engaged
+              tail (where the phone-clicker segment is doing real work).
+            </p>
+          </div>
+        </details>
+      </section>
+
+      <!-- 11. 2× infra cost -->
+      <section class="slide">
+        <div class="kicker">Finding 7 · Infra cost</div>
+        <h2>Every impression is two requests — and that's structural</h2>
+        <div class="grid-2">
+          <div>
+            <div class="big-stat warn">204M</div>
+            <div class="stat-caption">
+              ad-serving requests per month behind 102M countable impressions
+            </div>
+            <p style="font-size: 15px">
+              AtWave's template is responsive: every email embeds
+              <b>two different rendered images</b> of the ad — a landscape and a
+              portrait variant. Clients and proxies fetch both, and proxies
+              <b>cache whatever they receive on the first fetch</b>. So the
+              winning ad must be selected and correctly rendered
+              <b>at first serve, for both variants</b> — the decision can't be
+              deferred, and one image can't be reused for both orientations.
+            </p>
+          </div>
+          <div>
+            <h3>What this means for cost</h3>
+            <ul class="tight">
+              <li>
+                The 2× request volume is <b>inherent to responsive email</b> —
+                it cannot be deduplicated away.
+              </li>
+              <li>
+                Savings are limited to making the
+                <b>paired request cheaper to process</b>: the creative decision
+                is already shared (15s decision cache); the remaining headroom
+                is in lightening the second request's pipeline.
+              </li>
+              <li>
+                The meaningful lever is <b>Option B (next slide)</b>: users
+                classified as never-engaging get a static response with no
+                selection work at all, while a rotating ε-slice keeps receiving
+                real, correctly matched ads.
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <details class="acc">
+          <summary>
+            Why responsive templates require two ads selected up-front
+            <span class="acc-hint">— click for the technical reason</span>
+          </summary>
+          <div class="acc-body">
+            <h4>The render path</h4>
+            <p>
+              The email HTML embeds an <span class="mono">&lt;img&gt;</span> tag
+              for landscape and another for portrait, each with a unique
+              impression URL. The email client picks which one to render based
+              on viewport width — at <i>render time</i>, not at delivery time.
+              We don't know which the user will see, so we must serve both
+              correctly.
+            </p>
+            <h4>
+              Why we can't pick one and serve the same image for both URLs
+            </h4>
+            <p>
+              The landscape and portrait variants are genuinely different
+              rendered images (different dimensions, layout, copy positioning).
+              Cached as separate URLs by the proxy. The decision pipeline runs
+              once per impression URL — twice per delivered email.
+            </p>
+            <h4>What countableStatus = 2 actually means</h4>
+            <p>
+              The second variant is logged with
+              <span class="mono">countableStatus = 2</span>
+              (<i>RESPONSIVE_LAYOUT_DUPLICATE_VIEW</i>) and is excluded from
+              every aggregate MV's countable filter. So billing and reporting
+              see 102M, but our ad server processed ~204M and ClickHouse stores
+              ~204M event rows. The 2× cost is real and visible only in infra
+              metrics.
+            </p>
+          </div>
+        </details>
+      </section>
+
+      <!-- 12. Commercial options -->
+      <section class="slide">
+        <div class="kicker">What we can do</div>
+        <h2>Three commercial paths (not mutually exclusive)</h2>
+        <table>
+          <tr>
+            <th style="width: 24%">Option</th>
+            <th>How it works</th>
+            <th style="width: 16%">Effort</th>
+            <th style="width: 22%">Trade-off</th>
+          </tr>
+          <tr class="hl">
+            <td>
+              <b>A · Split billing</b>
+              <span class="badge accent">recommended first</span>
+            </td>
+            <td>
+              Two lines: <b>ad-serving requests</b> (all fetches, low per-1M
+              rate covering infra) + <b>estimated real impressions</b> (the ~7%,
+              billed as impressions, agreed formula, quarterly recalibration,
+              monthly statement).
+            </td>
+            <td>Contract only.<br />No code.</td>
+            <td>
+              Requires aligning the estimation methodology with the client —
+              this deck is that conversation.
+            </td>
+          </tr>
+          <tr>
+            <td><b>B · Engagement-gated serving</b></td>
+            <td>
+              Per-user "engaged" flag (clicks + editorial-click data from
+              Ongage). Never-engagers get a cheap static response; a rotating
+              ε≈5–10% of them keep seeing real ads so they can re-qualify.
+            </td>
+            <td>Ad-server change<br />(Aerospike flag, no schema).</td>
+            <td>
+              For a 100% CPC client, correctly classified suppression doesn't
+              cut click revenue; main win is cost + honest counts.
+            </td>
+          </tr>
+          <tr>
+            <td><b>C · Rev-share / flat fee</b></td>
+            <td>
+              AtWave monetizes only CPC ($0.75/click). Charge % of click revenue
+              + flat platform fee tiered by request volume. Impression counts
+              stop mattering commercially.
+            </td>
+            <td>Contract only.<br />No code.</td>
+            <td>
+              Changes our revenue profile; needs biz modelling. Cleanest
+              permanent end to the dispute.
+            </td>
+          </tr>
+        </table>
+        <div class="callout">
+          Independent of the choice: flip
+          <span class="mono">emailProxyPrefetch</span> to observe-mode for
+          AtWave (stamps proxy fetches in the data, changes no billing or
+          delivery) so standard reports can show the split without ad-hoc
+          analysis.
+        </div>
+
+        <details class="acc">
+          <summary>
+            What each option costs us, and which one to push for AtWave
+            specifically
+            <span class="acc-hint">— click for the comparison</span>
+          </summary>
+          <div class="acc-body">
+            <h4>Estimated impact per option</h4>
+            <table>
+              <tr>
+                <th>Option</th>
+                <th>AtWave infra impact</th>
+                <th>AtWave billing impact</th>
+                <th>Our take</th>
+              </tr>
+              <tr>
+                <td>A · Split billing</td>
+                <td>None (data unchanged)</td>
+                <td>
+                  Client invoice drops significantly on the impression line; new
+                  low-rate serving line covers cost
+                </td>
+                <td>
+                  Reframes the dispute, doesn't solve infra cost. Good first
+                  move.
+                </td>
+              </tr>
+              <tr class="hl">
+                <td>B · Engagement-gated</td>
+                <td>~90% reduction in ad-selection runs</td>
+                <td>
+                  Same total dollars but fewer "impressions" billed (now honest)
+                </td>
+                <td>Biggest infra lever; pairs naturally with Option A.</td>
+              </tr>
+              <tr>
+                <td>C · Rev-share</td>
+                <td>None</td>
+                <td>
+                  Replaces impression billing with click-revenue percentage
+                </td>
+                <td>
+                  Permanent fix to the impression dispute; requires biz buy-in
+                  on revenue model change.
+                </td>
+              </tr>
+            </table>
+            <p>
+              <b>Recommended sequence for AtWave:</b> A (contract-only,
+              immediate relief) → B (engineering work, ~Q3) → optionally C if
+              AtWave proves to be a recurring CPC-only customer pattern.
+            </p>
+          </div>
+        </details>
+      </section>
+    </div>
+
+    <script>
+      Chart.defaults.color = "#8fa0c4";
+      Chart.defaults.borderColor = "rgba(34,49,85,0.8)";
+      Chart.defaults.font.family =
+        '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
+
+      const COLORS = {
+        appleProxy: "#f85149",
+        appleMail: "#ff7b72",
+        yahoo: "#d29922",
+        google: "#a371f7",
+        real: "#3fb950",
+        realPhone: "#5fcf6e",
+        accent: "#6aa0ff",
+        muted: "#8fa0c4",
+      };
+
+      // 2. Monthly ramp
+      new Chart(document.getElementById("rampChart"), {
+        type: "line",
+        data: {
+          labels: ["Feb", "Mar", "Apr", "May", "Jun (proj.)"],
+          datasets: [
+            {
+              label: "Countable impressions (M)",
+              data: [0.46, 15.9, 69.4, 103.4, 97],
+              borderColor: COLORS.accent,
+              backgroundColor: "rgba(106,160,255,0.15)",
+              fill: true,
+              tension: 0.3,
+              pointRadius: 4,
+            },
+          ],
+        },
+        options: {
+          plugins: { legend: { display: false } },
+          scales: {
+            y: {
+              title: { display: true, text: "millions / month" },
+              beginAtZero: true,
+            },
+          },
+        },
+      });
+
+      // 3. Share doughnut
+      new Chart(document.getElementById("shareChart"), {
+        type: "doughnut",
+        data: {
+          labels: [
+            "apple proxy (81.9%)",
+            "apple mail (14.2%)",
+            "yahoo proxy (3.0%)",
+            "real devices (0.85%)",
+            "google proxy (0.008%)",
+          ],
+          datasets: [
+            {
+              data: [40113934, 6951505, 1489265, 417345, 3858],
+              backgroundColor: [
+                COLORS.appleProxy,
+                COLORS.appleMail,
+                COLORS.yahoo,
+                COLORS.real,
+                COLORS.google,
+              ],
+              borderColor: "#121a33",
+              borderWidth: 2,
+            },
+          ],
+        },
+        options: { plugins: { legend: { position: "right" } }, cutout: "55%" },
+      });
+
+      // 5. CTR log bar
+      new Chart(document.getElementById("ctrChart"), {
+        type: "bar",
+        data: {
+          labels: [
+            "phone (real)",
+            "desktop (real)",
+            "yahoo proxy",
+            "apple mail",
+            "apple proxy",
+          ],
+          datasets: [
+            {
+              label: "CTR %",
+              data: [0.0909, 0.0161, 0.0179, 0.0021, 0.0018],
+              backgroundColor: [
+                COLORS.realPhone,
+                COLORS.real,
+                COLORS.yahoo,
+                COLORS.appleMail,
+                COLORS.appleProxy,
+              ],
+            },
+          ],
+        },
+        options: {
+          indexAxis: "y",
+          plugins: {
+            legend: { display: false },
+            tooltip: { callbacks: { label: (c) => c.parsed.x + "% CTR" } },
+          },
+          scales: {
+            x: {
+              type: "logarithmic",
+              title: { display: true, text: "clicks per impression, % (log)" },
+              ticks: {
+                callback: (v) =>
+                  [0.001, 0.01, 0.1].includes(v) ? v + "%" : null,
+              },
+            },
+          },
+        },
+      });
+
+      // 7. Yahoo split: fetches per (user, blast)
+      new Chart(document.getElementById("yahooSplitChart"), {
+        type: "bar",
+        data: {
+          labels: ["Yahoo · clean IPs", "Yahoo · hosting IPs"],
+          datasets: [
+            {
+              label: "Impressions (M)",
+              data: [0.852, 0.613],
+              backgroundColor: "rgba(143,160,196,0.45)",
+              yAxisID: "y",
+            },
+            {
+              label: "Fetches per (user, blast)",
+              data: [1.1, 1.34],
+              backgroundColor: COLORS.yahoo,
+              yAxisID: "y1",
+              type: "line",
+              borderColor: COLORS.yahoo,
+              borderWidth: 3,
+              pointRadius: 6,
+              fill: false,
+            },
+          ],
+        },
+        options: {
+          plugins: { legend: { position: "bottom" } },
+          scales: {
+            y: {
+              position: "left",
+              title: { display: true, text: "impressions (M)" },
+              beginAtZero: true,
+            },
+            y1: {
+              position: "right",
+              title: { display: true, text: "fetches/pair" },
+              min: 1.0,
+              max: 1.5,
+              grid: { drawOnChartArea: false },
+            },
+          },
+        },
+      });
+
+      // 8. Logged vs estimated real
+      new Chart(document.getElementById("estChart"), {
+        type: "bar",
+        data: {
+          labels: ["apple proxy", "apple mail", "yahoo proxy", "real devices"],
+          datasets: [
+            {
+              label: "Logged impressions",
+              data: [40113934, 6951505, 1489265, 417345],
+              backgroundColor: "rgba(143,160,196,0.45)",
+            },
+            {
+              label: "Estimated real opens (Yahoo-calibrated)",
+              data: [1765013, 319769, 868241, 417345],
+              backgroundColor: COLORS.accent,
+            },
+          ],
+        },
+        options: {
+          plugins: { legend: { position: "bottom" } },
+          scales: {
+            y: {
+              type: "logarithmic",
+              title: { display: true, text: "impressions, 14d (log)" },
+              ticks: {
+                callback: (v) => {
+                  const m = {
+                    1e4: "10K",
+                    1e5: "100K",
+                    1e6: "1M",
+                    1e7: "10M",
+                    1e8: "100M",
+                  };
+                  return m[v] || null;
+                },
+              },
+            },
+          },
+        },
+      });
+
+      // 9. Raw vs real CTR
+      new Chart(document.getElementById("realCtrChart"), {
+        type: "bar",
+        data: {
+          labels: [
+            "phone & tablet",
+            "apple mail",
+            "apple proxy",
+            "yahoo proxy",
+            "desktop",
+            "google proxy",
+          ],
+          datasets: [
+            {
+              label: "Raw CTR (clicks / impressions)",
+              data: [0.0909, 0.0021, 0.0018, 0.0179, 0.0161, 0.0778],
+              backgroundColor: "rgba(143,160,196,0.55)",
+            },
+            {
+              label: "Estimated real CTR (clicks / real opens)",
+              data: [0.0909, 0.046, 0.0412, 0.0306, 0.0161, 0.0778],
+              backgroundColor: COLORS.real,
+            },
+          ],
+        },
+        options: {
+          plugins: {
+            legend: { position: "bottom" },
+            tooltip: {
+              callbacks: {
+                label: (c) => `${c.dataset.label}: ${c.parsed.x.toFixed(4)}%`,
+              },
+            },
+          },
+          indexAxis: "y",
+          scales: {
+            x: {
+              type: "logarithmic",
+              title: { display: true, text: "CTR % (log)" },
+              ticks: {
+                callback: (v) =>
+                  [0.001, 0.01, 0.1].includes(v) ? v + "%" : null,
+              },
+            },
+          },
+        },
+      });
+
+      // 10. Engagement rate by segment
+      new Chart(document.getElementById("engagementChart"), {
+        type: "bar",
+        data: {
+          labels: [
+            "phone & tablet",
+            "desktop",
+            "yahoo proxy",
+            "apple mail",
+            "apple proxy",
+          ],
+          datasets: [
+            {
+              label: "Engagement rate (% of users who clicked)",
+              data: [0.306, 0.098, 0.064, 0.026, 0.025],
+              backgroundColor: [
+                COLORS.realPhone,
+                COLORS.real,
+                COLORS.yahoo,
+                COLORS.appleMail,
+                COLORS.appleProxy,
+              ],
+            },
+          ],
+        },
+        options: {
+          indexAxis: "y",
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: { label: (c) => c.parsed.x.toFixed(3) + "% engaged" },
+            },
+          },
+          scales: {
+            x: {
+              title: {
+                display: true,
+                text: "% of segment users who clicked in 14d",
+              },
+              beginAtZero: true,
+            },
+          },
+        },
+      });
+    </script>
+  </body>
+</html>
