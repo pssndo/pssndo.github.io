@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Platform classifier shifts — Apple + Yahoo IP-intel drift, Q2 2026</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #0b1020;
+    --bg-soft: #121a33;
+    --fg: #e6ebf5;
+    --muted: #8fa0c4;
+    --accent: #6aa0ff;
+    --accent-2: #ff7b72;
+    --good: #3fb950;
+    --bad: #f85149;
+    --warn: #d29922;
+    --border: #223155;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--fg); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+  body { line-height: 1.55; }
+  .deck { max-width: 1100px; margin: 0 auto; padding: 24px; }
+  .slide {
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 36px 44px;
+    margin: 28px 0;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.25);
+  }
+  .slide h1, .slide h2, .slide h3 { margin-top: 0; }
+  .slide h1 { font-size: 32px; letter-spacing: -0.02em; margin-bottom: 6px; }
+  .slide h2 { font-size: 25px; color: var(--accent); margin-bottom: 16px; letter-spacing: -0.01em; }
+  .slide h3 { font-size: 17px; color: var(--muted); margin: 22px 0 10px; text-transform: uppercase; letter-spacing: 0.08em; }
+  .slide .subtitle { color: var(--muted); margin-bottom: 20px; font-size: 16px; }
+  .kicker { color: var(--accent); font-weight: 600; font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 10px; }
+  .big-stat { font-size: 48px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.05; margin: 10px 0 6px; }
+  .big-stat.bad { color: var(--bad); }
+  .big-stat.good { color: var(--good); }
+  .big-stat.accent { color: var(--accent); }
+  .big-stat.warn { color: var(--warn); }
+  .stat-caption { color: var(--muted); font-size: 14px; margin-bottom: 16px; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px; align-items: stretch; }
+  .panel { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 10px; padding: 18px 20px; }
+  .panel h4 { margin: 0 0 8px; font-size: 15px; color: var(--fg); }
+  .panel p { margin: 0; font-size: 14px; color: var(--muted); }
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; margin: 12px 0; }
+  th { text-align: left; color: var(--muted); font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: 0.06em; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+  td { padding: 7px 10px; border-bottom: 1px solid rgba(34,49,85,0.6); }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  tr.hl td { background: rgba(106,160,255,0.08); }
+  tr.dim td { color: var(--muted); }
+  tr.flip td { background: rgba(248,81,73,0.10); }
+  .badge { display: inline-block; padding: 2px 10px; border-radius: 99px; font-size: 12px; font-weight: 600; }
+  .badge.bad { background: rgba(248,81,73,0.15); color: var(--bad); }
+  .badge.good { background: rgba(63,185,80,0.15); color: var(--good); }
+  .badge.warn { background: rgba(210,153,34,0.15); color: var(--warn); }
+  .badge.accent { background: rgba(106,160,255,0.15); color: var(--accent); }
+  .callout { border-left: 3px solid var(--accent); background: rgba(106,160,255,0.07); padding: 14px 18px; border-radius: 0 10px 10px 0; margin: 16px 0; font-size: 14.5px; }
+  .callout.bad { border-color: var(--bad); background: rgba(248,81,73,0.07); }
+  .callout.good { border-color: var(--good); background: rgba(63,185,80,0.07); }
+  .callout.warn { border-color: var(--warn); background: rgba(210,153,34,0.07); }
+  .chart-box { background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+  .chart-box .chart-title { font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 8px; font-weight: 600; }
+  .footnote { color: var(--muted); font-size: 12.5px; margin-top: 14px; }
+  .small { font-size: 13px; color: var(--muted); }
+  ul.tight { margin: 8px 0; padding-left: 22px; }
+  ul.tight li { margin: 6px 0; font-size: 14px; }
+  .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.9em; background: rgba(255,255,255,0.06); padding: 1px 6px; border-radius: 5px; }
+  pre { background: rgba(0,0,0,0.4); border: 1px solid var(--border); border-radius: 6px; padding: 12px; overflow-x: auto; font-size: 12.5px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+  pre.sql .kw  { color: #ff7b72; }
+  pre.sql .fn  { color: #6aa0ff; }
+  pre.sql .str { color: #a5d6a7; }
+  pre.sql .com { color: var(--muted); font-style: italic; }
+  @media (max-width: 800px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } .slide { padding: 24px; } }
+</style>
+</head>
+<body>
+<div class="deck">
+
+  <!-- 1. Title -->
+  <section class="slide">
+    <div class="kicker">Engineering · Emperor Platform · 2026-06-15</div>
+    <h1>Platform classifier shifts — Apple &amp; Yahoo IP-intel drift</h1>
+    <div class="subtitle">A retrospective on four undocumented classification regime changes that hit every client in Q2 2026 — and what to wire to catch the next one.</div>
+    <div class="grid-3">
+      <div class="panel"><h4>Audience</h4><p>Ad-server engineering, platform owners, anyone interpreting longitudinal <span class="mono">deviceId</span> / <span class="mono">fraudTypeId</span> aggregates</p></div>
+      <div class="panel"><h4>Source data</h4><p>ClickHouse <span class="mono">emperor.events</span> (countable only) · 5 publisher clients across US / CA / UK · 90-day window</p></div>
+      <div class="panel"><h4>TL;DR</h4><p>4 platform-wide reclassification events in 90 days · all silent · all changed report shapes · none had alerts</p></div>
+    </div>
+  </section>
+
+  <!-- 2. The four events at a glance -->
+  <section class="slide">
+    <div class="kicker">Inventory</div>
+    <h2>Four undocumented platform classifier events in 90 days</h2>
+    <table>
+      <tr><th>Date (UTC)</th><th>Segment affected</th><th>Magnitude</th><th>Direction</th><th>Confirmed across clients?</th></tr>
+      <tr><td><b>2026-04-29</b></td><td>Yahoo · clean (60) ↔ hosting (3)</td><td>~10pp</td><td>clean → hosting</td><td>Inferred (observed on AtWave; not cross-checked due to query budget)</td></tr>
+      <tr><td><b>2026-05-21</b></td><td>Yahoo · clean (60) ↔ hosting (3)</td><td>~30pp</td><td>clean → hosting</td><td>Inferred (observed on AtWave)</td></tr>
+      <tr class="flip"><td><b>2026-06-08 / 09</b></td><td>Apple · apple_proxy ↔ apple_mail</td><td>~67–82pp</td><td>proxy → mail (then partial revert)</td><td><b>Yes — verified on 5 clients across US/CA/UK</b></td></tr>
+      <tr><td><b>2026-06-08 / 09</b></td><td>Yahoo · clean ↔ hosting</td><td>~15–25pp transient</td><td>hosting → clean for 24h, reverted</td><td>Co-occurs with the Apple cliff — likely the same deploy touching multiple IP groups</td></tr>
+    </table>
+    <div class="callout warn">
+      All four events are <b>silent reclassifications</b> in our IP intelligence layer (or downstream consumer of it).
+      No deploy log entry, no Sentry breadcrumb, no per-segment-ratio alert. They show up only in retrospective analysis.
+    </div>
+  </section>
+
+  <!-- 3. Apple cliff — daily detail -->
+  <section class="slide">
+    <div class="kicker">Event A · The Apple cliff</div>
+    <h2>2026-06-09 — apple_proxy ↔ apple_mail flipped overnight on every client</h2>
+    <div class="chart-box">
+      <div class="chart-title">apple_proxy share of Apple-family traffic (5 clients, May 25 – Jun 14, daily)</div>
+      <canvas id="appleCliffChart" height="240"></canvas>
+    </div>
+    <table>
+      <tr><th>Client</th><th>Country</th><th class="num">Pre (May 25–Jun 7)</th><th class="num">Jun 8 transition</th><th class="num">Jun 9 flip</th><th class="num">Jun 10–11 settle</th></tr>
+      <tr><td>AtWave</td><td>US</td><td class="num">95%</td><td class="num">73%</td><td class="num"><b>12%</b></td><td class="num">40–42%</td></tr>
+      <tr><td>Key Media</td><td>US</td><td class="num">94%</td><td class="num">67%</td><td class="num"><b>22%</b></td><td class="num">62%</td></tr>
+      <tr><td>Newcom</td><td>CA</td><td class="num">95%</td><td class="num">77%</td><td class="num"><b>27%</b></td><td class="num">87%</td></tr>
+      <tr><td>Sosland Publishing</td><td>US</td><td class="num">94%</td><td class="num">79%</td><td class="num"><b>24.5%</b></td><td class="num">51–54%</td></tr>
+      <tr><td>1XL</td><td>UK</td><td class="num">93%</td><td class="num">71%</td><td class="num"><b>28%</b></td><td class="num">62–63%</td></tr>
+    </table>
+  </section>
+
+  <!-- 4. Apple cliff: invariants and what differs -->
+  <section class="slide">
+    <div class="kicker">Event A · Anatomy</div>
+    <h2>What the cliff conserved — and what it didn't</h2>
+    <div class="chart-box" style="margin-bottom:20px;">
+      <div class="chart-title">apple_proxy share before vs after the cliff — per client (the settle ratio varies wildly)</div>
+      <canvas id="appleSettleChart" height="180"></canvas>
+    </div>
+    <div class="grid-2">
+      <div>
+        <h3>Conserved invariants</h3>
+        <ul class="tight">
+          <li><b>Total Apple-family traffic per client per day</b> is essentially flat across the cliff (within ±5% day-over-day noise). AtWave: ~3.4M/day before AND after.</li>
+          <li><b>Click attribution patterns</b> — clicker device mix (desktop / phone), CTR per impression, click → impression <span class="mono">impressionId</span> joins all unaffected. Apple users were still Apple users; only their classification label changed.</li>
+          <li><b>Pre-cliff ratio was identical across all 5 clients</b>: 93–95% apple_proxy.</li>
+        </ul>
+      </div>
+      <div>
+        <h3>What shifted</h3>
+        <ul class="tight">
+          <li><b>The within-Apple split changed per-client by different amounts</b>: AtWave settled at 40%, Newcom at 87%. The post-event ratio depends on which specific Apple IP ranges the client's recipients sit on.</li>
+          <li><b>Jun 9 was the worst day</b> — almost all Apple traffic classified as apple_mail. Jun 10 onward partially reverted to a new equilibrium.</li>
+          <li><b>The "MPP enabled vs not" interpretation we'd been ascribing to the split is wrong.</b> The labels are a function of IP-intel state, not user behavior — Apple's MPP enrollment doesn't change overnight by ~70pp.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="callout bad">
+      <b>Operational consequence:</b> any report or dashboard that groups by <span class="mono">deviceId</span> over a window spanning Jun 9 produces misleading trend lines. The fix is upstream — re-aggregate to a synthetic <b>Apple-family combined</b> bucket (apple_proxy + apple_mail) before producing time series.
+    </div>
+  </section>
+
+  <!-- 5. Apple cliff: code path / suspect deploy -->
+  <section class="slide">
+    <div class="kicker">Event A · Where to look</div>
+    <h2>The classifier logic and likely root cause</h2>
+    <div class="grid-2">
+      <div>
+        <h3>The classifier (current state)</h3>
+        <pre class="sql"><span class="com">// backend/apps/adserver/src/Device/CreateDeviceUsingParser.php</span>
+
+<span class="kw">private function</span> <span class="fn">isAppleProxy</span>(<span class="kw">string</span> $userAgent): <span class="kw">bool</span>
+{
+    <span class="kw">return</span> $userAgent === <span class="str">'Mozilla/5.0'</span>;
+}
+
+<span class="kw">private function</span> <span class="fn">isAppleMpp</span>(?<span class="kw">string</span> $vpnDescription, ?<span class="kw">string</span> $vpnType): <span class="kw">bool</span>
+{
+    <span class="kw">return</span> $vpnDescription === <span class="str">'apple'</span>
+        && $vpnType === <span class="str">'consumer-privacy'</span>;
+}</pre>
+        <p>The bare-<span class="mono">Mozilla/5.0</span> UA matches Apple traffic. The MPP-vs-not distinction depends entirely on whether the upstream VPN/IP-intel resolver returns <span class="mono">vpnDescription = 'apple'</span> AND <span class="mono">vpnType = 'consumer-privacy'</span> for the source IP.</p>
+      </div>
+      <div>
+        <h3>Suspect cause</h3>
+        <ul class="tight">
+          <li><b>IP intel data refresh</b> from the VPN classifier provider (MaxMind, IP2Location, IPQualityScore, etc.). On Jun 8–9 the provider may have shipped an update that reclassified a large chunk of Apple's MPP infrastructure IPs out of the <span class="mono">consumer-privacy</span> bucket.</li>
+          <li><b>Or a code change</b> in <span class="mono">CreateDeviceUsingParser.php</span> or its VPN-data resolver. Less likely given the cross-client uniformity, but worth checking the deploy log for Jun 8 UTC.</li>
+          <li><b>Or both</b> — a deploy that reloaded VPN-intel data in a way that exposed a pre-existing pending update.</li>
+        </ul>
+        <h3>Why the partial revert on Jun 10?</h3>
+        <p>Jun 9 was the extreme (~22% apple_proxy). Jun 10 onward settles higher. Either a fix went in (partial), or the IP-intel data continued updating asynchronously after the initial deploy.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6. Yahoo timeline -->
+  <section class="slide">
+    <div class="kicker">Event B · Yahoo IP-intel drift</div>
+    <h2>Yahoo clean / hosting split — 3 step-functions, not gradual drift</h2>
+    <div class="chart-box">
+      <div class="chart-title">AtWave · daily Yahoo "clean" share (fraudType 60 / total Yahoo), Apr 20 – Jun 11</div>
+      <canvas id="yahooTimelineChart" height="260"></canvas>
+    </div>
+    <table>
+      <tr><th>Period</th><th class="num">Yahoo clean %</th><th>Event</th></tr>
+      <tr><td>Mar 15 – Apr 28 (~6 weeks)</td><td class="num">~97%</td><td>baseline — Yahoo proxy nearly all classified clean</td></tr>
+      <tr class="flip"><td><b>2026-04-29 step</b></td><td class="num">drops ~10pp</td><td>chunk of Yahoo IPs reclassified to fraudType 3 (HOSTING)</td></tr>
+      <tr><td>Apr 29 – May 20 (~3 weeks)</td><td class="num">~87%</td><td>new steady state</td></tr>
+      <tr class="flip"><td><b>2026-05-21 step</b></td><td class="num">drops ~30pp</td><td>large chunk reclassified to HOSTING — the dominant event</td></tr>
+      <tr><td>May 22 – Jun 7 (~2.5 weeks)</td><td class="num">~55%</td><td>third regime</td></tr>
+      <tr class="flip"><td>2026-06-08 / 09 transient</td><td class="num">spike to 70–78%</td><td>collateral of the Apple-cliff deploy — touches Yahoo IPs too</td></tr>
+      <tr><td>Jun 10+ (current)</td><td class="num">~55%</td><td>settled back to the May 22 regime</td></tr>
+    </table>
+  </section>
+
+  <!-- 7. Yahoo: cross-client + impact on calibration -->
+  <section class="slide">
+    <div class="kicker">Event B · Cross-client &amp; impact</div>
+    <h2>Yahoo's drift is platform-wide — and breaks any cross-window calibration</h2>
+    <div class="grid-2">
+      <div>
+        <h3>Cross-client Yahoo clean share (Jun 1–15)</h3>
+        <div class="chart-box">
+          <div class="chart-title">Yahoo clean % — same window, 5 clients</div>
+          <canvas id="yahooCrossClientChart" height="180"></canvas>
+        </div>
+        <p class="small">All 5 clients cluster at 55–67% clean in the same window — confirming the drift is platform-level, not client-specific.</p>
+      </div>
+      <div>
+        <h3>Impact on the Yahoo-as-anchor methodology</h3>
+        <p>The AtWave real-impressions analysis used Yahoo's clean subset as ground-truth ("clean ≈ 100% real opens") to derive a <b>+23% calibration constant</b> on the click-anchored real-share estimator. That number is correct for the May 22 – Jun 7 regime (Yahoo at 55%), but:</p>
+        <ul class="tight">
+          <li>In the <b>Mar 15 – Apr 28 regime</b> (Yahoo at 97%), the calibration would be near zero — the click-anchored method was already roughly right.</li>
+          <li>In the <b>Apr 29 – May 20 regime</b> (Yahoo at 87%), the calibration would be smaller — perhaps +10%.</li>
+          <li>The +23% from June can't be carried backward without producing wrong answers.</li>
+        </ul>
+        <div class="callout bad" style="margin-bottom: 0">
+          <b>Methodology rule:</b> any calibration constant derived from a Yahoo-subset analysis must be re-computed inside the same window as the data being analyzed. Cross-window comparisons need their own per-window calibrations.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8. Why this matters — downstream effects -->
+  <section class="slide">
+    <div class="kicker">Operational impact</div>
+    <h2>What these silent reclassifications break</h2>
+    <div class="grid-3">
+      <div class="panel"><h4>Per-segment trend reports</h4><p>Anything grouping by <span class="mono">deviceId</span> over a window spanning Jun 9 shows a "real" but spurious shift. Customer-facing dashboards using apple_proxy / apple_mail split are misleading without aggregation to Apple-family.</p></div>
+      <div class="panel"><h4>Fraud / billing logic</h4><p>If any downstream uses fraudType 3 (HOSTING) as a discount factor (e.g. observe-mode exclusion), the rolling Yahoo drift means clients' billed counts shift silently with each IP-intel step. Need to check whether any of our existing aggregate MVs depend on this.</p></div>
+      <div class="panel"><h4>Calibration constants</h4><p>Per the AtWave methodology: any "drift" measured from a Yahoo back-check is window-specific and must be re-derived. Old constants applied to new data produce wrong real-share estimates.</p></div>
+      <div class="panel"><h4>Cross-window analyses</h4><p>Backtests, A/B test readouts, and any longitudinal report that grew its window across one of these dates needs a regime-aware aggregation function — not a simple <span class="mono">GROUP BY deviceId</span>.</p></div>
+      <div class="panel"><h4>Customer questions</h4><p>"Why did my apple_proxy traffic drop on Jun 9?" is now a recurring CSM question we have no current automated answer for. Knowledge of the cliff lives in this deck and three markdown reports.</p></div>
+      <div class="panel"><h4>Future events</h4><p>If IP-intel data updates monthly (Yahoo's pattern suggests it does), expect ~12 of these per year. Each silent. Each can shift report shapes by 10–30pp.</p></div>
+    </div>
+  </section>
+
+  <!-- 9. Recommendations -->
+  <section class="slide">
+    <div class="kicker">Recommendations</div>
+    <h2>What to build / change</h2>
+    <h3>Detection (low effort, high value)</h3>
+    <ul class="tight">
+      <li><b>Daily classification-ratio Sentry breadcrumb.</b> Compute the per-publisher daily share of each <span class="mono">deviceId</span> and each <span class="mono">fraudTypeId</span>. Emit a Sentry breadcrumb when any segment's share shifts more than <b>20pp day-over-day</b>. One-shot scheduled job against the aggregate MVs; ~10 lines of code.</li>
+      <li><b>Weekly IP-intel data version log.</b> Whatever VPN/IP intelligence provider feeds <span class="mono">vpnDescription</span> / <span class="mono">vpnType</span>: capture and persist the provider's data version / publish date on every refresh. Lets us correlate future shifts with intel updates.</li>
+      <li><b>Deploy log enrichment.</b> Any deploy that touches <span class="mono">CreateDeviceUsingParser.php</span> or the VPN-data loader gets a one-line note + a marker in our metrics dashboard. Free for future investigators.</li>
+    </ul>
+    <h3>Reporting hygiene</h3>
+    <ul class="tight">
+      <li><b>Treat <span class="mono">apple_proxy</span> + <span class="mono">apple_mail</span> as one Apple-family unit</b> in all longitudinal reports and external dashboards. The sub-label is IP-intel state, not user behavior.</li>
+      <li><b>Document the Apr 29 / May 21 / Jun 9 regime boundaries</b> in the analytics docs (<span class="mono">docs/overview/</span>) so future analyses don't accidentally span them with a single GROUP BY.</li>
+      <li><b>Calibration constants must be window-bound.</b> Any derived multiplier (like the AtWave +23%) carries a "valid for window X→Y only" tag.</li>
+    </ul>
+    <h3>Investigation (one-shot)</h3>
+    <ul class="tight">
+      <li><b>Confirm the Jun 8–9 root cause.</b> Pull the git log + deploy log for Jun 7–9 and any IP-intel data refresh records. If the cause was a vendor update, file a ticket; if it was our code, decide whether to revert / pin / accept.</li>
+      <li><b>Spot-check the Apr 29 and May 21 events</b> on at least one other client to confirm they're platform-wide (high confidence, but not yet verified — only AtWave was queried at daily granularity for that period).</li>
+    </ul>
+  </section>
+
+  <!-- 10. Queries for reproducibility -->
+  <section class="slide">
+    <div class="kicker">Reproducibility</div>
+    <h2>SQL anchors — re-run any of this</h2>
+    <h3>Apple cliff per client (daily)</h3>
+    <pre class="sql"><span class="kw">SELECT</span>
+  <span class="fn">toDate</span>(datetime) <span class="kw">AS</span> day,
+  <span class="fn">countIf</span>(deviceId = <span class="str">'8c02db85-d54c-41a2-ab75-5db20a9f6f3e'</span>) <span class="kw">AS</span> apple_proxy,
+  <span class="fn">countIf</span>(deviceId = <span class="str">'ae34b6a0-726e-4e9a-825f-ace9c1708bab'</span>) <span class="kw">AS</span> apple_mail,
+  <span class="fn">round</span>(<span class="fn">countIf</span>(deviceId = <span class="str">'8c02db85-d54c-41a2-ab75-5db20a9f6f3e'</span>) /
+    <span class="fn">nullIf</span>(<span class="fn">countIf</span>(deviceId <span class="kw">IN</span> (<span class="str">'8c02db85-...'</span>,<span class="str">'ae34b6a0-...'</span>)), 0) * 100, 1) <span class="kw">AS</span> proxy_share_pct
+<span class="kw">FROM</span> emperor.events
+<span class="kw">WHERE</span> publisherClientId = <span class="str">'&lt;client_id&gt;'</span>
+  <span class="kw">AND</span> datetime &gt;= <span class="fn">toDateTime</span>(<span class="str">'2026-05-25 00:00:00'</span>)
+  <span class="kw">AND</span> datetime &lt;  <span class="fn">toDateTime</span>(<span class="str">'2026-06-15 00:00:00'</span>)
+  <span class="kw">AND</span> eventType = <span class="str">'IMPRESSION'</span> <span class="kw">AND</span> countableStatus = 1
+  <span class="kw">AND</span> deviceId <span class="kw">IN</span> (<span class="str">'8c02db85-...'</span>,<span class="str">'ae34b6a0-...'</span>)
+<span class="kw">GROUP BY</span> day <span class="kw">ORDER BY</span> day</pre>
+    <h3>Yahoo clean/hosting timeline per client (daily)</h3>
+    <pre class="sql"><span class="kw">SELECT</span>
+  <span class="fn">toDate</span>(datetime) <span class="kw">AS</span> day,
+  <span class="fn">countIf</span>(fraudTypeId = 60) <span class="kw">AS</span> clean_60,
+  <span class="fn">countIf</span>(fraudTypeId = 3)  <span class="kw">AS</span> hosting_3,
+  <span class="fn">round</span>(<span class="fn">countIf</span>(fraudTypeId = 60) / <span class="fn">nullIf</span>(<span class="fn">count</span>(), 0) * 100, 1) <span class="kw">AS</span> clean_pct
+<span class="kw">FROM</span> emperor.events
+<span class="kw">WHERE</span> publisherClientId = <span class="str">'&lt;client_id&gt;'</span>
+  <span class="kw">AND</span> datetime &gt;= <span class="fn">toDateTime</span>(<span class="str">'2026-04-20 00:00:00'</span>)
+  <span class="kw">AND</span> datetime &lt;  <span class="fn">toDateTime</span>(<span class="str">'2026-06-12 00:00:00'</span>)
+  <span class="kw">AND</span> eventType = <span class="str">'IMPRESSION'</span> <span class="kw">AND</span> countableStatus = 1
+  <span class="kw">AND</span> deviceId = <span class="str">'fd7db5aa-8c9d-4595-8116-152c9b1acd30'</span>  <span class="com">-- yahoo proxy</span>
+<span class="kw">GROUP BY</span> day <span class="kw">ORDER BY</span> day</pre>
+    <p class="footnote">Note: <span class="mono">emperor.events</span> is sorted by <span class="mono">datetime</span> only; per-day GROUP BYs over 90 days run cleanly under the 30s server budget. Adding a high-cardinality dimension (e.g. <span class="mono">userIdentity</span>) tips into timeout — chunk by week or use the aggregate MVs where possible.</p>
+  </section>
+
+  <!-- 11. References / footer -->
+  <section class="slide">
+    <div class="kicker">References</div>
+    <h2>Where these findings came from &amp; where to dig further</h2>
+    <table>
+      <tr><th>Artifact</th><th>What's in it</th></tr>
+      <tr><td><span class="mono">tmp/atwave/three_month_analysis.md</span></td><td>The original retrospective that surfaced all 4 events. Contains the daily per-client tables in full.</td></tr>
+      <tr><td><span class="mono">tmp/atwave/user_level_analysis.md</span></td><td>The Yahoo calibration analysis that depended on the (mistakenly stable) assumption.</td></tr>
+      <tr><td><span class="mono">tmp/atwave/proxy_impressions_analysis.md</span></td><td>Foundational segment-physics writeup.</td></tr>
+      <tr><td><span class="mono">docs/AI_DATA_RESEARCH_BOOTSTRAP.md</span></td><td>Bootstrap doc now updated with the regime-change notes for future agents.</td></tr>
+      <tr><td><span class="mono">docs/overview/EMPEROR_SYSTEM_OVERVIEW.md</span></td><td>Add a section here covering the device-classifier's IP-intel dependency (currently undocumented).</td></tr>
+      <tr><td><span class="mono">pssndo.github.io/presentations/atwave-real-impressions.html</span></td><td>The client-facing AtWave deck — now annotated with a calibration-window caveat referencing this deck.</td></tr>
+    </table>
+    <p class="footnote">
+      Window: 2026-03-15 → 2026-06-15. Source: ClickHouse <span class="mono">emperor.events</span> (countable only, via the US-scoped <span class="mono">ai_reader_us_clients_events</span> view where <span class="mono">userIdentity</span> was needed, otherwise base table).
+      Clients tested: AtWave (US), Key Media (US), Newcom (CA), Sosland Publishing (US), 1XL (UK).
+    </p>
+  </section>
+
+</div>
+
+<script>
+Chart.defaults.color = '#8fa0c4';
+Chart.defaults.borderColor = 'rgba(34,49,85,0.8)';
+Chart.defaults.font.family = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
+
+const CL = {
+  atwave: '#f85149',
+  keyMedia: '#6aa0ff',
+  newcom: '#3fb950',
+  sosland: '#d29922',
+  oneXL: '#a371f7',
+  muted: '#8fa0c4'
+};
+
+// Apple cliff — proxy share by day, per client
+const days = ['May 25','May 26','May 27','May 28','May 29','May 30','May 31',
+              'Jun 1','Jun 2','Jun 3','Jun 4','Jun 5','Jun 6','Jun 7',
+              'Jun 8','Jun 9','Jun 10','Jun 11'];
+new Chart(document.getElementById('appleCliffChart'), {
+  type: 'line',
+  data: {
+    labels: days,
+    datasets: [
+      // AtWave (May 25-Jun 7 ~95%, Jun 8: 73, Jun 9: 12, Jun 10-11: 41)
+      { label: 'AtWave (US)', data: [95,95,95,95,95,95,95,95,95,95,95,95,95,95,73,12,41,42], borderColor: CL.atwave, backgroundColor: CL.atwave, tension: 0.1, pointRadius: 3 },
+      { label: 'Key Media (US)', data: [94.9,93.9,93.9,94.2,94.1,94.4,94.4,93.8,93.7,93.9,94.0,94.0,94.2,94.1,67.0,22.2,61.9,61.6], borderColor: CL.keyMedia, backgroundColor: CL.keyMedia, tension: 0.1, pointRadius: 3 },
+      { label: 'Newcom (CA)', data: [94.4,94.4,94.4,95.0,95.3,95.0,94.0,94.7,94.8,94.9,95.0,94.7,95.0,94.7,76.8,26.8,87.5,87.6], borderColor: CL.newcom, backgroundColor: CL.newcom, tension: 0.1, pointRadius: 3 },
+      { label: 'Sosland (US)', data: [94.1,93.8,94.4,94.2,94.4,94.7,95.2,94.3,94.1,94.3,94.4,94.0,94.7,94.0,79.3,24.5,51.0,51.5], borderColor: CL.sosland, backgroundColor: CL.sosland, tension: 0.1, pointRadius: 3 },
+      { label: '1XL (UK)', data: [null,null,null,null,null,null,null,null,null,null,null,93.0,93.1,92.8,70.6,27.9,63.0,62.6], borderColor: CL.oneXL, backgroundColor: CL.oneXL, tension: 0.1, pointRadius: 3 }
+    ]
+  },
+  options: {
+    plugins: { legend: { position: 'bottom' }, tooltip: { callbacks: { label: c => `${c.dataset.label}: ${c.parsed.y}% apple_proxy` } } },
+    scales: { y: { min: 0, max: 100, title: { display: true, text: 'apple_proxy share of Apple-family %' } } }
+  }
+});
+
+// Yahoo timeline AtWave
+const yahooDays = ['Apr 20','Apr 21','Apr 22','Apr 23','Apr 24','Apr 25','Apr 26','Apr 27','Apr 28','Apr 29','Apr 30','May 1','May 2','May 3','May 4','May 5','May 6','May 7','May 8','May 9','May 10','May 11','May 12','May 13','May 14','May 15','May 16','May 17','May 18','May 19','May 20','May 21','May 22','May 23','May 24','May 25','May 26','May 27','May 28','May 29','May 30','May 31','Jun 1','Jun 2','Jun 3','Jun 4','Jun 5','Jun 6','Jun 7','Jun 8','Jun 9','Jun 10','Jun 11'];
+const yahooClean = [97.2,96.8,96.8,97.0,97.3,97.0,97.1,97.0,97.1,91.9,87.1,87.1,87.4,86.1,86.1,87.0,87.2,86.6,86.8,87.7,88.0,86.8,87.2,87.5,86.7,86.1,87.3,87.8,86.8,86.6,86.8,71.8,55.8,55.6,54.5,53.9,54.3,55.5,55.7,54.9,57.4,58.8,57.9,56.5,56.2,56.2,54.3,53.5,54.6,69.9,78.1,54.8,55.8];
+new Chart(document.getElementById('yahooTimelineChart'), {
+  type: 'line',
+  data: {
+    labels: yahooDays,
+    datasets: [{
+      label: 'Yahoo clean (fraudType 60) %',
+      data: yahooClean,
+      borderColor: CL.sosland,
+      backgroundColor: 'rgba(210,153,34,0.15)',
+      tension: 0.15,
+      pointRadius: 2,
+      fill: true
+    }]
+  },
+  options: {
+    plugins: {
+      legend: { display: false },
+      tooltip: { callbacks: { label: c => `${c.parsed.y}% clean (fraudType 60)` } },
+      annotation: { } // hint for the eye via dataset only
+    },
+    scales: {
+      y: { min: 40, max: 100, title: { display: true, text: 'Yahoo clean share %' } },
+      x: { ticks: { autoSkip: true, maxTicksLimit: 12 } }
+    }
+  }
+});
+
+// Apple settle ratio — pre vs Jun 9 vs settled, grouped bar per client
+new Chart(document.getElementById('appleSettleChart'), {
+  type: 'bar',
+  data: {
+    labels: ['AtWave (US)', 'Key Media (US)', 'Newcom (CA)', 'Sosland (US)', '1XL (UK)'],
+    datasets: [
+      { label: 'Pre (May 25–Jun 7)', data: [95, 94, 95, 94, 93], backgroundColor: 'rgba(143,160,196,0.55)' },
+      { label: 'Jun 9 (flip)',       data: [12, 22, 27, 24.5, 28], backgroundColor: CL.atwave },
+      { label: 'Jun 10–11 (settled)', data: [41, 62, 87, 51, 63], backgroundColor: CL.newcom }
+    ]
+  },
+  options: {
+    plugins: {
+      legend: { position: 'bottom' },
+      tooltip: { callbacks: { label: c => `${c.dataset.label}: ${c.parsed.y}% apple_proxy` } }
+    },
+    scales: { y: { min: 0, max: 100, title: { display: true, text: 'apple_proxy share of Apple-family %' } } }
+  }
+});
+
+// Yahoo clean % cross-client (Jun 1-15)
+new Chart(document.getElementById('yahooCrossClientChart'), {
+  type: 'bar',
+  data: {
+    labels: ['1XL (UK)', 'Sosland (US)', 'Key Media (US)', 'AtWave (US)', 'Newcom (CA)'],
+    datasets: [{
+      label: 'Yahoo clean %',
+      data: [67.1, 64.5, 63.3, 58.2, 55.8],
+      backgroundColor: [CL.oneXL, CL.sosland, CL.keyMedia, CL.atwave, CL.newcom]
+    }]
+  },
+  options: {
+    indexAxis: 'y',
+    plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => `${c.parsed.x}% clean` } } },
+    scales: { x: { min: 0, max: 100, title: { display: true, text: 'Yahoo clean (fraudType 60) %' } } }
+  }
+});
+</script>
+</body>
+</html>
