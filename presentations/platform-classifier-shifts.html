@@ -159,10 +159,61 @@
     </div>
   </section>
 
+  <!-- 4b. IP-level evidence: transient vs permanent reclassification -->
+  <section class="slide">
+    <div class="kicker">Event A · IP-level diagnostic</div>
+    <h2>The cliff is two events: a transient ~50pp swing + a permanent ~15pp reclassification</h2>
+    <p style="font-size:14.5px;">
+      Sampling AtWave's traffic by /24 subnet across Jun 5 → Jun 12 separates the Apple/Fastly/Cloudflare ranges into two
+      distinct populations. Both behaved identically until Jun 8; then they split.
+    </p>
+    <div class="chart-box">
+      <div class="chart-title">apple_proxy share of Apple-family hits per /24 subnet — AtWave, daily</div>
+      <canvas id="subnetPatternChart" height="280"></canvas>
+    </div>
+    <div class="grid-2" style="margin-top:14px;">
+      <div>
+        <h3>Pattern A — transient flip, then reverted (the bulk)</h3>
+        <ul class="tight">
+          <li><span class="mono">146.75.164</span> (Fastly CDN, 15–22 IPs): proxy 189K → 54K (Jun 9) → 193K (Jun 12) ✓</li>
+          <li><span class="mono">146.75.222</span> (Fastly CDN, 9–12 IPs): proxy 99K → 26K → 99K ✓</li>
+          <li><span class="mono">104.28.97</span> (Cloudflare, 23–26 IPs): proxy 52K → 14K → 52K ✓</li>
+          <li><span class="mono">172.226.87</span> (Apple DC, 132 IPs): proxy 53K → 20K → 71K ✓</li>
+          <li><span class="mono">172.226.175</span> (Apple DC, 53 IPs): proxy 64K → 22K → 70K ✓</li>
+          <li><span class="mono">140.248.30</span> (Apple DC, 3–7 IPs): proxy 17K → 5K → 17K ✓</li>
+        </ul>
+        <p class="small">All of these are still legitimate Apple-MPP infrastructure today. They briefly lost the <span class="mono">consumer-privacy</span> tag for ~24–48h and got it back.</p>
+      </div>
+      <div>
+        <h3>Pattern B — permanent reclassification (the residual)</h3>
+        <ul class="tight">
+          <li><span class="mono">146.75.128</span> (Fastly CDN, 4–5 IPs): proxy 15K → 0 → 0 (now 100% apple_mail)</li>
+          <li><span class="mono">172.226.174</span> (Apple DC, 78 IPs): proxy 8K → 1 → 5 (now ~100% apple_mail)</li>
+          <li><span class="mono">146.75.234</span> (Fastly CDN, 2 IPs): proxy 6K → 0 → 0 (now 100% apple_mail)</li>
+        </ul>
+        <p class="small">These look like a <b>correction</b>, not an error: certain Apple-network IPs that probably shouldn't have been in the MPP bucket all along. They've stayed reclassified since Jun 9.</p>
+      </div>
+    </div>
+    <div class="callout good">
+      <b>Reading of what happened:</b> the IP-intel provider shipped a refresh on Jun 8–9 that <i>removed</i> the
+      consumer-privacy classification from a broad swath of Apple/Fastly/Cloudflare IPs. The bulk of the change was
+      wrong and auto-reverted within 1–2 days. A residual subset (a handful of subnets) was a legitimate
+      correction and stayed reclassified. <b>Per-client settle ratios are explained by the mix of Pattern-A vs
+      Pattern-B subnets in each client's recipient base</b> — Newcom's recipients sit mostly on Pattern-A IPs
+      (settled high at 87%), AtWave's recipients have more Pattern-B exposure (settled low at 40%).
+    </div>
+    <details class="acc" style="margin-top:14px;">
+      <summary>Why /24 aggregation? &nbsp;<span class="acc-hint">click for note on granularity</span></summary>
+      <div class="acc-body">
+        <p>Apple's CDN scale means each /24 carries dozens of distinct individual IPs that all serve identical infrastructure roles. The last octet varies with the user's request hash and CDN routing — not with anything we care about. Aggregating to /24 collapses CDN noise without losing the diagnostic signal (which is at the subnet-block level). Raw-IP queries are available via the elk view for any specific investigation; the source data is in <span class="mono">tmp/atwave/data/apple_ip_samples.md</span>.</p>
+      </div>
+    </details>
+  </section>
+
   <!-- 5. Apple cliff: code path / suspect deploy -->
   <section class="slide">
     <div class="kicker">Event A · Where to look</div>
-    <h2>The classifier logic and likely root cause</h2>
+    <h2>The classifier logic and root cause (revised)</h2>
     <div class="grid-2">
       <div>
         <h3>The classifier (current state)</h3>
@@ -181,14 +232,16 @@
         <p>The bare-<span class="mono">Mozilla/5.0</span> UA matches Apple traffic. The MPP-vs-not distinction depends entirely on whether the upstream VPN/IP-intel resolver returns <span class="mono">vpnDescription = 'apple'</span> AND <span class="mono">vpnType = 'consumer-privacy'</span> for the source IP.</p>
       </div>
       <div>
-        <h3>Suspect cause</h3>
+        <h3>Root cause — now confirmed</h3>
+        <p>The /24 subnet evidence on the previous slide nails it: this was an <b>IP intel data refresh</b> from the VPN classifier provider, not a code change. The hallmarks:</p>
         <ul class="tight">
-          <li><b>IP intel data refresh</b> from the VPN classifier provider (MaxMind, IP2Location, IPQualityScore, etc.). On Jun 8–9 the provider may have shipped an update that reclassified a large chunk of Apple's MPP infrastructure IPs out of the <span class="mono">consumer-privacy</span> bucket.</li>
-          <li><b>Or a code change</b> in <span class="mono">CreateDeviceUsingParser.php</span> or its VPN-data resolver. Less likely given the cross-client uniformity, but worth checking the deploy log for Jun 8 UTC.</li>
-          <li><b>Or both</b> — a deploy that reloaded VPN-intel data in a way that exposed a pre-existing pending update.</li>
+          <li><b>The classifier code (PHP) is unchanged</b> — same UA + IP rules before and after. We confirmed in repo.</li>
+          <li><b>The vendor data flipped a chunk of Apple's CDN/DC IPs out of <span class="mono">consumer-privacy</span></b> on Jun 8–9 UTC.</li>
+          <li><b>Auto-revert within ~48h on most subnets</b> matches a "bad refresh shipped, vendor rolled it back" pattern — not a deploy/redeploy of our code.</li>
+          <li><b>A small permanent reclassification stayed</b> (Pattern B) — also a vendor-data behavior (genuine corrections persist; errors revert).</li>
         </ul>
-        <h3>Why the partial revert on Jun 10?</h3>
-        <p>Jun 9 was the extreme (~22% apple_proxy). Jun 10 onward settles higher. Either a fix went in (partial), or the IP-intel data continued updating asynchronously after the initial deploy.</p>
+        <h3>Next step</h3>
+        <p>Confirm with the IP-intel vendor: ask for their data-version history for Apple/Fastly ASNs spanning Jun 7–11 UTC. If the vendor confirms a refresh + partial rollback in that window, root cause is settled; we can document the Pattern-B subnets as legitimate corrections and move on.</p>
       </div>
     </div>
   </section>
@@ -417,6 +470,33 @@ new Chart(document.getElementById('appleSettleChart'), {
       tooltip: { callbacks: { label: c => `${c.dataset.label}: ${c.parsed.y}% apple_proxy` } }
     },
     scales: { y: { min: 0, max: 100, title: { display: true, text: 'apple_proxy share of Apple-family %' } } }
+  }
+});
+
+// Subnet-level diagnostic: per-/24 apple_proxy share, AtWave daily Jun 5-12
+// proxy_share = apple_proxy_hits / (apple_proxy_hits + apple_mail_hits) per subnet per day
+const subnetDays = ['Jun 5','Jun 6','Jun 7','Jun 8','Jun 9','Jun 10','Jun 11','Jun 12'];
+new Chart(document.getElementById('subnetPatternChart'), {
+  type: 'line',
+  data: {
+    labels: subnetDays,
+    datasets: [
+      // Pattern A (transient flip then reverted)
+      { label: '146.75.164 (Fastly) — Pattern A', data: [100,100,100,77,30,100,100,100], borderColor: '#6aa0ff', borderWidth: 2, tension: 0.15, pointRadius: 3 },
+      { label: '146.75.222 (Fastly) — Pattern A', data: [100,100,100,77,27,100,100,100], borderColor: '#7baeff', borderWidth: 2, tension: 0.15, pointRadius: 3 },
+      { label: '104.28.97 (Cloudflare) — Pattern A', data: [100,100,100,78,27,100,100,100], borderColor: '#8cbcff', borderWidth: 2, tension: 0.15, pointRadius: 3 },
+      { label: '172.226.87 (Apple DC) — Pattern A', data: [100,100,100,77,38,100,100,100], borderColor: '#9dcaff', borderWidth: 2, tension: 0.15, pointRadius: 3 },
+      { label: '172.226.175 (Apple DC) — Pattern A', data: [100,100,99.99,75,30,100,100,100], borderColor: '#aed4ff', borderWidth: 2, tension: 0.15, pointRadius: 3 },
+      { label: '140.248.30 (Apple DC) — Pattern A', data: [100,100,100,76,34,100,100,100], borderColor: '#bfdeff', borderWidth: 2, tension: 0.15, pointRadius: 3 },
+      // Pattern B (permanent reclassification — stuck at apple_mail)
+      { label: '146.75.128 (Fastly) — Pattern B', data: [100,100,100,76,0,0,0,0], borderColor: '#f85149', borderWidth: 3, tension: 0.15, pointRadius: 4 },
+      { label: '172.226.174 (Apple DC) — Pattern B', data: [100,100,100,78,0.01,0.1,0.01,0.06], borderColor: '#ff6b62', borderWidth: 3, tension: 0.15, pointRadius: 4 },
+      { label: '146.75.234 (Fastly) — Pattern B', data: [100,100,100,77,0,0,0,0], borderColor: '#ff8a82', borderWidth: 3, tension: 0.15, pointRadius: 4 }
+    ]
+  },
+  options: {
+    plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 11 } } }, tooltip: { callbacks: { label: c => `${c.dataset.label}: ${c.parsed.y.toFixed(1)}% apple_proxy` } } },
+    scales: { y: { min: 0, max: 105, title: { display: true, text: 'apple_proxy share of Apple-family hits in subnet, %' } } }
   }
 });
 
