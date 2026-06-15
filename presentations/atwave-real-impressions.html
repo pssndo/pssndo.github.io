@@ -515,11 +515,16 @@
                 <td class="num">0.008%</td>
               </tr>
             </table>
-            <div class="callout warn" style="margin-bottom: 0">
-              <b>Gmail is nearly absent.</b> 3.9K impressions in 14 days is
-              anomalous for a consumer list — either the list has almost no
-              Gmail, or Gmail is not loading the mail (deliverability question
-              for the client).
+            <div class="callout bad" style="margin-bottom: 0">
+              <b>Gmail is missing — and this is an AtWave-specific anomaly.</b>
+              Cross-client check (Jun 1–15) on 4 other publishers: 1XL 26.6%,
+              Newcom 11.0%, Sosland 8.3%, Key Media 7.4% Gmail share. AtWave at
+              <b>0.008%</b> is <b>~1,000–3,000× below the floor</b> we'd expect
+              for a US consumer list (Gmail typically dominates at 40–60%). The
+              platform detects Gmail correctly for everyone else — so this is a
+              <b>deliverability red flag at AtWave</b> (most likely Gmail
+              junking / quarantining their sends), independent of the impression
+              conversation.
             </div>
           </div>
         </div>
@@ -926,6 +931,20 @@ real_opens(segment) = clicks_desktop(segment) / CTR_desktop_anchor
               don't trigger fraud classifications, so there's no internal
               "machine vs human" subset within Apple. The within-Apple
               fetches/pair ratio is uniform at ~1.17–1.20.
+            </p>
+            <h4>The calibration is window-specific, not time-stable</h4>
+            <p>
+              A 3-month look-back surfaced
+              <b>three discrete step-functions</b> in Yahoo's clean / hosting
+              ratio (Apr 29, May 21, Jun 8–9 — each a platform-level IP-intel
+              reclassification, observed across all 5 clients we tested). So the
+              +23% drift we measured for the June window
+              <b>does not carry forward to other windows</b>: in March (Yahoo
+              ~97% clean) the click-anchored method would have been roughly
+              correct already; in May–June (~55% clean) the +23% holds. The 6.8%
+              headline above is correct for the analysis window; future
+              re-runs must re-derive the calibration from the same window's
+              data. See the platform-shifts tech deck for the detail.
             </p>
             <p>
               <b
@@ -1452,14 +1471,20 @@ real_opens(segment) = clicks_desktop(segment) / CTR_desktop_anchor
           <tr>
             <td><b>B · Engagement-gated serving</b></td>
             <td>
-              Per-user "engaged" flag (clicks + editorial-click data from
-              Ongage). Never-engagers get a cheap static response; a rotating
-              ε≈5–10% of them keep seeing real ads so they can re-qualify.
+              Per-user "engaged" flag in Aerospike from a rolling
+              <b>30-day click look-back</b> (90 days was too generous — the
+              3-month data shows ~90% of clickers are one-and-done and never
+              return, only ~660 humans click in 2+ months). Never-engagers get a
+              cheap static response; a rotating <b>ε ≈ 5–10%</b> keeps receiving
+              real ads, with <b>ε weighted per segment</b> (phone gets higher ε
+              since its real CTR is materially above Apple's). Editorial clicks
+              from Ongage densify the signal beyond just ad-clicks.
             </td>
             <td>Ad-server change<br />(Aerospike flag, no schema).</td>
             <td>
               For a 100% CPC client, correctly classified suppression doesn't
-              cut click revenue; main win is cost + honest counts.
+              cut click revenue; main win is ~90% reduction in ad-selection
+              runs + honest impression counts.
             </td>
           </tr>
           <tr>
