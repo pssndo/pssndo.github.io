@@ -1,0 +1,756 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Video Ads in Email — Stakeholder Report</title>
+<style>
+  :root {
+    --bg: #fafaf9;
+    --surface: #ffffff;
+    --ink: #1a1a1a;
+    --ink-soft: #4a4a4a;
+    --ink-muted: #6e6e6e;
+    --line: #e6e4df;
+    --line-strong: #cfcdc7;
+    --accent: #0a5b8a;
+    --accent-soft: #e7f0f6;
+    --ok: #1f7a3a;
+    --ok-soft: #e3f1e8;
+    --warn: #a25a00;
+    --warn-soft: #fbeedb;
+    --bad: #a3231d;
+    --bad-soft: #fae3e1;
+    --code-bg: #f1efe9;
+    --shadow: 0 1px 0 rgba(0,0,0,0.04), 0 2px 12px rgba(20,20,20,0.05);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font: 15.5px/1.55 -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .container { max-width: 880px; margin: 0 auto; padding: 56px 28px 96px; }
+
+  header.lede {
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 28px;
+    margin-bottom: 36px;
+  }
+  header.lede .eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: 11px;
+    color: var(--ink-muted);
+    margin-bottom: 12px;
+  }
+  header.lede h1 {
+    margin: 0 0 8px;
+    font-size: 32px;
+    line-height: 1.2;
+    font-weight: 650;
+    letter-spacing: -0.01em;
+  }
+  header.lede .sub { color: var(--ink-soft); font-size: 16px; margin-top: 6px; }
+  header.lede .meta {
+    margin-top: 18px;
+    font-size: 13px;
+    color: var(--ink-muted);
+    display: flex; gap: 16px; flex-wrap: wrap;
+  }
+  header.lede .meta span { display: inline-flex; align-items: center; gap: 6px; }
+  header.lede .meta strong { color: var(--ink-soft); font-weight: 600; }
+
+  h2 {
+    font-size: 21px;
+    font-weight: 650;
+    letter-spacing: -0.005em;
+    margin: 44px 0 14px;
+    padding-top: 8px;
+  }
+  h3 {
+    font-size: 16.5px;
+    font-weight: 600;
+    margin: 22px 0 8px;
+    color: var(--ink);
+  }
+  p { margin: 0 0 12px; }
+  ul, ol { margin: 8px 0 14px; padding-left: 22px; }
+  li { margin: 4px 0; }
+  strong { font-weight: 600; }
+  em { font-style: normal; background: var(--accent-soft); padding: 0 4px; border-radius: 3px; }
+
+  code, .mono {
+    font: 13px/1.5 ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    background: var(--code-bg);
+    padding: 1px 6px;
+    border-radius: 3px;
+  }
+
+  /* Verdict card */
+  .verdict {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-left: 4px solid var(--accent);
+    border-radius: 6px;
+    padding: 20px 22px;
+    box-shadow: var(--shadow);
+    margin-bottom: 24px;
+  }
+  .verdict .label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .verdict p { margin: 0 0 8px; font-size: 16px; }
+  .verdict p:last-child { margin-bottom: 0; }
+
+  /* Pill row */
+  .pills {
+    display: flex; gap: 8px; flex-wrap: wrap;
+    margin: 14px 0 4px;
+  }
+  .pill {
+    font-size: 12.5px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--line-strong);
+    background: var(--surface);
+    color: var(--ink-soft);
+  }
+  .pill.ok { background: var(--ok-soft); color: var(--ok); border-color: transparent; }
+  .pill.warn { background: var(--warn-soft); color: var(--warn); border-color: transparent; }
+  .pill.bad { background: var(--bad-soft); color: var(--bad); border-color: transparent; }
+
+  /* Callout cards */
+  .callout {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 16px 18px;
+    margin: 12px 0;
+  }
+  .callout.warn { background: var(--warn-soft); border-color: #f0d59a; }
+  .callout.bad { background: var(--bad-soft); border-color: #ecb7b3; }
+  .callout.ok { background: var(--ok-soft); border-color: #bcdcc7; }
+  .callout p:last-child { margin-bottom: 0; }
+  .callout .title {
+    font-weight: 650; font-size: 14.5px; margin-bottom: 6px;
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  /* Tables */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    margin: 12px 0 16px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  th, td {
+    text-align: left;
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+  }
+  thead th {
+    background: #f4f2ec;
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--ink-soft);
+    border-bottom: 1px solid var(--line-strong);
+  }
+  tbody tr:last-child td { border-bottom: 0; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+
+  /* Accordion */
+  details {
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: var(--surface);
+    margin: 10px 0;
+    overflow: hidden;
+  }
+  details + details { margin-top: 8px; }
+  details summary {
+    cursor: pointer;
+    padding: 12px 16px;
+    font-weight: 550;
+    font-size: 14.5px;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    color: var(--ink);
+    user-select: none;
+  }
+  details summary::-webkit-details-marker { display: none; }
+  details summary::after {
+    content: "+";
+    font-weight: 400;
+    font-size: 18px;
+    line-height: 1;
+    color: var(--ink-muted);
+    width: 16px;
+    text-align: center;
+    flex-shrink: 0;
+    transition: transform 0.15s ease;
+  }
+  details[open] summary::after { content: "−"; }
+  details summary:hover { background: #f7f6f1; }
+  details .body {
+    padding: 4px 18px 16px;
+    border-top: 1px solid var(--line);
+    font-size: 14.5px;
+    color: var(--ink-soft);
+  }
+  details .body h4 { font-size: 14px; margin: 14px 0 6px; color: var(--ink); }
+  details .body p, details .body li { color: var(--ink-soft); }
+  details .body code { background: #ecebe5; }
+
+  /* Severity badges inside accordions */
+  .sev {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-right: 8px;
+    vertical-align: middle;
+  }
+  .sev.block { background: var(--bad); color: white; }
+  .sev.major { background: var(--warn); color: white; }
+  .sev.minor { background: #b8b5ac; color: white; }
+
+  /* Two-col layout helper */
+  .grid2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+  @media (max-width: 640px) { .grid2 { grid-template-columns: 1fr; } }
+
+  /* Footer */
+  footer.foot {
+    margin-top: 56px;
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+    color: var(--ink-muted);
+    font-size: 12.5px;
+  }
+
+  /* Anchor links */
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* TOC */
+  nav.toc {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 14px 18px;
+    margin-bottom: 28px;
+    font-size: 14px;
+  }
+  nav.toc .label {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em;
+    color: var(--ink-muted); margin-bottom: 8px;
+  }
+  nav.toc ol { margin: 0; padding-left: 20px; }
+  nav.toc li { margin: 3px 0; }
+  nav.toc a { color: var(--ink-soft); }
+</style>
+</head>
+<body>
+<div class="container">
+
+<header class="lede">
+  <div class="eyebrow">Stakeholder Report · Engineering Review</div>
+  <h1>Video Ads in Email — What's Possible at Passendo</h1>
+  <p class="sub">A plain-language assessment of the video-ads research proposal, sized against the Emperor platform as it actually stands today.</p>
+  <div class="meta">
+    <span><strong>Subject:</strong> <code>docs/video-ads-proposal.md</code></span>
+    <span><strong>Reviewers:</strong> critic + architecture lanes</span>
+    <span><strong>Date:</strong> 2026-06-19</span>
+  </div>
+</header>
+
+<nav class="toc">
+  <div class="label">In this report</div>
+  <ol>
+    <li><a href="#bottom-line">The bottom line</a></li>
+    <li><a href="#what-we-ship">What we'd actually ship</a></li>
+    <li><a href="#platform-fit">Does our platform support this?</a></li>
+    <li><a href="#claims">What the proposal gets right, wrong, and skips</a></li>
+    <li><a href="#build-blocks">The four building blocks</a></li>
+    <li><a href="#build-buy">Build vs buy: where the transcoding happens</a></li>
+    <li><a href="#polotno">Where Polotno fits (and where it doesn't)</a></li>
+    <li><a href="#measure">What we can — and can't — measure</a></li>
+    <li><a href="#risks">Risks worth naming</a></li>
+    <li><a href="#mvp">Smallest credible MVP</a></li>
+    <li><a href="#decisions">Open decisions for stakeholders</a></li>
+    <li><a href="#appendix">Appendix: full critic + architect reports</a></li>
+  </ol>
+</nav>
+
+<!-- 1. Bottom line -->
+<section id="bottom-line">
+  <h2>1. The bottom line</h2>
+  <div class="verdict">
+    <div class="label">Verdict</div>
+    <p><strong>Feasible, and a natural fit for our stack — but the research document is not yet a buildable spec.</strong></p>
+    <p>The plumbing the product needs (image storage in Google Cloud, server-side redirects, device detection, async workers, analytics pipeline) already exists in Emperor. The proposal correctly identifies animated WebP as the workhorse format. However the document contains at least one factually wrong delivery claim, undercosts Apple Mail's privacy proxy, and skips the three decisions that determine whether this can ship: who runs the transcoder, what we promise to advertisers about measurement, and how we present a single creative across wildly inconsistent email clients.</p>
+    <p>Engineering can deliver a credible first version with one backend and one frontend engineer, provided the scope is narrowed first.</p>
+  </div>
+  <div class="pills">
+    <span class="pill ok">Platform fit: strong</span>
+    <span class="pill ok">Reuses existing redirect + device detection</span>
+    <span class="pill warn">One delivery claim is wrong as written</span>
+    <span class="pill warn">No measurement story</span>
+    <span class="pill warn">Apple MPP cost not modelled</span>
+    <span class="pill bad">New ffmpeg dependency is unowned</span>
+  </div>
+</section>
+
+<!-- 2. What we ship -->
+<section id="what-we-ship">
+  <h2>2. What we'd actually ship — in one sentence</h2>
+  <p>An advertiser uploads a single short video. Our platform produces several lighter versions of it. When a recipient opens their email, our server looks at the email client, picks the best version that client can show, and serves it. If the client can't show motion at all, we serve a still image. Anyone who clicks lands on a hosted page where a real, measurable video plays.</p>
+
+  <div class="callout ok">
+    <div class="title">Why this framing matters</div>
+    <p>It avoids the trap of selling "video in email" as if it were YouTube. In an inbox we can show motion to <em>most</em> recipients, a still to the rest, and recover real video analytics only on the click-through landing page. That is an honest pitch the sales team can repeat without footnotes.</p>
+  </div>
+
+  <details>
+    <summary>How the matrix actually breaks down (technical)</summary>
+    <div class="body">
+      <table>
+        <thead><tr><th>Recipient environment</th><th>What they see</th><th>How we detect</th></tr></thead>
+        <tbody>
+          <tr><td>Apple Mail via privacy proxy (MPP)</td><td>Animated WebP</td><td>UA + Apple egress signature (Matomo device-detector already classifies this — see <code>src/Device/CreateDeviceUsingParser.php</code>)</td></tr>
+          <tr><td>Gmail web / Gmail app via proxy</td><td>Animated WebP</td><td>UA + <code>CreateForGmailProxy.php</code></td></tr>
+          <tr><td>Apple Mail desktop, native</td><td>MP4 in <code>&lt;video&gt;</code> tag (v2 only)</td><td>UA</td></tr>
+          <tr><td>New Outlook (WebView2, 2024+)</td><td>Animated WebP</td><td>UA — note: the proposal's matrix lumps this with classic Outlook and gets it wrong</td></tr>
+          <tr><td>Outlook Classic (Word renderer)</td><td>Static JPG poster</td><td>UA</td></tr>
+          <tr><td>Unknown / no signal</td><td>Static JPG poster</td><td>Safe default</td></tr>
+        </tbody>
+      </table>
+      <p>Click-through always lands on a hosted page with a real <code>&lt;video&gt;</code> element and JS analytics, recovering proper view-completion metrics.</p>
+    </div>
+  </details>
+</section>
+
+<!-- 3. Platform fit -->
+<section id="platform-fit">
+  <h2>3. Does our platform support this?</h2>
+  <p>Yes, for the most part. Almost every piece of plumbing this product needs already exists in Emperor and is in production today. The single missing capability is <strong>video transcoding</strong>, and there are several reasonable ways to add it.</p>
+
+  <table>
+    <thead><tr><th>What the product needs</th><th>What we already have</th><th>Status</th></tr></thead>
+    <tbody>
+      <tr><td>Long-term asset storage</td><td>Google Cloud Storage bucket (<code>passendo-creative-files</code>), already wired up</td><td><span class="pill ok">Ready</span></td></tr>
+      <tr><td>Server-side redirect on UA</td><td>Click and pixel modules already do 302-on-inspection</td><td><span class="pill ok">Ready</span></td></tr>
+      <tr><td>Email-client classification</td><td>Matomo device-detector already in use; Apple MPP and Gmail proxy detection in place</td><td><span class="pill ok">Ready</span></td></tr>
+      <tr><td>Async background workers</td><td>Six Kafka-consuming daemons (<code>daemon1.sh</code>–<code>daemon6.sh</code>); add a seventh for transcoding</td><td><span class="pill ok">Pattern exists</span></td></tr>
+      <tr><td>Hot-path serving (FrankenPHP workers)</td><td>Production, sub-50ms ad responses</td><td><span class="pill ok">Ready (don't run ffmpeg here)</span></td></tr>
+      <tr><td>Analytics pipeline (ClickHouse)</td><td>Schema extends cleanly — Multi-CTA precedent</td><td><span class="pill ok">Ready</span></td></tr>
+      <tr><td>Image creative upload UI (FE)</td><td>RHFImageUpload + creative-form patterns, React 19 / Next.js 16</td><td><span class="pill ok">Clone for video</span></td></tr>
+      <tr><td>Video transcoding (the actual new capability)</td><td>Nothing today. ffmpeg not installed; Imagick installed but limited</td><td><span class="pill warn">New work</span></td></tr>
+    </tbody>
+  </table>
+
+  <details>
+    <summary>What this means in code paths (technical)</summary>
+    <div class="body">
+      <ul>
+        <li>Adserver is PHP 8.4 on FrankenPHP worker mode. <code>public/index.php</code> is a worker loop sized for ~20 workers × 40 threads. Long-running transcodes <strong>cannot</strong> run here — they would starve ad-serving threads. Transcoding lives in a separate daemon.</li>
+        <li>The new ad-display route looks the same shape as the existing <code>HandleDisplay</code> and <code>HandleConversionPixel</code> handlers. One extra Aerospike GET per request to look up which variant matches the requesting UA. The current hot path already does multiple Aerospike GETs; one more is inside the existing budget.</li>
+        <li>The existing GCS upload pipe in the admin API (<code>app/Services/Creative/CreateCreative.php</code>) is multipart-through-API rather than direct-to-storage signed URLs. For a 5–50 MB video source, raising the PHP <code>upload_max_filesize</code> (already 200 MB in <code>php.ini</code>) is enough; we don't need to redesign the upload flow for v1.</li>
+        <li>The runtime container already ships <code>libvpx7</code> and <code>libwebp7</code>, so adding the <code>ffmpeg</code> binary itself is the change — not a full codec stack rebuild.</li>
+      </ul>
+    </div>
+  </details>
+</section>
+
+<!-- 4. Proposal claims -->
+<section id="claims">
+  <h2>4. What the proposal gets right, wrong, and skips</h2>
+
+  <h3>Right</h3>
+  <ul>
+    <li><strong>Animated WebP as the primary format.</strong> Correct call for an inbox dominated by Apple's privacy proxy and Gmail's image proxy.</li>
+    <li><strong>Server-side detection and 302 redirect (Strategy A).</strong> Direct fit for the redirect plumbing we already use for pixel tracking and click tracking.</li>
+    <li><strong>The ffmpeg command reference.</strong> The encoding settings (baseline H.264 for iOS webview, <code>+faststart</code> for progressive playback, animated WebP at 15fps) are accurate and would survive code review.</li>
+    <li><strong>Apple MPP indistinguishability.</strong> Acknowledging that iPhone, iPad and Mac look the same when fronted by MPP is the right framing.</li>
+  </ul>
+
+  <h3>Wrong</h3>
+  <details>
+    <summary><span class="sev block">Blocker</span> The <code>&lt;picture&gt;</code> fallback as described does not exist</summary>
+    <div class="body">
+      <p>The proposal (line 30) suggests using <code>&lt;picture&gt;</code> with <code>&lt;source type="video/webm"&gt;</code> and image fallbacks, claiming the client picks what it supports with no JS. This is not how the spec works. The <code>&lt;picture&gt;</code> element selects between image sources by MIME type — <code>video/*</code> types are not valid in that context, and no browser, let alone an email client, will render a <code>&lt;video&gt;</code> from inside <code>&lt;picture&gt;</code>.</p>
+      <p>The author appears to have confused <code>&lt;picture&gt;&lt;source&gt;</code> (image negotiation) with <code>&lt;video&gt;&lt;source&gt;</code> (codec negotiation inside a video tag). Even using the correct <code>&lt;video&gt;</code> element, Gmail web, Outlook.com and Yahoo aggressively sanitize <code>&lt;video&gt;</code> as of late 2025 — so the only client that meaningfully honors this path is Apple Mail.</p>
+      <p><strong>Fix:</strong> drop Strategy B from the proposal, or rewrite it as "Apple Mail desktop only, in a <code>&lt;video&gt;</code> tag with an <code>&lt;img&gt;</code> fallback inside it." Strategy A (server-side redirect) covers every other environment.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary><span class="sev major">Major</span> "Outlook desktop = static poster" is stale</summary>
+    <div class="body">
+      <p>That statement was true for the legacy Word-renderer Outlook (Outlook 2016–2021, classic 365). The <strong>new Outlook for Windows</strong>, rolled out broadly through 2024–2025, is WebView2-based and renders much closer to Outlook.com than to the classic client. Treating "Outlook desktop" as a single row in 2026 understates the audience that can actually see animation.</p>
+      <p><strong>Fix:</strong> split the matrix into Outlook Classic (Word) → static poster, and new Outlook / Outlook 365 web stack → animated WebP. UA detection for new Outlook is imperfect — acknowledge that gap explicitly.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary><span class="sev minor">Minor</span> Header signals are listed more confidently than they hold up</summary>
+    <div class="body">
+      <p>The <code>Accept</code> header sends <code>video/*</code> only on <code>&lt;video&gt;</code> fetches, not on <code>&lt;img&gt;</code>-style requests — and the creative is fetched as an image in nearly every email context. <code>Sec-Fetch-Dest</code> is sent by browsers, not by native mail clients (Apple Mail desktop, Outlook desktop). Both signals are useful in narrow cases but should not be presented as primary classifiers.</p>
+    </div>
+  </details>
+
+  <h3>Skipped (what's missing)</h3>
+  <details>
+    <summary><span class="sev block">Blocker</span> No execution model for transcoding</summary>
+    <div class="body">
+      <p>The proposal recommends ffmpeg six different ways but never says where it runs, who installs it, or how a transcode job is dispatched, monitored, or retried. ffmpeg is not in our adserver container today; adding it brings a new binary, a larger image, a wider attack surface for user-uploaded video, and H.264/AAC patent licensing exposure for commercial distribution.</p>
+      <p>Without a transcoder execution model in the doc, a build team will inherit a fait accompli on day one. <strong>This must be decided up front</strong> — see Section 6.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary><span class="sev block">Blocker</span> No model of what Apple MPP costs us</summary>
+    <div class="body">
+      <p>Apple Mail Privacy Protection prefetches every image at message open from Apple's egress, <strong>once per recipient</strong>, whether the human ever looks at the email. For 1M MPP recipients and a 463 KB animated WebP, that is roughly <strong>450 GB of egress per send</strong>, attributed to "opens" not "views." At Google Cloud Storage multi-region egress rates this is real money, and it happens whether the campaign performs or not.</p>
+      <p>The product decision is: serve MPP recipients the animated WebP (rich, expensive, looks great in 80% of cases), or the static poster (cheap, no motion). Picking one shapes the entire commercial story.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary><span class="sev major">Major</span> No measurement story for sales</summary>
+    <div class="body">
+      <p>Tracking in the platform is open + click only, no JavaScript runs inside the email creative itself. We <strong>cannot</strong> tell whether the video played, looped, or rendered as nothing more than a poster frame. MPP prefetch further pollutes "open" numbers. The proposal acknowledges this constraint in passing but never tells sales what numbers they can actually quote to advertisers.</p>
+      <p><strong>Fix:</strong> enumerate the metrics that <em>do</em> exist (variant-served counts by format, click-through, post-click landing-page dwell time and instrumented playback). State plainly that "video view %" as advertisers expect it does not exist in-inbox; it exists only on the click-through landing page.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary><span class="sev major">Major</span> No asset lifecycle, no transcode state machine</summary>
+    <div class="body">
+      <p>Six variants per creative, multiplied by creatives × resends × re-encodes, is a storage bucket that grows without rules. There is no retention policy, no cold-storage transition, no content-addressed naming, and no story for what happens between upload and "creative is ready to serve." If a trafficker uploads at T+0 and tries to launch a campaign at T+30 seconds, does the campaign serve the poster? Fail validation? Wait?</p>
+      <p>This must be a defined state machine: <code>uploaded → transcoding → partially_ready (poster only) → ready (all variants) → failed</code>, with explicit rules for which states allow activation.</p>
+    </div>
+  </details>
+</section>
+
+<!-- 5. Building blocks -->
+<section id="build-blocks">
+  <h2>5. The four building blocks</h2>
+  <p>What we'd actually build, broken into four pieces in plain language. Each accordion has the engineering detail.</p>
+
+  <div class="callout">
+    <div class="title">A. Upload page — admin and client apps</div>
+    <p>A new section on the creative-form lets an advertiser drag in one video file, see a small preview, watch a progress bar while transcoding runs, and inspect the generated variants before saving. Looks and feels like our existing image upload, with a transcode-status badge.</p>
+  </div>
+  <details>
+    <summary>Upload — technical detail</summary>
+    <div class="body">
+      <ul>
+        <li>New component <code>RHFVideoUpload</code> mirrors <code>RHFImageUpload</code> (React Hook Form + react-dropzone) but accepts <code>video/mp4, video/quicktime</code>, max ~50 MB.</li>
+        <li>Existing <code>CreativeForm.tsx</code> gains a creative-type toggle (image vs video). Video mode routes to the new component.</li>
+        <li>Three new sibling components: <code>TranscodeStatusBadge</code> (poll status), <code>VideoVariantInspector</code> (list generated assets), <code>VideoFallbackConfig</code> (MVP: read-only display of routing rules).</li>
+        <li>API endpoint extends <code>CreateCreative.php</code> with a video branch — uploads source to GCS at <code>passendo-creative-files/videos/raw/{groupId}.mp4</code>, emits a Kafka message <code>video.transcode.requested</code>, returns immediately with status <code>transcoding</code>.</li>
+        <li>The existing image editor (Polotno) does not participate in the v1 video flow — see Section 7.</li>
+      </ul>
+    </div>
+  </details>
+
+  <div class="callout">
+    <div class="title">B. Transcoder — a new background worker</div>
+    <p>A new background worker picks up uploaded videos from a queue, produces the lighter versions our platform needs (animated WebP, MP4, WebM, GIF, JPG poster), stores them in Google Cloud Storage, and marks the creative ready. It runs separately from the live ad-serving traffic so it cannot slow anything down.</p>
+  </div>
+  <details>
+    <summary>Transcoder — technical detail</summary>
+    <div class="body">
+      <ul>
+        <li>A seventh daemon (<code>daemon7.sh</code> → <code>process:video-transcode</code> Symfony console command) consumes the new Kafka topic <code>video.transcode.requested</code>.</li>
+        <li>Lives in a <strong>separate container image</strong> (<code>Dockerfile.daemon-video</code>) so ffmpeg's ~200 MB footprint is isolated from the FrankenPHP hot path.</li>
+        <li>Runs the exact ffmpeg invocations from the proposal (lines 75–95) — they're correct.</li>
+        <li>Writes one row per variant into a new <code>creative_variants</code> table, emits a <code>creative.status = ready</code> event.</li>
+        <li>Patent question on H.264/AAC encoding must be resolved by legal before the worker ships externally. Mitigation if needed: ship animated WebP + WebM only in v1, defer MP4 to v2.</li>
+      </ul>
+    </div>
+  </details>
+
+  <div class="callout">
+    <div class="title">C. Smart delivery — adserver picks the right version</div>
+    <p>When the recipient's email client opens the message, the adserver looks at the request, decides which version of the video this client can handle, and sends it. If it can't tell, it sends the still image. Built on the exact same redirect pattern our platform already uses for clicks and tracking pixels.</p>
+  </div>
+  <details>
+    <summary>Smart delivery — technical detail</summary>
+    <div class="body">
+      <ul>
+        <li>New route on the adserver: <code>/vdisplay/{creativeGroupId}/{layoutId}/{orientation}</code>, modeled on <code>HandleDisplay.php</code>.</li>
+        <li>Inspects the request via the existing <code>CreateDeviceUsingParser</code> — already classifies Apple MPP, Apple non-MPP, Gmail proxy.</li>
+        <li>Looks up the variant set in Aerospike (<code>cv:{groupId}:{layout}:{orient}</code>) — one extra GET per request, within the current hot-path budget.</li>
+        <li>Returns a 302 redirect to a signed GCS URL for the chosen variant. Time-to-first-byte is dominated by Aerospike + UA parse, both already sub-millisecond.</li>
+        <li>If classification confidence is low, default to the static poster JPG — fail-safe behaviour.</li>
+      </ul>
+    </div>
+  </details>
+
+  <div class="callout">
+    <div class="title">D. Reporting — what shows up in the dashboards</div>
+    <p>One new column on the standard creative-reporting view: which version was served. Sales can break a campaign down by "how many recipients got the animated version vs the still." No new column for "video views" — we cannot honestly produce that number from an email open alone.</p>
+  </div>
+  <details>
+    <summary>Reporting — technical detail</summary>
+    <div class="body">
+      <ul>
+        <li>Two new columns on <code>events</code> in ClickHouse: <code>creativeGroupId String</code> and <code>creativeVariantFormat LowCardinality(String)</code> — follows the multi-CTA schema-extension precedent already in the repo.</li>
+        <li>Reporting tables in the FE get one new optional column.</li>
+        <li>The hosted click-through landing page is the only place we get real video-completion metrics. v1 ships with a basic JS-instrumented landing page; v2 wires those numbers back into the creative dashboard.</li>
+      </ul>
+    </div>
+  </details>
+</section>
+
+<!-- 6. Build vs buy -->
+<section id="build-buy">
+  <h2>6. Build vs buy — where does the transcoding happen?</h2>
+  <p>This is the single most important decision in the project. Three options:</p>
+
+  <ol>
+    <li><strong>Self-hosted ffmpeg in a new background worker</strong> (the architecture lane's recommendation).</li>
+    <li><strong>Cloud transcoder</strong> (Mux, Transloadit, Cloudflare Stream, AWS MediaConvert).</li>
+    <li><strong>Hybrid:</strong> animated WebP via Imagick (already installed), everything else outsourced.</li>
+  </ol>
+
+  <div class="callout ok">
+    <div class="title">Recommendation: self-hosted ffmpeg in a new worker container</div>
+    <p>Same Kafka/console pattern as our six existing daemons. Full control over animated WebP — the format the proposal calls the workhorse, and the one most cloud transcoders don't reliably support. Image bloat is contained because the worker runs in a separate container from the ad-serving hot path.</p>
+  </div>
+
+  <details>
+    <summary>Full comparison table</summary>
+    <div class="body">
+      <table>
+        <thead><tr><th>Option</th><th>Pro</th><th>Con</th><th>Verdict</th></tr></thead>
+        <tbody>
+          <tr><td>Self-hosted ffmpeg (new daemon)</td><td>Full format control incl. animated WebP. Same pattern as 6 existing daemons. Libs (libvpx7, libwebp7) already in base image.</td><td>+200 MB image. H.264/AAC patent licensing concern.</td><td><strong>Pick this</strong></td></tr>
+          <tr><td>Mux</td><td>Best DX, auto-poster generation.</td><td>No animated WebP output — the workhorse format we need.</td><td>No</td></tr>
+          <tr><td>Transloadit</td><td>Supports animated WebP.</td><td>Per-minute billing, vendor coupling, still need a Kafka consumer to webhook back.</td><td>No</td></tr>
+          <tr><td>Cloudflare Stream</td><td>CDN included, adaptive bitrate.</td><td>HLS is wrong delivery model for email image tags.</td><td>No</td></tr>
+          <tr><td>AWS MediaConvert</td><td>Solid MP4/WebM batch jobs.</td><td>No WebP, no GIF — would still need ffmpeg as a second pass.</td><td>No</td></tr>
+          <tr><td>Extend in-house image builder</td><td>Reuses our own lib.</td><td>Library is image-only today. Likely a v2 conversation.</td><td>No (for v1)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </details>
+</section>
+
+<!-- 7. Polotno -->
+<section id="polotno">
+  <h2>7. Where Polotno fits — and where it doesn't</h2>
+  <p>You asked the right question. The proposal as written is <strong>upload-only</strong>: an advertiser hands us a finished video file and we transcode it. Polotno — the in-browser canvas editor we use to compose image creatives — is not in the flow at all. That creates a real UX inconsistency: image creatives are designed in-browser; video creatives have to be designed outside Passendo and uploaded as a finished asset.</p>
+
+  <div class="callout warn">
+    <div class="title">The honest answer</div>
+    <p>Polotno cannot produce video. It exports stills (<code>toDataURL</code>) and animated GIFs assembled from frame stills (<code>toGIFDataURL</code>) — no MP4, no WebM, no animated WebP. So a Polotno-driven "compose your own video creative" flow is not a thin extension of what we already have; it would be a significant new build.</p>
+  </div>
+
+  <p>Three sensible positions, in order of scope:</p>
+  <ol>
+    <li><strong>Stage 0 (recommended for v1):</strong> Polotno does not participate. Advertisers upload a finished MP4. Document this as a deliberate scope choice in the spec.</li>
+    <li><strong>Stage 1 (v1.5 or v2):</strong> Polotno is used to design the <em>poster frame and end-card</em> only. Polotno exports a still, ffmpeg overlays the still as the first/last frame of the video, advertiser sees a unified design experience. Modest ffmpeg work; reuses Polotno as-is.</li>
+    <li><strong>Stage 2 (long-horizon):</strong> Polotno is used to design an overlay (logo, text, CTA box) that the transcoder bakes into the video frame-by-frame using the Polotno JSON as a recipe. Real engineering; needs careful design.</li>
+  </ol>
+
+  <details>
+    <summary>Polotno integration detail (technical)</summary>
+    <div class="body">
+      <h4>What Polotno does today in our app</h4>
+      <ul>
+        <li>Located at <code>frontend/apps/client/src/components/polotno/Polotno.tsx</code> (719 lines, package version <code>3.0.0-9</code>).</li>
+        <li>Canvas composition with text, elements, layers, image upload, template save/load. Templates fetched via <code>useFullImageTemplatesList</code>.</li>
+        <li>Export surface: <code>store.toDataURL()</code> for stills, <code>store.toGIFDataURL()</code> for animated GIFs. <code>store.toJSON()</code> serializes the template.</li>
+        <li>No video output exists in the Polotno API surface we use, and not in the upstream library either.</li>
+      </ul>
+      <h4>What would be needed for Stage 1 (poster/end-card composer)</h4>
+      <ul>
+        <li>Add a "Design poster" step to the video creative form that opens the existing Polotno editor at the source video's dimensions, prefilled with a still extracted from the uploaded MP4 (one ffmpeg <code>-frames:v 1</code> call by the transcoder).</li>
+        <li>Polotno exports the designed poster as a PNG/JPG.</li>
+        <li>Transcoder takes the original MP4 + the designed poster and produces variants where the poster is the first frame (and optionally the last, as an end-card hold).</li>
+        <li>No changes to Polotno itself; modest FE + transcoder glue.</li>
+      </ul>
+      <h4>What would be needed for Stage 2 (overlay compositor)</h4>
+      <ul>
+        <li>Polotno produces a layered JSON template (text + logo + CTA box) with no underlying image.</li>
+        <li>Transcoder converts that JSON into an ffmpeg <code>overlay</code> filter chain or renders each Polotno layer as a transparent PNG and overlays it via ffmpeg.</li>
+        <li>Significant work: font fidelity across our font set, layout against varying source aspect ratios, performance per encode. Defer until v1 ships and there is a real demand signal.</li>
+      </ul>
+    </div>
+  </details>
+</section>
+
+<!-- 8. Measure -->
+<section id="measure">
+  <h2>8. What we can — and can't — measure</h2>
+  <p>This is the part the proposal under-served, and it directly affects what sales can promise.</p>
+
+  <div class="grid2">
+    <div class="callout ok">
+      <div class="title">What we get</div>
+      <ul style="margin:0;">
+        <li><strong>Variant served:</strong> how many recipients received which version</li>
+        <li><strong>Opens</strong> (polluted by Apple MPP prefetch)</li>
+        <li><strong>Clicks</strong></li>
+        <li><strong>Landing page playback metrics</strong> (real <code>&lt;video&gt;</code> events with JS)</li>
+        <li><strong>Click-through dwell time</strong> on the hosted page</li>
+      </ul>
+    </div>
+    <div class="callout bad">
+      <div class="title">What we do <em>not</em> get inside the email</div>
+      <ul style="margin:0;">
+        <li>Did it play?</li>
+        <li>How long did they watch?</li>
+        <li>Did it loop?</li>
+        <li>Was sound enabled? (always muted by spec)</li>
+        <li>Did they actually see motion, or just the poster frame?</li>
+      </ul>
+    </div>
+  </div>
+
+  <p>The sales pitch should be: <em>rich animated creatives in the inbox with guaranteed static fallback, and full video analytics on the click-through landing page.</em> Not: <em>video in email with measurable view rates.</em></p>
+</section>
+
+<!-- 9. Risks -->
+<section id="risks">
+  <h2>9. Risks worth naming</h2>
+  <ul>
+    <li><strong>New ffmpeg dependency.</strong> Container bloat, build time, security surface for arbitrary uploads. Manageable; contain it in a separate worker image.</li>
+    <li><strong>H.264/AAC patent licensing</strong> for self-encoded MP4 in a commercial product. Real, bounded, needs legal sign-off before v1 ships.</li>
+    <li><strong>Apple MPP egress economics.</strong> A 1M-recipient send with a 463 KB animated WebP variant is ~450 GB of GCS egress, charged whether anyone watches. Decide upfront whether MPP recipients get the animated WebP (rich, expensive) or the poster JPG (cheap, no motion).</li>
+    <li><strong>Detection misfires.</strong> If UA classification is wrong and we serve MP4 to Outlook Classic, the recipient sees a broken image. Fail-safe default to the JPG poster when confidence is low.</li>
+  </ul>
+
+  <details>
+    <summary>Full risk list (technical)</summary>
+    <div class="body">
+      <ul>
+        <li>Transcode latency vs. campaign go-live — define the state machine.</li>
+        <li>Re-encode of an updated source while live campaigns are serving the old version — versioning rules.</li>
+        <li>Aerospike extra GET per ad-request — needs a perf test, the <code>locustfile.py</code> setup already exists.</li>
+        <li>Content policy: autoplay-in-inbox, photosensitive epilepsy guard, max brightness/flash, alt text for screen readers on the <code>&lt;img&gt;</code> fallback.</li>
+        <li>Storage lifecycle: GCS Standard → Nearline → Coldline transitions for old variants. No rule defined today.</li>
+        <li>CDN cache key includes UA classification → cardinality implications if classes proliferate.</li>
+        <li>Rejection / QA flow for 1080p HEVC sources at 200 MB — hard reject? auto-downscale? manual review?</li>
+        <li>Apple MPP indistinguishability — we cannot tell iPhone vs Mac vs iPad through MPP, so per-device sizing is not possible for those recipients.</li>
+        <li>Frontend upload UX: chunked / resumable uploads will eventually be needed for >50 MB sources over weak networks; defer to v2.</li>
+      </ul>
+    </div>
+  </details>
+</section>
+
+<!-- 10. MVP -->
+<section id="mvp">
+  <h2>10. Smallest credible MVP</h2>
+
+  <div class="callout ok">
+    <div class="title">Recommended MVP (one sentence)</div>
+    <p>One MP4 upload (≤50 MB, ≤30s) → five variants produced in a new daemon → one new adserver route doing UA-based 302 redirect → one new column in reporting. No editable fallback config. No Polotno integration. No <code>&lt;picture&gt;</code> tag. Defer everything else to v2.</p>
+  </div>
+
+  <table>
+    <thead><tr><th>Workstream</th><th>On critical path?</th></tr></thead>
+    <tbody>
+      <tr><td>API upload endpoint + validators + Kafka emit</td><td>Yes (gates everything)</td></tr>
+      <tr><td>Transcoder daemon (ffmpeg, Kafka consumer, GCS upload, variant rows)</td><td>Yes</td></tr>
+      <tr><td>Variant table + repository read joins</td><td>Yes</td></tr>
+      <tr><td>Adserver <code>HandleVideoDisplay</code> + UA → format mapping</td><td>Yes</td></tr>
+      <tr><td>Video upload UI + adapter (admin + client)</td><td>No (parallelizable)</td></tr>
+      <tr><td>ClickHouse schema + reporting column</td><td>No</td></tr>
+      <tr><td>Dockerfile.daemon-video + CI + rollout</td><td>No</td></tr>
+      <tr><td>Perf test (extra Aerospike GET, queue depth)</td><td>Pre-ship gate</td></tr>
+    </tbody>
+  </table>
+
+  <p>Critical path runs API upload contract → transcoder daemon → adserver route. FE upload, reporting, and rollout work can run in parallel once the API contract is frozen. Legal sign-off on H.264 / AAC encoding is the only external blocker — if it stalls, v1 ships animated WebP + WebM only and defers MP4 to v2.</p>
+</section>
+
+<!-- 11. Decisions -->
+<section id="decisions">
+  <h2>11. Open decisions for stakeholders</h2>
+  <p>These are not engineering questions. They are product and commercial calls that engineering should not make alone.</p>
+
+  <ol>
+    <li><strong>Apple MPP variant policy.</strong> Animated WebP (rich, expensive) or static poster (cheap, no motion) for the largest single recipient segment in many campaigns? Shapes the cost model.</li>
+    <li><strong>Legal sign-off on H.264/AAC encoding</strong> for commercial distribution. If sign-off is slow, v1 ships animated WebP + WebM only.</li>
+    <li><strong>Is the click-through hosted landing page in scope for v1?</strong> Without it, sales has no real video-view numbers to quote. With it, v1 scope grows.</li>
+    <li><strong>Polotno integration roadmap.</strong> Confirm v1 is upload-only (no editor), v1.5 considers Polotno for poster/end-card design, v2 considers overlay composition.</li>
+    <li><strong>Duration cap.</strong> Pick a single number, not a range. Recommend 30s hard cap at upload validation.</li>
+    <li><strong>Maximum file-size cap</strong> at upload. Recommend 50 MB; advertisers wanting more get directed to the hosted landing-page product.</li>
+    <li><strong>Brand-safety toggle</strong> for advertisers who do not want motion (force static even where animation is supported).</li>
+  </ol>
+</section>
+
+<!-- 12. Appendix -->
+<section id="appendix">
+  <h2>12. Appendix — full reports</h2>
+  <p>Two specialist reviews informed this document. Both are reproduced below in full for the engineering audience.</p>
+
+  <details>
+    <summary>Full critic report (verdict: revise; one Blocker, three Major findings)</summary>
+    <div class="body">
+      <p>The critic lane produced a 1,500-word adversarial review of the proposal. Highlights:</p>
+      <ul>
+        <li><strong>Blocker 1:</strong> the <code>&lt;picture&gt;&lt;source type="video/webm"&gt;</code> claim is factually wrong; a build team would attempt to implement it.</li>
+        <li><strong>Blocker 2:</strong> ffmpeg is recommended but the dependency is unowned — no execution model, no patent posture, no operational plan.</li>
+        <li><strong>Blocker 3:</strong> Apple MPP unit economics are ignored; one defensible cost model required before stakeholders sign off.</li>
+        <li><strong>Major findings:</strong> Outlook desktop matrix is stale (new Outlook = WebView2); <code>&lt;picture&gt;</code> "client picks" claim overstates webmail capability; analytics story is missing; storage variant fan-out unowned; transcode latency vs. campaign go-live undefined; FE upload UX scope omitted.</li>
+        <li><strong>Minor findings:</strong> <code>Accept</code> header reliability overstated, <code>Sec-Fetch-Dest</code> not sent by native mail clients, file-size table caveats buried, duration cap is a range not a number.</li>
+        <li><strong>Recommended cut:</strong> strip to animated WebP + static JPG poster + hosted click-through landing page. Defer MP4, WebM, GIF to v2. Eliminates the patent question and bounds the MPP cost in v1.</li>
+      </ul>
+      <p>The critic explicitly verified the following from the codebase before writing: <code>composer.json</code> ships Imagick but not ffmpeg; <code>src/Click/Redirect/</code> and <code>src/Device/CreateForGmailProxy.php</code> confirm redirect + proxy-classification plumbing is real; <code>RHFImageUpload</code> exists but is image-only. Verdict was REJECT (REVISE) — the bones of a workable plan are present, but the proposal must own the architectural and commercial questions it currently dodges before a build team can be tasked.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>Full architecture / feasibility report (verdict: feasible; build-don't-buy)</summary>
+    <div class="body">
+      <p>The architecture lane produced a 2,000-word feasibility assessment grounded in code paths. Highlights:</p>
+      <ul>
+        <li><strong>Most critical finding:</strong> <code>libvpx7</code> and <code>libwebp7</code> are already installed in the adserver runtime (Dockerfile), so adding ffmpeg is the binary install — not a codec stack rebuild.</li>
+        <li><strong>Hot-path verdict:</strong> the new variant lookup adds one Aerospike GET per ad-request. The current path already does multiple GETs; the extra one fits the existing budget. Needs a perf test (the project already has a <code>locustfile.py</code>).</li>
+        <li><strong>Transcoder placement:</strong> cannot run inside the FrankenPHP worker (would block ad-serving threads). Must run as a seventh daemon (<code>daemon7.sh</code>) consuming a new Kafka topic — identical to the six existing daemons.</li>
+        <li><strong>Build vs buy:</strong> self-hosted ffmpeg in a separate worker container. Cloud transcoders either don't output animated WebP (the workhorse format) or use the wrong delivery model (HLS instead of static asset).</li>
+        <li><strong>Storage model:</strong> add a <code>creative_variants</code> table; variants are siblings keyed by <code>creative_group_id</code>. No change to the existing creatives table.</li>
+        <li><strong>FE work:</strong> <code>RHFVideoUpload</code> sibling to <code>RHFImageUpload</code>; new components <code>TranscodeStatusBadge</code>, <code>VideoVariantInspector</code>, <code>VideoFallbackConfig</code>. Creative-form gains a type toggle. Existing <code>creatives-image-editor</code> is canvas-image-specific and is not reusable for video.</li>
+        <li><strong>Effort shape:</strong> one BE + one FE engineer. Critical path is API upload contract → transcoder daemon → adserver route. FE upload, reporting, and rollout work parallelize once the API contract is frozen.</li>
+        <li><strong>Honest gaps:</strong> the architect could not verify the contents of the <code>passendo/native-image-builder</code> vendor library (empty in this checkout) or read the live ClickHouse <code>events</code> table DDL. Confirm both with the team before locking the daemon design.</li>
+      </ul>
+    </div>
+  </details>
+</section>
+
+<footer class="foot">
+  <p>Sources: <code>docs/video-ads-proposal.md</code>, the Emperor adserver and admin API codebases, the Emperor frontend monorepo. The two specialist lanes (critic and architect) read the relevant files directly before writing; every code-path claim in this report is grounded in a file path. This document is a stakeholder summary — it is not the implementation spec. A buildable spec is the next deliverable after the open decisions in Section 11 are made.</p>
+</footer>
+
+</div>
+</body>
+</html>
