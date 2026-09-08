@@ -22,6 +22,10 @@ th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--line);verti
 th{color:var(--muted);font-weight:600}
 .lead{color:var(--muted);font-size:1.05rem;margin-bottom:1.6em}
 .meta{color:var(--muted);font-size:.9rem;margin-top:3em}
+.fig{margin:1em 0 1.5em}
+.fig .mermaid{background:var(--code);border:1px solid var(--line);border-radius:6px;padding:12px;overflow-x:auto;text-align:center}
+.fig .mermaid svg{max-width:100%;height:auto}
+.cap{color:var(--muted);font-size:.9rem;margin:.4em 0 0}
 </style>
 </head>
 <body>
@@ -32,30 +36,94 @@ th{color:var(--muted);font-weight:600}
 
 <p><strong>Goal.</strong> OpenClaw posts an <em>ask</em>. A pool of Claude Code workers picks it up, researches against MySQL and ClickHouse (read-only), writes a markdown answer, and OpenClaw fetches the result.</p>
 
-<pre><code> OpenClaw ──POST /asks──▶ ┌──────────────────────────┐ ◀── GET /asks/{id}  (poll / webhook)
-                          │  ask-api  (FastAPI, :8080)│
-                          │  SQLite queue: asks table │
-                          │  status: pending →        │
-                          │   processing → done|failed│
-                          └────────────┬──────────────┘
-                                       │ POST /asks/next  (30s loop, atomic claim)
-        ┌──────────────────────────────┼──────────────────────────────┐
-        ▼                              ▼                              ▼
- ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐
- │ tmux: w1    │  │ tmux: w2    │  │ tmux: w3    │  │ tmux: w4    │  │ tmux: w5    │
- │ claude -p   │  │ claude -p   │  │ claude -p   │  │ claude -p   │  │ claude -p   │
- │ (fable)     │  │             │  │             │  │             │  │             │
- └──────┬──────┘  └──────┬──────┘  └──────┬──────┘  └──────┬──────┘  └──────┬──────┘
-        │  MCP stdio (readonly-db: query_mysql / query_clickhouse / describe_table …)
-        ▼
- ┌────────────────────────────────────────────────────────────────────────────────┐
- │ readonly-db-mcp  (sqlglot SELECT-only → RO transaction → SELECT-only DB user)   │
- └──────────────┬──────────────────────────────────────┬──────────────────────────┘
-                ▼                                      ▼
-        MySQL `emperor` (entities)            ClickHouse `emperor` (events, *_statistics MVs)
+<h2 style="border-top:0;margin-top:1em">Architecture</h2>
+<div class="fig">
+<pre class="mermaid">
+flowchart LR
+  OC["OpenClaw<br/>(Slack / chat front)"]
+  subgraph C["Docker container: emperor-research-pool (claude-sandbox base)"]
+    direction LR
+    API["ask-api<br/>FastAPI :8080<br/>SQLite queue"]
+    subgraph P["tmux session: 5 workers, 30s poll loop"]
+      direction TB
+      W1["w1 · claude -p"]
+      W2["w2 · claude -p"]
+      W3["w3 · claude -p"]
+      W4["w4 · claude -p"]
+      W5["w5 · claude -p"]
+    end
+    DOCS[("docs/overview/*<br/>AI_DATA_RESEARCH_BOOTSTRAP.md<br/>(system prompt)")]
+    MCP["readonly-db-mcp<br/>sqlglot SELECT-only<br/>RO transaction<br/>SELECT-only DB user"]
+  end
+  MY[("MySQL emperor<br/>entities, UUID PKs")]
+  CH[("ClickHouse emperor<br/>events, *_statistics MVs")]
 
- All of the above runs in ONE docker container (claude-sandbox base image + tmux + python).
- Knowledge = /workspace/docs/overview/* + docs/AI_DATA_RESEARCH_BOOTSTRAP.md as system prompt.</code></pre>
+  OC -- "POST /asks" --> API
+  API -. "GET /asks/{id} or callback" .-> OC
+  P -- "POST /asks/next (atomic claim)<br/>PUT /asks/{id} (done / failed)" --> API
+  DOCS -. "read per ask" .-> P
+  P -- "MCP stdio" --> MCP
+  MCP --> MY
+  MCP --> CH
+
+  classDef ext fill:#e8eef7,stroke:#4a6fa5,color:#111
+  classDef q fill:#fdf1e6,stroke:#a3452c,color:#111
+  classDef w fill:#f3f0e8,stroke:#7a7466,color:#111
+  classDef db fill:#e9f2ea,stroke:#3d7a4a,color:#111
+  classDef guard fill:#f6e9ee,stroke:#8f3a5a,color:#111
+  class OC ext
+  class API q
+  class W1,W2,W3,W4,W5 w
+  class DOCS,MY,CH db
+  class MCP guard
+</pre>
+<p class="cap">Everything inside the dashed box runs in one container. The only ingress is port 8080 for OpenClaw. The only egress is SELECT traffic to the two databases through readonly-db-mcp.</p>
+</div>
+
+<h2>Ask lifecycle</h2>
+<div class="fig">
+<pre class="mermaid">
+sequenceDiagram
+  autonumber
+  participant OC as OpenClaw
+  participant API as ask-api (SQLite)
+  participant W as worker wN (tmux)
+  participant CL as claude -p
+  participant DB as readonly-db-mcp → MySQL / ClickHouse
+
+  OC->>API: POST /asks {question, requester, callback_url}
+  API-->>OC: {id, status: pending}
+  loop every 30s, 5 workers
+    W->>API: POST /asks/next {worker}
+    API-->>W: ask (atomic UPDATE → processing) or 204
+  end
+  W->>CL: claude -p question --append-system-prompt-file bootstrap.md --allowedTools mcp__readonly-db__*
+  CL->>CL: read docs/overview (schema, playbook, gotchas)
+  CL->>DB: query_clickhouse / query_mysql (SELECT only, ≤30s each)
+  DB-->>CL: markdown table (≤1000 rows)
+  CL-->>W: {result: answer_md}
+  W->>API: PUT /asks/{id} {status: done, answer_md}
+  API-->>OC: callback_url (or OC polls GET /asks/{id})
+  OC->>API: DELETE /asks/{id}
+</pre>
+<p class="cap">Typical wall time is 1 to 6 minutes per ask. A 15-minute timeout around the claude call and a stale-lock sweeper on the API cover worker crashes.</p>
+</div>
+
+<h2>Queue state machine</h2>
+<div class="fig">
+<pre class="mermaid">
+stateDiagram-v2
+  [*] --> pending : POST /asks
+  pending --> processing : POST /asks/next (atomic claim)
+  processing --> done : PUT status=done
+  processing --> failed : PUT status=failed / timeout 900s
+  processing --> pending : stale > N min (sweeper)
+  done --> [*] : DELETE /asks/{id}
+  failed --> [*] : DELETE /asks/{id}
+</pre>
+</div>
+
+<p><strong>Knowledge base mounted into every ask:</strong> <code>docs/overview/SCHEMA_MACHINE_READABLE.yaml</code>, <code>CROSS_DB_ANALYSIS_PLAYBOOK.md</code>, <code>DATA_MODEL_REFERENCE.md</code>, <code>SENDOUT_IDENTIFIER_MITIGATION.md</code>, <code>HOW_AD_SELECTION_WORKS.md</code>, <code>EMPEROR_SYSTEM_OVERVIEW.md</code>, plus <code>AI_DATA_RESEARCH_BOOTSTRAP.md</code> as the system prompt (query discipline, GDPR views, fraud and device semantics).</p>
 
 <h2>1. ask-api (the queue) — about 80 lines of FastAPI + SQLite</h2>
 <div class="tw">
@@ -126,6 +194,22 @@ Concurrency: 5 asks in flight; queue depth unbounded (SQLite).</code></pre>
 </ul>
 
 <p class="meta">Emperor · architecture sketch · 2026-09-08 · source: docs/AI_ASK_WORKER_POOL_SKETCH.md</p>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.4.1/mermaid.min.js"></script>
+<script>
+(function(){
+  var dark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: dark ? 'dark' : 'neutral',
+    securityLevel: 'loose',
+    flowchart: { curve: 'basis', htmlLabels: true, padding: 12 },
+    sequence: { mirrorActors: false, actorMargin: 40, messageMargin: 32 },
+    themeVariables: dark
+      ? { fontFamily: 'system-ui, sans-serif', primaryColor: '#2a2d33', primaryTextColor: '#e6e4df', lineColor: '#a3a19b', clusterBkg: '#1c1e22', clusterBorder: '#44474d' }
+      : { fontFamily: 'system-ui, sans-serif', primaryColor: '#f3f0e8', primaryTextColor: '#1e1e1e', lineColor: '#5c5c5c', clusterBkg: '#f7f5f0', clusterBorder: '#c9c5bb' }
+  });
+})();
+</script>
 </main>
 </body>
 </html>
