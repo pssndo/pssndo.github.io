@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Emperor Data-Research Worker Pool</title>
+<style>
+:root{--bg:#fbfaf7;--fg:#1e1e1e;--muted:#5c5c5c;--code:#f0eee8;--line:#d9d6ce;--accent:#a3452c}
+@media(prefers-color-scheme:dark){:root{--bg:#151618;--fg:#e6e4df;--muted:#a3a19b;--code:#1f2124;--line:#33363b;--accent:#e0785a}}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:1000px;margin:0 auto;padding:40px 24px 80px}
+h1{font-size:1.9rem;line-height:1.2;margin:0 0 .3em}
+h2{font-size:1.25rem;margin:2em 0 .6em;padding-top:.6em;border-top:1px solid var(--line)}
+p,li{max-width:78ch}
+strong{color:var(--accent)}
+pre{background:var(--code);border:1px solid var(--line);border-radius:6px;padding:14px 16px;overflow-x:auto;font:13px/1.4 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.9em;background:var(--code);padding:1px 5px;border-radius:4px}
+pre code{padding:0;background:none;font-size:inherit}
+.tw{overflow-x:auto;margin:1em 0}
+table{border-collapse:collapse;width:100%;font-size:.92rem}
+th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--muted);font-weight:600}
+.lead{color:var(--muted);font-size:1.05rem;margin-bottom:1.6em}
+.meta{color:var(--muted);font-size:.9rem;margin-top:3em}
+</style>
+</head>
+<body>
+<main>
+
+<h1>Emperor Data-Research Worker Pool</h1>
+<p class="lead">Architecture sketch for exposing Claude + readonly-db MCP + the docs/overview knowledge base as a service OpenClaw can call.</p>
+
+<p><strong>Goal.</strong> OpenClaw posts an <em>ask</em>. A pool of Claude Code workers picks it up, researches against MySQL and ClickHouse (read-only), writes a markdown answer, and OpenClaw fetches the result.</p>
+
+<pre><code> OpenClaw ──POST /asks──▶ ┌──────────────────────────┐ ◀── GET /asks/{id}  (poll / webhook)
+                          │  ask-api  (FastAPI, :8080)│
+                          │  SQLite queue: asks table │
+                          │  status: pending →        │
+                          │   processing → done|failed│
+                          └────────────┬──────────────┘
+                                       │ POST /asks/next  (30s loop, atomic claim)
+        ┌──────────────────────────────┼──────────────────────────────┐
+        ▼                              ▼                              ▼
+ ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐
+ │ tmux: w1    │  │ tmux: w2    │  │ tmux: w3    │  │ tmux: w4    │  │ tmux: w5    │
+ │ claude -p   │  │ claude -p   │  │ claude -p   │  │ claude -p   │  │ claude -p   │
+ │ (fable)     │  │             │  │             │  │             │  │             │
+ └──────┬──────┘  └──────┬──────┘  └──────┬──────┘  └──────┬──────┘  └──────┬──────┘
+        │  MCP stdio (readonly-db: query_mysql / query_clickhouse / describe_table …)
+        ▼
+ ┌────────────────────────────────────────────────────────────────────────────────┐
+ │ readonly-db-mcp  (sqlglot SELECT-only → RO transaction → SELECT-only DB user)   │
+ └──────────────┬──────────────────────────────────────┬──────────────────────────┘
+                ▼                                      ▼
+        MySQL `emperor` (entities)            ClickHouse `emperor` (events, *_statistics MVs)
+
+ All of the above runs in ONE docker container (claude-sandbox base image + tmux + python).
+ Knowledge = /workspace/docs/overview/* + docs/AI_DATA_RESEARCH_BOOTSTRAP.md as system prompt.</code></pre>
+
+<h2>1. ask-api (the queue) — about 80 lines of FastAPI + SQLite</h2>
+<div class="tw">
+<table>
+<thead><tr><th>Method</th><th>Path</th><th>Who</th><th>Effect</th></tr></thead>
+<tbody>
+<tr><td>POST</td><td><code>/asks</code></td><td>OpenClaw</td><td><code>{question, requester, callback_url?}</code> → <code>{id, status: pending}</code></td></tr>
+<tr><td>GET</td><td><code>/asks/{id}</code></td><td>OpenClaw</td><td>status + <code>answer_md</code> when done</td></tr>
+<tr><td>POST</td><td><code>/asks/next</code></td><td>worker</td><td>atomic claim: <code>UPDATE … SET status='processing', worker=? WHERE id=(SELECT id … pending LIMIT 1)</code>; returns the ask or 204</td></tr>
+<tr><td>PUT</td><td><code>/asks/{id}</code></td><td>worker</td><td><code>{status: done|failed, answer_md, artifacts[]}</code>; fires <code>callback_url</code> if set</td></tr>
+<tr><td>DELETE</td><td><code>/asks/{id}</code></td><td>worker / OpenClaw</td><td>remove from queue after the result is collected</td></tr>
+</tbody>
+</table>
+</div>
+<ul>
+<li><strong>Atomic claim in the DB</strong> replaces "first tmux marks it". Five pollers cannot double-claim a row.</li>
+<li><strong>Stale-lock sweep:</strong> <code>processing</code> rows older than N minutes go back to <code>pending</code> (worker died).</li>
+</ul>
+
+<h2>2. Worker loop (one per tmux window, 5 windows)</h2>
+<pre><code># worker.sh  — runs inside tmux window wN
+while true; do
+  ask=$(curl -sf -X POST localhost:8080/asks/next -d "{\"worker\":\"$W\"}") || { sleep 30; continue; }
+  id=$(jq -r .id &lt;&lt;&lt;"$ask"); q=$(jq -r .question &lt;&lt;&lt;"$ask")
+  out=$(timeout 900 claude -p "$q" \
+        --append-system-prompt-file docs/AI_DATA_RESEARCH_BOOTSTRAP.md \
+        --allowedTools "mcp__readonly-db__*,Read,Grep,Glob,Bash(python3 *),Bash(jq *)" \
+        --max-turns 60 --output-format json 2&gt;/tmp/$id.err) \
+    &amp;&amp; curl -s -X PUT localhost:8080/asks/$id \
+         -d "$(jq -n --arg a "$(jq -r .result &lt;&lt;&lt;"$out")" '{status:"done",answer_md:$a}')" \
+    || curl -s -X PUT localhost:8080/asks/$id \
+         -d "{\"status\":\"failed\",\"answer_md\":\"$(head -c 2000 /tmp/$id.err)\"}"
+  sleep 30
+done</code></pre>
+<ul>
+<li><code>claude -p</code> is headless. No skip-permissions flag is needed because <code>--allowedTools</code> is an explicit allowlist: MCP read tools, repo reads, and python/jq for parsing result dumps.</li>
+<li>Each run is a fresh context, so there is no cross-ask leakage. Docs are re-read per ask (cheap, prompt-cached).</li>
+<li>Deliverables land in <code>tmp/&lt;ask-id&gt;/</code> per the bootstrap doc; <code>answer_md</code> is the report.</li>
+</ul>
+
+<h2>3. Container (one Dockerfile, derived from claude-sandbox)</h2>
+<pre><code>FROM claude-sandbox                    # node:20-bookworm + tmux + python3 + claude CLI
+RUN pip install readonly-db-mcp fastapi uvicorn
+COPY ask_api.py worker.sh supervisor.sh /app/
+WORKDIR /workspace                     # bind-mount emperor repo (docs/ + .mcp.json)
+ENV MYSQL_1_DSN=... CLICKHOUSE_1_DSN=...   # SELECT-only DB users (Layer 3)
+CMD ["/app/supervisor.sh"]
+# supervisor.sh: uvicorn ask_api:app --port 8080 &amp;
+#                tmux new -d -s pool; for i in 1..5: tmux new-window -t pool "W=w$i /app/worker.sh"
+#                tmux attach   (or `tail -f` for detached mode)</code></pre>
+<p><strong>Mounts:</strong> <code>emperor/:/workspace:ro</code> (docs + <code>.mcp.json</code>), a named volume for <code>~/.claude</code> (OAuth / API key), and an <code>ask.db</code> volume for the queue. Port 8080 is exposed to OpenClaw only (LAN or docker network).</p>
+
+<h2>4. OpenClaw integration contract</h2>
+<pre><code>OpenClaw skill/tool "emperor_research":
+  1. POST http://pool:8080/asks {question, requester:"&lt;slack user&gt;", callback_url:"&lt;openclaw hook&gt;"}
+  2. either wait for the callback, or poll GET /asks/{id} every 15s until status ∈ {done, failed}
+  3. render answer_md to the user; DELETE /asks/{id}
+
+Typical latency: 1–6 min (ClickHouse 30s/query cap × several queries + reasoning).
+Concurrency: 5 asks in flight; queue depth unbounded (SQLite).</code></pre>
+
+<h2>5. Guardrails in place, and to add</h2>
+<ul>
+<li><strong>Read-only is enforced three times</strong> by readonly-db-mcp: SQL AST validation, read-only transaction, SELECT-only DB user. No ask can write.</li>
+<li><strong>GDPR:</strong> <code>userIdentity</code> / <code>ipAddress</code> only via the <code>ai_reader_us_clients_*</code> views (bootstrap doc §2). EU clients get segment-level analysis only.</li>
+<li><strong>To add:</strong> per-ask turn cap (<code>--max-turns</code>), 15-minute wall timeout, API-key header on ask-api, SQL logging (readonly-db already logs every query).</li>
+<li><strong>Optional next step:</strong> swap SQLite for Redis/RQ if the pool spans more than one host; add <code>GET /asks?status=</code> for an OpenClaw dashboard.</li>
+</ul>
+
+<p class="meta">Emperor · architecture sketch · 2026-09-08 · source: docs/AI_ASK_WORKER_POOL_SKETCH.md</p>
+</main>
+</body>
+</html>
