@@ -36,94 +36,155 @@ th{color:var(--muted);font-weight:600}
 
 <p><strong>Goal.</strong> OpenClaw posts an <em>ask</em>. A pool of Claude Code workers picks it up, researches against MySQL and ClickHouse (read-only), writes a markdown answer, and OpenClaw fetches the result.</p>
 
+<style>
+.d{display:block;width:100%;height:auto;margin:1em 0 .4em;font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+.d .bx{fill:var(--code);stroke:var(--fg);stroke-width:1.2}
+.d .ext{fill:#dbe6f5;stroke:#3f6aa8} .d .q{fill:#fbe7d6;stroke:#a3452c} .d .g{fill:#f3dfe6;stroke:#8f3a5a} .d .db{fill:#dcebdf;stroke:#3d7a4a} .d .w{fill:#ece8dc;stroke:#7a7466}
+.d text{fill:#1e1e1e;font-size:13px} .d .t{font-weight:600;font-size:14px} .d .s{font-size:11.5px;fill:#444}
+.d .lbl{fill:var(--fg);font-size:11.5px} .d .lbl.s{fill:var(--muted)}
+.d .ln{stroke:var(--fg);stroke-width:1.4;fill:none;marker-end:url(#ah)} .d .dash{stroke-dasharray:5 4}
+.d .box{fill:none;stroke:var(--muted);stroke-dasharray:7 5;stroke-width:1.2}
+.d .cap{fill:var(--muted);font-size:12px;font-style:italic}
+</style>
+
 <h2 style="border-top:0;margin-top:1em">Architecture</h2>
-<div class="fig">
-<pre class="mermaid">
-flowchart LR
-  OC["OpenClaw<br/>(Slack / chat front)"]
-  subgraph C["Docker container: emperor-research-pool (claude-sandbox base)"]
-    direction LR
-    API["ask-api<br/>FastAPI :8080<br/>SQLite queue"]
-    subgraph P["tmux session: 5 workers, 30s poll loop"]
-      direction TB
-      W1["w1 · claude -p"]
-      W2["w2 · claude -p"]
-      W3["w3 · claude -p"]
-      W4["w4 · claude -p"]
-      W5["w5 · claude -p"]
-    end
-    DOCS[("docs/overview/*<br/>AI_DATA_RESEARCH_BOOTSTRAP.md<br/>(system prompt)")]
-    MCP["readonly-db-mcp<br/>sqlglot SELECT-only<br/>RO transaction<br/>SELECT-only DB user"]
-  end
-  MY[("MySQL emperor<br/>entities, UUID PKs")]
-  CH[("ClickHouse emperor<br/>events, *_statistics MVs")]
+<svg class="d" viewBox="0 0 1000 540" role="img" aria-label="Architecture diagram">
+<defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--fg)"/></marker></defs>
 
-  OC -- "POST /asks" --> API
-  API -. "GET /asks/{id} or callback" .-> OC
-  P -- "POST /asks/next (atomic claim)<br/>PUT /asks/{id} (done / failed)" --> API
-  DOCS -. "read per ask" .-> P
-  P -- "MCP stdio" --> MCP
-  MCP --> MY
-  MCP --> CH
+<!-- container -->
+<rect class="box" x="205" y="20" width="580" height="500" rx="10"/>
+<text class="cap" x="220" y="42">Docker container · emperor-research-pool (claude-sandbox base image + tmux + python)</text>
 
-  classDef ext fill:#e8eef7,stroke:#4a6fa5,color:#111
-  classDef q fill:#fdf1e6,stroke:#a3452c,color:#111
-  classDef w fill:#f3f0e8,stroke:#7a7466,color:#111
-  classDef db fill:#e9f2ea,stroke:#3d7a4a,color:#111
-  classDef guard fill:#f6e9ee,stroke:#8f3a5a,color:#111
-  class OC ext
-  class API q
-  class W1,W2,W3,W4,W5 w
-  class DOCS,MY,CH db
-  class MCP guard
-</pre>
-<p class="cap">Everything inside the dashed box runs in one container. The only ingress is port 8080 for OpenClaw. The only egress is SELECT traffic to the two databases through readonly-db-mcp.</p>
-</div>
+<!-- OpenClaw -->
+<rect class="bx ext" x="20" y="230" width="150" height="70" rx="8"/>
+<text class="t" x="95" y="260" text-anchor="middle">OpenClaw</text>
+<text class="s" x="95" y="280" text-anchor="middle">Slack / chat front</text>
+
+<!-- ask-api -->
+<rect class="bx q" x="235" y="215" width="160" height="100" rx="8"/>
+<text class="t" x="315" y="242" text-anchor="middle">ask-api</text>
+<text class="s" x="315" y="262" text-anchor="middle">FastAPI :8080</text>
+<text class="s" x="315" y="279" text-anchor="middle">SQLite queue: asks</text>
+<text class="s" x="315" y="296" text-anchor="middle">pending → processing → done|failed</text>
+
+<!-- tmux pool -->
+<rect class="box" x="430" y="60" width="180" height="330" rx="8"/>
+<text class="cap" x="520" y="80" text-anchor="middle">tmux · 5 workers · 30s poll</text>
+<rect class="bx w" x="450" y="95" width="140" height="42" rx="6"/><text class="t" x="520" y="121" text-anchor="middle">w1 · claude -p</text>
+<rect class="bx w" x="450" y="150" width="140" height="42" rx="6"/><text class="t" x="520" y="176" text-anchor="middle">w2 · claude -p</text>
+<rect class="bx w" x="450" y="205" width="140" height="42" rx="6"/><text class="t" x="520" y="231" text-anchor="middle">w3 · claude -p</text>
+<rect class="bx w" x="450" y="260" width="140" height="42" rx="6"/><text class="t" x="520" y="286" text-anchor="middle">w4 · claude -p</text>
+<rect class="bx w" x="450" y="315" width="140" height="42" rx="6"/><text class="t" x="520" y="341" text-anchor="middle">w5 · claude -p</text>
+
+<!-- docs -->
+<path class="bx db" d="M445,432 a75,10 0 0 1 150,0 v60 a75,10 0 0 1 -150,0 z"/>
+<path d="M445,432 a75,10 0 0 0 150,0" fill="none" stroke="#3d7a4a" stroke-width="1.2"/>
+<text class="s" x="520" y="462" text-anchor="middle">docs/overview/* (schema, playbook)</text>
+<text class="s" x="520" y="478" text-anchor="middle">AI_DATA_RESEARCH_BOOTSTRAP.md</text>
+<text class="s" x="520" y="494" text-anchor="middle">= system prompt</text>
+
+<!-- MCP -->
+<rect class="bx g" x="640" y="180" width="125" height="150" rx="8"/>
+<text class="t" x="702" y="207" text-anchor="middle">readonly-db-mcp</text>
+<text class="s" x="702" y="232" text-anchor="middle">1 · sqlglot AST</text>
+<text class="s" x="702" y="247" text-anchor="middle">SELECT-only</text>
+<text class="s" x="702" y="270" text-anchor="middle">2 · read-only txn</text>
+<text class="s" x="702" y="293" text-anchor="middle">3 · SELECT-only</text>
+<text class="s" x="702" y="308" text-anchor="middle">DB user</text>
+
+<!-- DBs -->
+<path class="bx db" d="M830,120 a75,10 0 0 1 150,0 v70 a75,10 0 0 1 -150,0 z"/>
+<path d="M830,120 a75,10 0 0 0 150,0" fill="none" stroke="#3d7a4a" stroke-width="1.2"/>
+<text class="t" x="905" y="156" text-anchor="middle">MySQL · emperor</text>
+<text class="s" x="905" y="175" text-anchor="middle">entities, UUID PKs</text>
+
+<path class="bx db" d="M830,330 a75,10 0 0 1 150,0 v70 a75,10 0 0 1 -150,0 z"/>
+<path d="M830,330 a75,10 0 0 0 150,0" fill="none" stroke="#3d7a4a" stroke-width="1.2"/>
+<text class="t" x="905" y="366" text-anchor="middle">ClickHouse · emperor</text>
+<text class="s" x="905" y="385" text-anchor="middle">events, *_statistics MVs</text>
+
+<!-- arrows -->
+<path class="ln" d="M170,250 H233"/>
+<text class="lbl" x="202" y="243" text-anchor="middle">POST /asks</text>
+<path class="ln dash" d="M233,285 H172"/>
+<text class="lbl s" x="202" y="303" text-anchor="middle">GET /asks/{id}</text>
+<text class="lbl s" x="202" y="316" text-anchor="middle">or callback</text>
+
+<path class="ln" d="M430,225 H397"/>
+<text class="lbl" x="413" y="215" text-anchor="middle">claim</text>
+<text class="lbl s" x="413" y="203" text-anchor="middle">POST /asks/next</text>
+<path class="ln" d="M430,300 H397"/>
+<text class="lbl s" x="413" y="322" text-anchor="middle">PUT /asks/{id}</text>
+<text class="lbl s" x="413" y="335" text-anchor="middle">done|failed</text>
+
+<path class="ln dash" d="M520,430 V392"/>
+<text class="lbl s" x="530" y="415">read per ask</text>
+
+<path class="ln" d="M610,255 H638"/>
+<text class="lbl s" x="624" y="245" text-anchor="middle">MCP</text>
+<text class="lbl s" x="624" y="272" text-anchor="middle">stdio</text>
+
+<path class="ln" d="M765,230 C800,230 800,165 828,165"/>
+<path class="ln" d="M765,290 C800,290 800,365 828,365"/>
+<text class="lbl s" x="800" y="278" text-anchor="middle">SELECT only</text>
+
+<!-- ingress note -->
+<text class="cap" x="220" y="510">Only ingress: :8080 from OpenClaw · only egress: SELECT to the two DBs</text>
+</svg>
 
 <h2>Ask lifecycle</h2>
-<div class="fig">
-<pre class="mermaid">
-sequenceDiagram
-  autonumber
-  participant OC as OpenClaw
-  participant API as ask-api (SQLite)
-  participant W as worker wN (tmux)
-  participant CL as claude -p
-  participant DB as readonly-db-mcp → MySQL / ClickHouse
+<svg class="d" viewBox="0 0 1000 250" role="img" aria-label="Ask lifecycle">
+<defs><marker id="ah2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--fg)"/></marker></defs>
+<g style="marker-end:url(#ah2)">
+<!-- steps -->
+<rect class="bx ext" x="15" y="40" width="140" height="80" rx="8"/>
+<text class="t" x="85" y="66" text-anchor="middle">1 · OpenClaw</text>
+<text class="s" x="85" y="86" text-anchor="middle">POST /asks</text>
+<text class="s" x="85" y="102" text-anchor="middle">{question, requester,</text>
+<text class="s" x="85" y="115" text-anchor="middle">callback_url}</text>
 
-  OC->>API: POST /asks {question, requester, callback_url}
-  API-->>OC: {id, status: pending}
-  loop every 30s, 5 workers
-    W->>API: POST /asks/next {worker}
-    API-->>W: ask (atomic UPDATE → processing) or 204
-  end
-  W->>CL: claude -p question --append-system-prompt-file bootstrap.md --allowedTools mcp__readonly-db__*
-  CL->>CL: read docs/overview (schema, playbook, gotchas)
-  CL->>DB: query_clickhouse / query_mysql (SELECT only, ≤30s each)
-  DB-->>CL: markdown table (≤1000 rows)
-  CL-->>W: {result: answer_md}
-  W->>API: PUT /asks/{id} {status: done, answer_md}
-  API-->>OC: callback_url (or OC polls GET /asks/{id})
-  OC->>API: DELETE /asks/{id}
-</pre>
-<p class="cap">Typical wall time is 1 to 6 minutes per ask. A 15-minute timeout around the claude call and a stale-lock sweeper on the API cover worker crashes.</p>
-</div>
+<rect class="bx q" x="185" y="40" width="140" height="80" rx="8"/>
+<text class="t" x="255" y="66" text-anchor="middle">2 · pending</text>
+<text class="s" x="255" y="86" text-anchor="middle">row in SQLite</text>
+<text class="s" x="255" y="102" text-anchor="middle">→ {id} returned</text>
 
-<h2>Queue state machine</h2>
-<div class="fig">
-<pre class="mermaid">
-stateDiagram-v2
-  [*] --> pending : POST /asks
-  pending --> processing : POST /asks/next (atomic claim)
-  processing --> done : PUT status=done
-  processing --> failed : PUT status=failed / timeout 900s
-  processing --> pending : stale > N min (sweeper)
-  done --> [*] : DELETE /asks/{id}
-  failed --> [*] : DELETE /asks/{id}
-</pre>
-</div>
+<rect class="bx w" x="355" y="40" width="140" height="80" rx="8"/>
+<text class="t" x="425" y="66" text-anchor="middle">3 · processing</text>
+<text class="s" x="425" y="86" text-anchor="middle">worker wN claims via</text>
+<text class="s" x="425" y="102" text-anchor="middle">POST /asks/next</text>
+<text class="s" x="425" y="115" text-anchor="middle">(one atomic UPDATE)</text>
 
-<p><strong>Knowledge base mounted into every ask:</strong> <code>docs/overview/SCHEMA_MACHINE_READABLE.yaml</code>, <code>CROSS_DB_ANALYSIS_PLAYBOOK.md</code>, <code>DATA_MODEL_REFERENCE.md</code>, <code>SENDOUT_IDENTIFIER_MITIGATION.md</code>, <code>HOW_AD_SELECTION_WORKS.md</code>, <code>EMPEROR_SYSTEM_OVERVIEW.md</code>, plus <code>AI_DATA_RESEARCH_BOOTSTRAP.md</code> as the system prompt (query discipline, GDPR views, fraud and device semantics).</p>
+<rect class="bx g" x="525" y="40" width="140" height="80" rx="8"/>
+<text class="t" x="595" y="66" text-anchor="middle">4 · research</text>
+<text class="s" x="595" y="86" text-anchor="middle">claude -p + bootstrap</text>
+<text class="s" x="595" y="102" text-anchor="middle">query_mysql / query_ch</text>
+<text class="s" x="595" y="115" text-anchor="middle">≤60 turns · ≤15 min</text>
+
+<rect class="bx q" x="695" y="40" width="140" height="80" rx="8"/>
+<text class="t" x="765" y="66" text-anchor="middle">5 · done | failed</text>
+<text class="s" x="765" y="86" text-anchor="middle">PUT /asks/{id}</text>
+<text class="s" x="765" y="102" text-anchor="middle">{answer_md}</text>
+<text class="s" x="765" y="115" text-anchor="middle">→ fires callback_url</text>
+
+<rect class="bx ext" x="865" y="40" width="125" height="80" rx="8"/>
+<text class="t" x="927" y="66" text-anchor="middle">6 · OpenClaw</text>
+<text class="s" x="927" y="86" text-anchor="middle">GET /asks/{id}</text>
+<text class="s" x="927" y="102" text-anchor="middle">render answer</text>
+<text class="s" x="927" y="115" text-anchor="middle">DELETE /asks/{id}</text>
+
+<path class="ln" d="M155,80 H183"/><path class="ln" d="M325,80 H353"/><path class="ln" d="M495,80 H523"/><path class="ln" d="M665,80 H693"/><path class="ln" d="M835,80 H863"/>
+
+<!-- stale loop -->
+<path class="ln dash" d="M425,120 V165 H255 V122"/>
+<text class="lbl s" x="340" y="182" text-anchor="middle">stale &gt; N min (worker died) → sweeper resets to pending</text>
+<!-- timeout -->
+<path class="ln dash" d="M595,120 V200 H765 V122"/>
+<text class="lbl s" x="680" y="217" text-anchor="middle">timeout 900s → failed</text>
+</g>
+<text class="cap" x="15" y="240">Typical wall time 1–6 min per ask · 5 in flight · queue depth unbounded</text>
+</svg>
+
+<p><strong>Knowledge base mounted into every ask:</strong> the six files in <code>docs/overview/</code> (machine-readable schema, cross-DB playbook, data model reference, sendout identifier mitigation, ad selection, system overview) plus <code>AI_DATA_RESEARCH_BOOTSTRAP.md</code> as the system prompt: query discipline, GDPR views, fraud and device semantics.</p>
 
 <h2>1. ask-api (the queue) — about 80 lines of FastAPI + SQLite</h2>
 <div class="tw">
@@ -194,22 +255,6 @@ Concurrency: 5 asks in flight; queue depth unbounded (SQLite).</code></pre>
 </ul>
 
 <p class="meta">Emperor · architecture sketch · 2026-09-08 · source: docs/AI_ASK_WORKER_POOL_SKETCH.md</p>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.4.1/mermaid.min.js"></script>
-<script>
-(function(){
-  var dark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-  mermaid.initialize({
-    startOnLoad: true,
-    theme: dark ? 'dark' : 'neutral',
-    securityLevel: 'loose',
-    flowchart: { curve: 'basis', htmlLabels: true, padding: 12 },
-    sequence: { mirrorActors: false, actorMargin: 40, messageMargin: 32 },
-    themeVariables: dark
-      ? { fontFamily: 'system-ui, sans-serif', primaryColor: '#2a2d33', primaryTextColor: '#e6e4df', lineColor: '#a3a19b', clusterBkg: '#1c1e22', clusterBorder: '#44474d' }
-      : { fontFamily: 'system-ui, sans-serif', primaryColor: '#f3f0e8', primaryTextColor: '#1e1e1e', lineColor: '#5c5c5c', clusterBkg: '#f7f5f0', clusterBorder: '#c9c5bb' }
-  });
-})();
-</script>
 </main>
 </body>
 </html>
