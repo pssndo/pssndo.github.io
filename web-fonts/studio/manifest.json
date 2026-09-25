@@ -1,5 +1,5 @@
 {
- "$note": "Upload artifact for a NEW studio/ directory in the pssndo.github.io repo (web-fonts/studio/). Review every licence entry before publishing — these become redistributed web fonts. Never modify or overwrite existing files in that repo; a legacy app depends on them.",
+ "$note": "Upload artifact for the web-fonts/studio/ directory of the pssndo.github.io repo. Review every licence entry before publishing — these become redistributed web fonts. Never modify or overwrite existing files in that repo; a legacy app depends on them.",
  "generatedBy": "scripts/build-web-fonts.mjs",
  "files": [
   {
@@ -2099,8 +2099,8 @@
    "vendor": null,
    "copyright": "AzBuki press 1991",
    "licence": null,
-   "renderingRepair": null,
-   "bytes": 25924
+   "renderingRepair": "Backend source fails the OpenType Sanitizer (wrong cmap searchRange fields; one illegal maxp.maxZones) and has no `gasp`; the fontTools round trip re-serialises cmap and resets maxp, so the published face is valid and smooth without touching the backend file. Check Palatino in Chrome on Windows before the first upload that includes it.",
+   "bytes": 18208
   },
   {
    "slug": "palatino-bolditalic.woff2",
@@ -2111,8 +2111,8 @@
    "vendor": null,
    "copyright": "Copyright (c) 1985, 1987, 1989, 1990, 1992, 1997 Adobe Systems Incorporated.  All Rights Reserved.Palatino is a trademark of Linotype-Hell AG and/or its subsidiaries.",
    "licence": null,
-   "renderingRepair": null,
-   "bytes": 22048
+   "renderingRepair": "Backend source fails the OpenType Sanitizer (wrong cmap searchRange fields; one illegal maxp.maxZones) and has no `gasp`; the fontTools round trip re-serialises cmap and resets maxp, so the published face is valid and smooth without touching the backend file. Check Palatino in Chrome on Windows before the first upload that includes it.",
+   "bytes": 15612
   },
   {
    "slug": "palatino-medium-italic.woff2",
@@ -2147,8 +2147,8 @@
    "vendor": null,
    "copyright": "AzBuki press 1991",
    "licence": null,
-   "renderingRepair": null,
-   "bytes": 25796
+   "renderingRepair": "Backend source fails the OpenType Sanitizer (wrong cmap searchRange fields; one illegal maxp.maxZones) and has no `gasp`; the fontTools round trip re-serialises cmap and resets maxp, so the published face is valid and smooth without touching the backend file. Check Palatino in Chrome on Windows before the first upload that includes it.",
+   "bytes": 18704
   },
   {
    "slug": "palatino-normal.woff2",
@@ -2159,8 +2159,8 @@
    "vendor": null,
    "copyright": "AzBuki press 1991",
    "licence": null,
-   "renderingRepair": null,
-   "bytes": 24840
+   "renderingRepair": "Backend source fails the OpenType Sanitizer (wrong cmap searchRange fields; one illegal maxp.maxZones) and has no `gasp`; the fontTools round trip re-serialises cmap and resets maxp, so the published face is valid and smooth without touching the backend file. Check Palatino in Chrome on Windows before the first upload that includes it.",
+   "bytes": 17244
   },
   {
    "slug": "playfairdisplay-bold.woff2",
